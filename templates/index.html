@@ -125,32 +125,51 @@
         updateThemeUI(savedTheme);
 
         socket.on('new_scan', function (data) {
-            dismissPrompt();
+            // 1. Update the Display Card
             document.getElementById('display-name').innerText = data.name;
             document.getElementById('display-price').innerText = clpFormatter.format(data.price);
             document.getElementById('display-barcode').innerText = data.barcode;
             document.getElementById('display-img').src = data.image || './static/placeholder.png';
+
+            // 2. Sync the Edit Form to this product
+            updateForm(data.barcode, data.name, data.price, data.image, "Editando: " + data.name);
         });
 
         socket.on('scan_error', function (data) {
+            // 1. Show the "Add New" prompt at the top
             const prompt = document.getElementById('new-product-prompt');
             document.getElementById('new-barcode-display').innerText = data.barcode;
             prompt.style.display = 'flex';
 
-            // FIX: Update the main display card even if it's not in the DB yet
+            // 2. Update Display Card with whatever info we have (cached or external)
             document.getElementById('display-name').innerText = data.name || "Producto Nuevo";
             document.getElementById('display-price').innerText = clpFormatter.format(0);
             document.getElementById('display-barcode').innerText = data.barcode;
             document.getElementById('display-img').src = data.image || './static/placeholder.png';
 
-            // Fill the form
-            document.getElementById('form-barcode').value = data.barcode;
-            document.getElementById('form-name').value = data.name || '';
-            document.getElementById('form-image').value = data.image || '';
-            document.getElementById('form-price').value = '';
-            document.getElementById('form-title').innerText = "Crear Nuevo: " + (data.name || data.barcode);
-            document.getElementById('form-price').focus();
+            // 3. Prepare the form for a new entry
+            updateForm(data.barcode, data.name, '', data.image, "Crear Nuevo: " + (data.name || data.barcode));
         });
+
+        function updateForm(barcode, name, price, image, title) {
+            // Reset the prompt if it was open
+            dismissPrompt();
+
+            // Update Form Fields
+            document.getElementById('form-barcode').value = barcode;
+            document.getElementById('form-name').value = name || '';
+            document.getElementById('form-price').value = price || '';
+            document.getElementById('form-image').value = image || '';
+            document.getElementById('form-title').innerText = title;
+
+            // Visual feedback: briefly highlight the form
+            const formCard = document.getElementById('product-form').parentElement;
+            formCard.style.border = "2px solid var(--accent)";
+            setTimeout(() => { formCard.style.border = "none"; }, 500);
+
+            // Focus price because it's usually the only thing missing
+            document.getElementById('form-price').focus();
+        }
 
         function dismissPrompt() {
             document.getElementById('new-product-prompt').style.display = 'none';

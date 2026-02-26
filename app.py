@@ -132,16 +132,19 @@ def index():
 def upsert():
     d = request.form
     barcode = d['barcode']
-    original_url = d['image_url']
     
-    # Process the URL: Download if external, or keep if already local/empty
-    final_image_path = download_image(original_url, barcode)
+    try:
+        price = float(d['price'])
+    except (ValueError, TypeError):
+        price = 0.0
+
+    final_image_path = download_image(d['image_url'], barcode)
     
     with sqlite3.connect(DB_FILE) as conn:
         conn.execute('''INSERT INTO products (barcode, name, price, image_url) VALUES (?,?,?,?)
                         ON CONFLICT(barcode) DO UPDATE SET name=excluded.name, 
                         price=excluded.price, image_url=excluded.image_url''',
-                     (barcode, d['name'], d['price'], final_image_path))
+                     (barcode, d['name'], price, final_image_path))
         conn.commit()
     return redirect(url_for('index'))
 
