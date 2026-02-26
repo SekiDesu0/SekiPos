@@ -83,7 +83,6 @@ python app.py
 - Better admin registration(?)
 - Cache user edited pictures
 - clear edited fields after scanning of new product
-- FIX cached images of not saved items dont get displayed
 
 ## 🥼 Food Datasets
 - https://www.ifpsglobal.com/plu-codes-search
