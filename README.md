@@ -82,7 +82,8 @@ python app.py
 ## 📋 TODOs?
 - Better admin registration(?)
 - Cache user edited pictures
-- clear edited filed after scanning of new product
+- clear edited fields after scanning of new product
+- FIX cached images of not saved items dont get displayed
 
 ## 🥼 Food Datasets
 - https://www.ifpsglobal.com/plu-codes-search
