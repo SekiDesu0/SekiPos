@@ -1,4 +1,4 @@
-# SekiPOS v1.0 🍫🥤
+# SekiPOS v1.1 🍫🥤
 
 A reactive POS inventory system for software engineers with a snack addiction. Features real-time UI updates, automatic product discovery via Open Food Facts, and local image caching.
 
@@ -84,6 +84,6 @@ python app.py
 - Cache user edited pictures
 - clear edited filed after scanning of new product
 
-## 🥼 Food Dataset
+## 🥼 Food Datasets
 - https://www.ifpsglobal.com/plu-codes-search
 - https://world.openfoodfacts.org
