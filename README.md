@@ -15,15 +15,15 @@ Build and run the central inventory server:
 
 ```bash
 # Build the image
-docker build -t sekipos .
+docker build -t sekipos:latest .
 
 # Run the container (Map port 5000 and persist the database/cache)
 docker run -d \
   -p 5000:5000 \
-  -v $(pwd)/pos_database.db:/app/pos_database.db \
-  -v $(pwd)/static/cache:/app/static/cache \
+  -v $(pwd)/sekipos/db:/app/db \
+  -v $(pwd)/sekipos/static/cache:/app/static/cache \
   --name sekipos-server \
-  sekipos
+  sekipos:latest
 ```
 
 Or use this stack:
@@ -37,7 +37,7 @@ services:
             - YOUR_PATH/sekipos/db:/app/db
             - YOUR_PATH/sekipos/static/cache:/app/static/cache
         container_name: sekipos-server
-        image: sekipos
+        image: sekipos:latest
 ```
 
 ## 🔌 Hardware Scanner Bridge (`ScannerGO`)
@@ -57,6 +57,11 @@ chmod +x ScannerGO-linux
 
 *Note: Ensure the `-url` points to your Docker container's IP address.*
 
+All this program does its send the COM data from the scanner gun to:
+```
+https://scanner.sekidesu.xyz/scan?content=BAR-CODE
+```
+
 ## 📦 Local Installation (Development)
 
 If you're too afraid of Docker:
@@ -72,4 +77,9 @@ python app.py
 ## 📁 Structure
 - `app.py`: The inventory/web server.
 - `static/cache/`: Local repository for product images.
-- `pos_database.db`: SQLite storage.
+- `db/pos_database.db`: SQLite storage.
+
+## 📋 TODOs?
+- Fruits and vegetables list
+- Better admin registration(?)
+- Cache user edited pictures
