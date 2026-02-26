@@ -1,0 +1,2202 @@
+{
+    "Nuts": [
+        {
+            "PLU": "4924",
+            "Name": "Almonds",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4924-almonds_1630598936.jpg"
+        },
+        {
+            "PLU": "4926",
+            "Name": "Brazilnuts",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4926-brazil-nuts-02_1625756785.JPG"
+        },
+        {
+            "PLU": "3105",
+            "Name": "Cashews",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3105-cashews-03_1614635878.JPG"
+        },
+        {
+            "PLU": "4927",
+            "Name": "Chestnuts",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4927-chestnuts-italian-02_1625756943.jpg"
+        },
+        {
+            "PLU": "3106",
+            "Name": "Macadamia",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3106-macadamias_1614705972.JPG"
+        },
+        {
+            "PLU": "4931",
+            "Name": "Peanuts Raw",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4931-peanuts_1625757234.JPG"
+        },
+        {
+            "PLU": "4930",
+            "Name": "Peanuts",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4930-peanuts-in-shell_1625757105.JPG"
+        },
+        {
+            "PLU": "4936",
+            "Name": "Pecans",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4936-pecans-01_1625757366.JPG"
+        },
+        {
+            "PLU": "4939",
+            "Name": "Pistachio Natural",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4939-pistachios_1625757519.JPG"
+        },
+        {
+            "PLU": "4942",
+            "Name": "Sunflower Seeds",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4942-sunflower-seeds_1630599026.jpg"
+        },
+        {
+            "PLU": "4943",
+            "Name": "Walnuts Regular",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4943-walnuts_1625757652.JPG"
+        }
+    ],
+    "Fruits": [
+        {
+            "PLU": "4099",
+            "Name": "Apples Akane",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/apples-akane_1629314651.png"
+        },
+        {
+            "PLU": "4098",
+            "Name": "Apples Akane",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/apples-akane_1629314584.png"
+        },
+        {
+            "PLU": "3438",
+            "Name": "Apples Ambrosia",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/ambrosia-photo-1_1629149173.jpg"
+        },
+        {
+            "PLU": "3510",
+            "Name": "Apples Ambrosia",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/ambrosia-apple-image_1629296706.PNG"
+        },
+        {
+            "PLU": "3600",
+            "Name": "Apples Antares",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/antares-apple_1629148997.JPG"
+        },
+        {
+            "PLU": "3602",
+            "Name": "Apples Belgica",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3602-belgica-apple_1460403066.JPG"
+        },
+        {
+            "PLU": "4103",
+            "Name": "Apples Braeburn",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4103-apples-braeburn-05_1625064918.jpg"
+        },
+        {
+            "PLU": "4101",
+            "Name": "Apples Braeburn",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4103-apples-braeburn-05-1625064918_1632326655.jpg"
+        },
+        {
+            "PLU": "3629",
+            "Name": "Apples Civg198",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3629-civg198-apple_1460403502.jpg"
+        },
+        {
+            "PLU": "3541",
+            "Name": "Apples Civm49",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/civm49-apple-image_1667572838.jpg"
+        },
+        {
+            "PLU": "3615",
+            "Name": "Apples Civni",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3615-civni-apple_1460403607.jpg"
+        },
+        {
+            "PLU": "3486",
+            "Name": "Apples Cn121",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3486-cn121-apple-image_1477940116.JPG"
+        },
+        {
+            "PLU": "3525",
+            "Name": "Apples Cn121",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3486-cn121-apple-image_1627662287.JPG"
+        },
+        {
+            "PLU": "3630",
+            "Name": "Apples Co-Op 43",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3630-co-op-43-apple_1460403668.jpg"
+        },
+        {
+            "PLU": "4130",
+            "Name": "Apples Cripps Pink",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4128-4130-cripps-pink-apple_1629990047.PNG"
+        },
+        {
+            "PLU": "4128",
+            "Name": "Apples Cripps Pink",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4128-4130-cripps-pink-apple_1629990000.PNG"
+        },
+        {
+            "PLU": "3484",
+            "Name": "Apples Dalinette",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3484-dalinette-apple_1468863527.jpeg"
+        },
+        {
+            "PLU": "3546",
+            "Name": "Apples Ds 102",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/screenshot-2023-05-01-170203_1682974971.png"
+        },
+        {
+            "PLU": "3447",
+            "Name": "Apples Ds 22",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3447-ds-22-apple-1_1460404106.jpg"
+        },
+        {
+            "PLU": "3445",
+            "Name": "Apples Ds 3",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3445-ds-3-apple_1460471946.jpg"
+        },
+        {
+            "PLU": "3604",
+            "Name": "Apples Emmons",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3604-emmons-apple_1460404152.JPG"
+        },
+        {
+            "PLU": "3514",
+            "Name": "Apples Fengapi",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/fengapi-apple-image_1629298149.PNG"
+        },
+        {
+            "PLU": "4131",
+            "Name": "Apples Fuji",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4131-apples-fuji-03-1614708873_1629812259.jpg"
+        },
+        {
+            "PLU": "4129",
+            "Name": "Apples Fuji",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4129-apples-fuji-03_1614708873.jpg"
+        },
+        {
+            "PLU": "3613",
+            "Name": "Apples Fuji Brak",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3613-fuji-brak-apple_1460404333.JPG"
+        },
+        {
+            "PLU": "4132",
+            "Name": "Apples Gala",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4132-apples-gala-01_1625065187.jpg"
+        },
+        {
+            "PLU": "4134",
+            "Name": "Apples Gala",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4133-4134-4135-gala-apple_1629991733.png"
+        },
+        {
+            "PLU": "4135",
+            "Name": "Apples Gala",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4133-4134-4135-gala-apple_1629991777.png"
+        },
+        {
+            "PLU": "4133",
+            "Name": "Apples Gala",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4133-4134-4135-gala-apple_1629991681.png"
+        },
+        {
+            "PLU": "4096",
+            "Name": "Apples Ginger Gold",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4096-apple-ginger-gold_1630598343.jpg"
+        },
+        {
+            "PLU": "4097",
+            "Name": "Apples Ginger Gold",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4097-apple-ginger-gold_1630598398.jpg"
+        },
+        {
+            "PLU": "4137",
+            "Name": "Apples Golden Delicious",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4137-apples-golden-delicious-03_1625074353.jpg"
+        },
+        {
+            "PLU": "3285",
+            "Name": "Apples Golden Delicious",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3285-apple-golden-delicious_1630597392.jpg"
+        },
+        {
+            "PLU": "4020",
+            "Name": "Apples Golden Delicious",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4137-apples-golden-delicious-03-1625074353_1629813145.jpg"
+        },
+        {
+            "PLU": "4021",
+            "Name": "Apples Golden Delicious",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4137-apples-golden-delicious-03-1625074353_1629813007.jpg"
+        },
+        {
+            "PLU": "4136",
+            "Name": "Apples Golden Delicious",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4137-apples-golden-delicious-03-1625074353_1629813080.jpg"
+        },
+        {
+            "PLU": "4138",
+            "Name": "Apples Granny Smith",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4138-apples-granny-smith-02_1625074489.jpg"
+        },
+        {
+            "PLU": "4017",
+            "Name": "Apples Granny Smith",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4017-apple-granny-smith_1630597727.jpg"
+        },
+        {
+            "PLU": "4018",
+            "Name": "Apples Granny Smith",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4018-apple-granny-smith_1630597790.jpg"
+        },
+        {
+            "PLU": "4139",
+            "Name": "Apples Granny Smith",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4017-apple-granny-smith-1630597727_1632327944.jpg"
+        },
+        {
+            "PLU": "3444",
+            "Name": "Apples Green Dragon",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3444-green-dragon-apple_1460404396.jpg"
+        },
+        {
+            "PLU": "3547",
+            "Name": "Apples Hc 2-1",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/screenshot-2023-05-02-093207_1683034372.png"
+        },
+        {
+            "PLU": "3283",
+            "Name": "Apples Honeycrisp",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/honeycrisp-apple-pic-2-082914_1456865408.jpg"
+        },
+        {
+            "PLU": "3468",
+            "Name": "Apples Honeycrisp",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/honeycrisp-apple-pic-2-082914_1456865549.jpg"
+        },
+        {
+            "PLU": "3526",
+            "Name": "Apples Howell Tc2",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/tc-2_1627662386.jpg"
+        },
+        {
+            "PLU": "3527",
+            "Name": "Apples Howell Tc3",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/tc-3-1_1627662658.jpg"
+        },
+        {
+            "PLU": "3601",
+            "Name": "Apples Huaguan",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3601-huaguan-apple_1460404549.jpg"
+        },
+        {
+            "PLU": "3540",
+            "Name": "Apples Ifored R Series",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/r201-image_1659045048.png"
+        },
+        {
+            "PLU": "3539",
+            "Name": "Apples Ifored Y Series",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/y101-image_1659044758.png"
+        },
+        {
+            "PLU": "3548",
+            "Name": "Apples Inored",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/screenshot-2023-05-02-094427_1683035269.png"
+        },
+        {
+            "PLU": "3538",
+            "Name": "Apples Ipador",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/ipador-apple-image_1659044374.png"
+        },
+        {
+            "PLU": "4146",
+            "Name": "Apples Jonagold",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/jonagold_1629313945.png"
+        },
+        {
+            "PLU": "4147",
+            "Name": "Apples Jonagold",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/jonagold_1629314056.png"
+        },
+        {
+            "PLU": "4144",
+            "Name": "Apples Jonagold",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/jonagold_1629313847.png"
+        },
+        {
+            "PLU": "4145",
+            "Name": "Apples Jonagold",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/jonagold_1629313900.png"
+        },
+        {
+            "PLU": "4150",
+            "Name": "Apples Jonathan",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/jonathan-apples_1629313715.png"
+        },
+        {
+            "PLU": "4151",
+            "Name": "Apples Jonathan",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/jonathan-apples_1629313774.png"
+        },
+        {
+            "PLU": "4148",
+            "Name": "Apples Jonathan",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/jonathan-apples_1629313563.png"
+        },
+        {
+            "PLU": "4149",
+            "Name": "Apples Jonathan",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/jonathan-apples_1629313631.png"
+        },
+        {
+            "PLU": "3072",
+            "Name": "Apples Lady",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3072-apples-lady-01_1614620585.jpg"
+        },
+        {
+            "PLU": "3461",
+            "Name": "Apples Lady Williams",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/lady-william-apples_1629313435.png"
+        },
+        {
+            "PLU": "3490",
+            "Name": "Apples Maia 1",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/maia-1-apple-3490_1501621759.JPG"
+        },
+        {
+            "PLU": "3537",
+            "Name": "Apples Maia-L",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/ludacrisp1_1659044121.jpg"
+        },
+        {
+            "PLU": "3607",
+            "Name": "Apples Mariri Red",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/mariri-red-apples_1629148722.jpg"
+        },
+        {
+            "PLU": "4019",
+            "Name": "Apples Mcintosh",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4153-mcintosh-apple_1633363632.jpg"
+        },
+        {
+            "PLU": "4154",
+            "Name": "Apples Mcintosh",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4153-mcintosh-apple_1633366651.jpg"
+        },
+        {
+            "PLU": "4152",
+            "Name": "Apples Mcintosh",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4153-mcintosh-apple_1633366336.jpg"
+        },
+        {
+            "PLU": "4153",
+            "Name": "Apples Mcintosh",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4153-mcintosh-apple_1633363420.jpg"
+        },
+        {
+            "PLU": "3619",
+            "Name": "Apples Milwa",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3619-milwa-apple_1460404807.jpg"
+        },
+        {
+            "PLU": "3603",
+            "Name": "Apples Minneiska",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3603-minneiska-apple_1460404859.jpg"
+        },
+        {
+            "PLU": "3625",
+            "Name": "Apples Minnewashta",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3625-minnewashta-apple_1460404907.jpg"
+        },
+        {
+            "PLU": "3487",
+            "Name": "Apples Mn 55",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3487-mn-apple_1486486057.JPG"
+        },
+        {
+            "PLU": "3442",
+            "Name": "Apples New York 1",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3442-new-york-1-apple_1460475041.JPG"
+        },
+        {
+            "PLU": "3443",
+            "Name": "Apples New York 2",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3443-new-york-2-apple_1460475001.jpg"
+        },
+        {
+            "PLU": "3612",
+            "Name": "Apples Nicogreen",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3612-nicogreen-apple_1460471798.JPG"
+        },
+        {
+            "PLU": "3605",
+            "Name": "Apples Nicoter",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3605-nicoter-apple_1460471747.JPG"
+        },
+        {
+            "PLU": "3618",
+            "Name": "Apples Opal",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3618-opal-apple_1460471841.jpg"
+        },
+        {
+            "PLU": "4157",
+            "Name": "Apples Paulared",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4155-paulared-apple_1634139995.jpg"
+        },
+        {
+            "PLU": "4155",
+            "Name": "Apples Paulared",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4155-paulared-apple_1634139931.jpg"
+        },
+        {
+            "PLU": "3435",
+            "Name": "Apples Pinova",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/pinova-apple-photo_1629148541.jpg"
+        },
+        {
+            "PLU": "3620",
+            "Name": "Apples Plumac",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3620-plumac-apple_1460472152.png"
+        },
+        {
+            "PLU": "3529",
+            "Name": "Apples Prema 129",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/prema129-apple-image_1643402133.PNG"
+        },
+        {
+            "PLU": "3515",
+            "Name": "Apples Prema 153",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/prema153-small-image_1629298525.PNG"
+        },
+        {
+            "PLU": "3516",
+            "Name": "Apples Prema 153",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/prema-153-apple-large-image_1629298871.PNG"
+        },
+        {
+            "PLU": "3627",
+            "Name": "Apples Prema17",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3627-prema17-apple_1460474460.JPG"
+        },
+        {
+            "PLU": "3628",
+            "Name": "Apples Prema280",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3628-prema280-apple_1460474514.JPG"
+        },
+        {
+            "PLU": "3519",
+            "Name": "Apples R10-45",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/r10-45-apple-image_1629299755.PNG"
+        },
+        {
+            "PLU": "4167",
+            "Name": "Apples Red Delicious",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4167-apples-red-delicious-01_1625075003.jpg"
+        },
+        {
+            "PLU": "3284",
+            "Name": "Apples Red Delicious",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3284-red-delicious-apple_1629986196.PNG"
+        },
+        {
+            "PLU": "4016",
+            "Name": "Apples Red Delicious",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3284-red-delicious-apple_1629986585.PNG"
+        },
+        {
+            "PLU": "4168",
+            "Name": "Apples Red Delicious",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4167-apples-red-delicious-01-1625075003_1629986841.jpg"
+        },
+        {
+            "PLU": "4015",
+            "Name": "Apples Red Delicious",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3284-red-delicious-apple_1629986493.PNG"
+        },
+        {
+            "PLU": "3460",
+            "Name": "Apples Red Jonaprince",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3460-red-jonaprince-apple_1460474741.JPG"
+        },
+        {
+            "PLU": "3298",
+            "Name": "Apples Redfield",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3298-redfield-apple_1460404707.jpg"
+        },
+        {
+            "PLU": "3467",
+            "Name": "Apples Regal 13-82",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3467-regal-13-82-apple-image_1455298344.jpg"
+        },
+        {
+            "PLU": "3528",
+            "Name": "Apples Regal D17-121",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3528-regal-d17-121_1635439104.jpg"
+        },
+        {
+            "PLU": "3542",
+            "Name": "Apples Regal D27-16",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/regal-d27-16-apple-image-single_1667573115.png"
+        },
+        {
+            "PLU": "3521",
+            "Name": "Apples Regal D5-100",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/regal-d5-100-apple-image_1601649297.png"
+        },
+        {
+            "PLU": "3104",
+            "Name": "Apples Roho 3615",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3104-roho-3615-apple_1460402964.JPG"
+        },
+        {
+            "PLU": "4174",
+            "Name": "Apples Royal Gala",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/royal-gala-apples_1629314190.png"
+        },
+        {
+            "PLU": "4173",
+            "Name": "Apples Royal Gala",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/royal-gala-apples_1629314137.png"
+        },
+        {
+            "PLU": "3293",
+            "Name": "Apples Scifresh",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3294-scifresh-apple_1633963368.jpg"
+        },
+        {
+            "PLU": "3294",
+            "Name": "Apples Scifresh",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3294-scifresh-apple_1633963331.jpg"
+        },
+        {
+            "PLU": "3616",
+            "Name": "Apples Scilate",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3616-scilate-apple_1460475110.JPG"
+        },
+        {
+            "PLU": "3315",
+            "Name": "Apples Scilate",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3615-civni-apple_1460403826.jpg"
+        },
+        {
+            "PLU": "3608",
+            "Name": "Apples Sciros",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3608-apple-pacific-rose_1630597612.jpg"
+        },
+        {
+            "PLU": "4122",
+            "Name": "Apples Sciros",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3608-apple-pacific-rose-1630597612_1632329315.jpg"
+        },
+        {
+            "PLU": "3513",
+            "Name": "Apples Shinano Gold",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/shinano-gold-apple-image_1601648836.png"
+        },
+        {
+            "PLU": "4179",
+            "Name": "Apples Spartan",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4179-apple-spartan_1630598512.jpg"
+        },
+        {
+            "PLU": "4180",
+            "Name": "Apples Spartan",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4180-apple-spartan_1630598530.jpg"
+        },
+        {
+            "PLU": "4177",
+            "Name": "Apples Spartan",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4177-apple-spartan_1630598438.jpg"
+        },
+        {
+            "PLU": "4178",
+            "Name": "Apples Spartan",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4178-apple-spartan_1630598492.jpg"
+        },
+        {
+            "PLU": "3523",
+            "Name": "Apples Sq 159",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/sq159-apple-image-resized_1612281444.jpg"
+        },
+        {
+            "PLU": "3511",
+            "Name": "Apples Wa 2",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/wa-2-2_1615989266.jpg"
+        },
+        {
+            "PLU": "3507",
+            "Name": "Apples Wa 38",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3507-cosmic-crisp-image2_1625011084.jpg"
+        },
+        {
+            "PLU": "3044",
+            "Name": "Apricots Black Velvet",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3044-apricots-black-velvet-03_1614619576.jpg"
+        },
+        {
+            "PLU": "3422",
+            "Name": "Apricots Interspecific",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/interspecific-apricot_1629313135.png"
+        },
+        {
+            "PLU": "3614",
+            "Name": "Apricots Red",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3614-red-apricot_1460474571.JPG"
+        },
+        {
+            "PLU": "3302",
+            "Name": "Apricots Regular",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3302-apricots-1_1614718940.jpg"
+        },
+        {
+            "PLU": "4218",
+            "Name": "Apricots Regular",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3302-apricots-1-1614718940_1633443369.jpg"
+        },
+        {
+            "PLU": "3509",
+            "Name": "Avocados Gem",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3509-gem-avocado_1625011346.JPG"
+        },
+        {
+            "PLU": "4770",
+            "Name": "Avocados Hass",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4770-hass-avocado_1635959908.jpg"
+        },
+        {
+            "PLU": "4225",
+            "Name": "Avocados Hass",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4770-hass-avocado_1635960417.jpg"
+        },
+        {
+            "PLU": "4046",
+            "Name": "Avocados Hass",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4770-hass-avocado_1635960530.jpg"
+        },
+        {
+            "PLU": "3303",
+            "Name": "Babaco",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3303-babacoa_1614719281.JPG"
+        },
+        {
+            "PLU": "4235",
+            "Name": "Bananas Plantain/Macho",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4235-plantains-01_1625076376.jpg"
+        },
+        {
+            "PLU": "4011",
+            "Name": "Bananas Yellow (Includes Cavendish)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4011-yellow-banana_1634142764.jpg"
+        },
+        {
+            "PLU": "4186",
+            "Name": "Bananas Yellow (Includes Cavendish)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4011-yellow-banana_1634142809.jpg"
+        },
+        {
+            "PLU": "4239",
+            "Name": "Berries Blackberries",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4239-berries-blackberries-01_1625076478.jpg"
+        },
+        {
+            "PLU": "4240",
+            "Name": "Berries Blueberries",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4240-berries-blueberries-02_1625076571.jpg"
+        },
+        {
+            "PLU": "4242",
+            "Name": "Berries Cranberries",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4242-cranberries-3_1625076748.jpg"
+        },
+        {
+            "PLU": "4243",
+            "Name": "Berries Gooseberries",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4243-cape-gooseberries_1625076901.JPG"
+        },
+        {
+            "PLU": "4054",
+            "Name": "Berries Raspberries - Red",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4054-berries-raspberries-06_1625062689.jpg"
+        },
+        {
+            "PLU": "4028",
+            "Name": "Berries Strawberries",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4028-berries-strawberries-06_1625013614.jpg"
+        },
+        {
+            "PLU": "4323",
+            "Name": "Berries Strawberries",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4028-berries-strawberries-06-1625013614_1633445153.jpg"
+        },
+        {
+            "PLU": "4249",
+            "Name": "Berries Strawberries",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4028-berries-strawberries-06-1625013614_1633444858.jpg"
+        },
+        {
+            "PLU": "4250",
+            "Name": "Berries Strawberries",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4028-berries-strawberries-06-1625013614_1633445001.jpg"
+        },
+        {
+            "PLU": "4246",
+            "Name": "Berries Strawberries",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4028-berries-strawberries-06-1625013614_1633444437.jpg"
+        },
+        {
+            "PLU": "4247",
+            "Name": "Berries Strawberries",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4028-berries-strawberries-06-1625013614_1633444773.jpg"
+        },
+        {
+            "PLU": "4248",
+            "Name": "Berries Strawberries",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4028-berries-strawberries-06-1625013614_1633444623.jpg"
+        },
+        {
+            "PLU": "3355",
+            "Name": "Berries Strawberries - Nominal 500G/1 Litre",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4028-berries-strawberries-06-1625013614_1633445260.jpg"
+        },
+        {
+            "PLU": "3356",
+            "Name": "Berries Strawberries - Nominal250G/1/2 Litre",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4028-berries-strawberries-06-1625013614_1633445451.jpg"
+        },
+        {
+            "PLU": "3549",
+            "Name": "Cherries Hr87",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/screenshot-2023-05-02-100428_1683036305.png"
+        },
+        {
+            "PLU": "4045",
+            "Name": "Cherries Regular/Red/Black",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4045-cherries-05_1625061853.jpg"
+        },
+        {
+            "PLU": "3358",
+            "Name": "Cherries Regular/Red/Black",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4045-cherries-05-1625061853_1633445912.jpg"
+        },
+        {
+            "PLU": "3357",
+            "Name": "Cherries Regular/Red/Black",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4045-cherries-05-1625061853_1633445797.jpg"
+        },
+        {
+            "PLU": "3550",
+            "Name": "Cherries Rl 100",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/screenshot-2023-05-02-101134_1683036742.png"
+        },
+        {
+            "PLU": "3448",
+            "Name": "Cherries Tip Top",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3448-tip-top-cherry_1460476077.JPG"
+        },
+        {
+            "PLU": "4261",
+            "Name": "Coconuts Husked",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4261-coconuts-02_1625077777.jpg"
+        },
+        {
+            "PLU": "4260",
+            "Name": "Coconuts In Husk/Waternut",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4260-coconut-thai-04_1625077653.jpg"
+        },
+        {
+            "PLU": "4266",
+            "Name": "Figs Black",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4266-figs-03_1625077969.jpg"
+        },
+        {
+            "PLU": "4279",
+            "Name": "Grapefruit Pummelo - White",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4279-pummelos-02_1625078575.jpg"
+        },
+        {
+            "PLU": "4283",
+            "Name": "Grapefruit Ruby/Red/Pink (Includes Ray Ruby, Ray, Ruby Red)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4492-grapefruit-ruby-red_1633960776.jpg"
+        },
+        {
+            "PLU": "4280",
+            "Name": "Grapefruit Ruby/Red/Pink (Includes Ray Ruby, Ray, Ruby Red)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4492-grapefruit-ruby-red_1633960726.jpg"
+        },
+        {
+            "PLU": "4491",
+            "Name": "Grapefruit Ruby/Red/Pink (Includes Ray Ruby, Ruby, Ruby Red)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4492-grapefruit-ruby-red_1633961179.jpg"
+        },
+        {
+            "PLU": "4492",
+            "Name": "Grapefruit Ruby/Red/Pink (Includes Ray Ruby, Ruby, Ruby Red)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4492-grapefruit-ruby-red_1633960543.jpg"
+        },
+        {
+            "PLU": "4493",
+            "Name": "Grapefruit Ruby/Red/Pink (Includes Ray Ruby, Ruby, Ruby Red)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4492-grapefruit-ruby-red_1633961257.jpg"
+        },
+        {
+            "PLU": "4282",
+            "Name": "Grapefruit Ruby/Red/Pink (Includes Ray Ruby, Ruby, Ruby Red)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4492-grapefruit-ruby-red_1633961109.jpg"
+        },
+        {
+            "PLU": "4027",
+            "Name": "Grapefruit Ruby/Red/Pink (Includes Ray Ruby, Ruby, Ruby Red)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4027-ruby-red-grapefruit_1634153115.jpg"
+        },
+        {
+            "PLU": "4047",
+            "Name": "Grapefruit Ruby/Red/Pink (Includes Ray Ruby, Ruby, Ruby Red)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4047-ruby-red-grapefruit_1634153228.jpg"
+        },
+        {
+            "PLU": "4281",
+            "Name": "Grapefruit Ruby/Red/Pink (Ncludes Ray Ruby, Ruby, Ruby Red)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4492-grapefruit-ruby-red_1633961386.jpg"
+        },
+        {
+            "PLU": "4291",
+            "Name": "Grapefruit White",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4291-grapefruit-06_1625078751.jpg"
+        },
+        {
+            "PLU": "3157",
+            "Name": "Grapefruit White",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4291-grapefruit-06-1625078751_1633446169.jpg"
+        },
+        {
+            "PLU": "3158",
+            "Name": "Grapefruit White",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4291-grapefruit-06-1625078751_1633446377.jpg"
+        },
+        {
+            "PLU": "3159",
+            "Name": "Grapefruit White",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4291-grapefruit-06-1625078751_1633446441.jpg"
+        },
+        {
+            "PLU": "4293",
+            "Name": "Grapefruit White",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4291-grapefruit-06-1625078751_1633446767.jpg"
+        },
+        {
+            "PLU": "4294",
+            "Name": "Grapefruit White",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4291-grapefruit-06-1625078751_1633447021.jpg"
+        },
+        {
+            "PLU": "4295",
+            "Name": "Grapefruit White",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4291-grapefruit-06-1625078751_1633447136.jpg"
+        },
+        {
+            "PLU": "4290",
+            "Name": "Grapefruit White",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4291-grapefruit-06-1625078751_1633446694.jpg"
+        },
+        {
+            "PLU": "4292",
+            "Name": "Grapefruit White",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4291-grapefruit-06-1625078751_1633446598.jpg"
+        },
+        {
+            "PLU": "3491",
+            "Name": "Grapes Arra Fifteen",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/arra-15-grape_1518122851.JPG"
+        },
+        {
+            "PLU": "3504",
+            "Name": "Grapes Arra Thirty",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3504-arra30-grape-image_1625010693.jpeg"
+        },
+        {
+            "PLU": "3505",
+            "Name": "Grapes Arra Thirtytwo",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/arra-32-image-3_1629296403.PNG"
+        },
+        {
+            "PLU": "3503",
+            "Name": "Grapes Arra Twentyeight",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/arra-28-image-2_1629295941.PNG"
+        },
+        {
+            "PLU": "3492",
+            "Name": "Grapes Arra Twentynine",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/arra-29-grape_1518123352.jpg"
+        },
+        {
+            "PLU": "3502",
+            "Name": "Grapes Arra Twentyseven",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3502-arra-27-grape_1625010352.jpeg"
+        },
+        {
+            "PLU": "4271",
+            "Name": "Grapes Champagne",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4271-grapes-champagne-01_1625078223.jpg"
+        },
+        {
+            "PLU": "4272",
+            "Name": "Grapes Concord",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4272-grapes-concord-3_1625078497.jpg"
+        },
+        {
+            "PLU": "3497",
+            "Name": "Grapes Ifg Core Black Seedless",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3497-ifg-core-black-seedless_1625009299.jpeg"
+        },
+        {
+            "PLU": "3498",
+            "Name": "Grapes Ifg Core Green Seedless",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3498-ifg-core-green-seedless-grape_1625009435.jpeg"
+        },
+        {
+            "PLU": "3496",
+            "Name": "Grapes Ifg Core Red Seedless",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3496-ifg-core-red-seedless_1625009014.jpeg"
+        },
+        {
+            "PLU": "3500",
+            "Name": "Grapes Ifg Novelty Black Seedless",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3500-ifg-novelty-black-seedless-grape_1625009993.jpeg"
+        },
+        {
+            "PLU": "3501",
+            "Name": "Grapes Ifg Novelty Green Seedless",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3501-novelty-green-seedless-grape_1625010191.jpg"
+        },
+        {
+            "PLU": "3499",
+            "Name": "Grapes Ifg Novelty Red Seedless",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3499-ifg-novelty-red-seedless-grape_1625009826.jpeg"
+        },
+        {
+            "PLU": "3530",
+            "Name": "Grapes Jupiter",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/jupiter-grape-image_1643402607.PNG"
+        },
+        {
+            "PLU": "3360",
+            "Name": "Grapes Muscat De Hambourg",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3360-grapes-muscat-01_1616185386.jpg"
+        },
+        {
+            "PLU": "4636",
+            "Name": "Grapes Red Globe",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4636-red-globe-grapes_1676647149.png"
+        },
+        {
+            "PLU": "4635",
+            "Name": "Grapes Red Seedless (All Others Not Listed Under Red Seedless)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4635-grapes-red-seedless-03_1625680675.jpg"
+        },
+        {
+            "PLU": "3531",
+            "Name": "Grapes Sugra Family Black Seedless",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/sugrafortynine-image_1643403461.PNG"
+        },
+        {
+            "PLU": "3532",
+            "Name": "Grapes Sugra Family Green Seedless",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/sugrafiftysix-image_1643403898.PNG"
+        },
+        {
+            "PLU": "3533",
+            "Name": "Grapes Sugra Family Novelty Seedless",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/sugrafiftyfour-image_1643404237.PNG"
+        },
+        {
+            "PLU": "3534",
+            "Name": "Grapes Sugra Family Red Seedless",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3534-sugrafiftythree_1676646885.PNG"
+        },
+        {
+            "PLU": "3450",
+            "Name": "Grapes Sugranineteen",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3450-sugraninteen-grape_1460475750.JPG"
+        },
+        {
+            "PLU": "3469",
+            "Name": "Grapes Sugrasixteen",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3469-sugrasixteen-grape_1462197403.JPG"
+        },
+        {
+            "PLU": "3449",
+            "Name": "Grapes Sugrathirteen",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3449-sugrathirteen-grape_1460475825.JPG"
+        },
+        {
+            "PLU": "3452",
+            "Name": "Grapes Sugrathirtyfive",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3452-sugrathirtyfive-grape_1460475927.JPG"
+        },
+        {
+            "PLU": "3451",
+            "Name": "Grapes Sugrathirtyfour",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3451-sugrathirtyfour-grape_1460475976.jpg"
+        },
+        {
+            "PLU": "3506",
+            "Name": "Grapes Sweet Scarlet",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3506-sweetscarlet-grape-image_1625010934.jpeg"
+        },
+        {
+            "PLU": "3508",
+            "Name": "Grapes Thomcord",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3508-thomcord-grape-image-2_1625011217.jpg"
+        },
+        {
+            "PLU": "4498",
+            "Name": "Grapes White/Green Seedless (All Others Not Listed Above (Including Autumn King))",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4498-grapes-green-seedless-01_1625669342.jpg"
+        },
+        {
+            "PLU": "3279",
+            "Name": "Kiwifruit Golden",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3279-kiwi-gold-03_1614718637.jpg"
+        },
+        {
+            "PLU": "4030",
+            "Name": "Kiwifruit Regular",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4030-kiwi-fruit-04_1625013864.jpg"
+        },
+        {
+            "PLU": "3280",
+            "Name": "Kiwifruit Regular",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4030-kiwi-fruit-04-1625013864_1633447661.jpg"
+        },
+        {
+            "PLU": "4303",
+            "Name": "Kumquat",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4303-kumquats-03_1625079229.jpg"
+        },
+        {
+            "PLU": "3626",
+            "Name": "Lemons Meyer",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3626-meyer-lemons_1460404763.jpg"
+        },
+        {
+            "PLU": "3543",
+            "Name": "Lemons Seedless",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/screen1_1682974254.PNG"
+        },
+        {
+            "PLU": "3545",
+            "Name": "Lemons Seedless",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/screen1_1682974605.PNG"
+        },
+        {
+            "PLU": "3617",
+            "Name": "Lemons Seedless",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3617-seedless-lemon_1460475688.JPG"
+        },
+        {
+            "PLU": "3544",
+            "Name": "Lemons Seedless",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/screen1_1682974451.PNG"
+        },
+        {
+            "PLU": "4053",
+            "Name": "Lemons",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4053-lemons-1_1625062400.jpg"
+        },
+        {
+            "PLU": "4958",
+            "Name": "Lemons",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4958-lemons_1630597936.jpg"
+        },
+        {
+            "PLU": "4033",
+            "Name": "Lemons",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4033-lemons_1630597866.jpg"
+        },
+        {
+            "PLU": "4328",
+            "Name": "Limequats",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4328-limequats-01_1625081231.jpg"
+        },
+        {
+            "PLU": "4305",
+            "Name": "Limes Key (Incl. Mexican & West Indian)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4305-limes-key-03_1625079363.jpg"
+        },
+        {
+            "PLU": "4048",
+            "Name": "Limes Regular (Incl. Persian, Tahiti & Bearss)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4048-limes-02_1625062144.jpg"
+        },
+        {
+            "PLU": "4308",
+            "Name": "Loquats",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4308-lychees-5_1625079574.jpg"
+        },
+        {
+            "PLU": "3437",
+            "Name": "Nectarine Flat Yellow",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/yellow-fleshed-flat-nectarine_1629140965.jpg"
+        },
+        {
+            "PLU": "4378",
+            "Name": "Nectarine Yellow Flesh, Tree Ripened, Ready-To-Eat",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4378-nectarines-1_1625081931.jpg"
+        },
+        {
+            "PLU": "4377",
+            "Name": "Nectarine Yellow Flesh, Tree Ripened, Ready-To-Eat",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4378-nectarines-1-1625081931_1633448513.jpg"
+        },
+        {
+            "PLU": "4381",
+            "Name": "Oranges Blood",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4381-oranges-blood-01_1625082045.jpg"
+        },
+        {
+            "PLU": "4384",
+            "Name": "Oranges Navel",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4384-oranges-navel-2_1625082121.jpg"
+        },
+        {
+            "PLU": "4012",
+            "Name": "Oranges Navel",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4012-navel-orange_1634141393.jpg"
+        },
+        {
+            "PLU": "4385",
+            "Name": "Oranges Navel",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4012-navel-orange_1634141500.jpg"
+        },
+        {
+            "PLU": "3107",
+            "Name": "Oranges Navel",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4012-navel-orange_1634141175.jpg"
+        },
+        {
+            "PLU": "4013",
+            "Name": "Oranges Navel",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4012-navel-orange_1634141444.jpg"
+        },
+        {
+            "PLU": "3109",
+            "Name": "Oranges Seville (Marmalade Type)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3109-oranges-seville-03_1614706906.jpg"
+        },
+        {
+            "PLU": "4388",
+            "Name": "Oranges Valencia",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4388-oranges-valencia-11_1625082320.jpg"
+        },
+        {
+            "PLU": "3108",
+            "Name": "Oranges Valencia",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3108-valencia-orange_1635171041.jpg"
+        },
+        {
+            "PLU": "4014",
+            "Name": "Oranges Valencia",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4388-oranges-valencia-11-1625082244_1633448834.jpg"
+        },
+        {
+            "PLU": "3311",
+            "Name": "Passion Fruit Curuba/Banana",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3311-passion-fruit-02_1614719436.jpg"
+        },
+        {
+            "PLU": "3312",
+            "Name": "Passion Fruit Granadilla - Yellow/Maracuja",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3312-passion-fruit-yellow-03_1614719777.jpg"
+        },
+        {
+            "PLU": "3113",
+            "Name": "Peaches Flat White Flesh (Saturn Type)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3113-peaches-donut-04_1614707155.jpg"
+        },
+        {
+            "PLU": "3115",
+            "Name": "Peaches Flat Yellow Flesh",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/yellow-flesh-peach_1626369347.JPG"
+        },
+        {
+            "PLU": "4401",
+            "Name": "Peaches White Flesh",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4401-peaches-white-01_1625664626.jpg"
+        },
+        {
+            "PLU": "4403",
+            "Name": "Peaches Yellow Flesh",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4403-peaches-1_1625664942.jpg"
+        },
+        {
+            "PLU": "4038",
+            "Name": "Peaches Yellow Flesh",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4403-peaches-1-1625664942_1633449569.jpg"
+        },
+        {
+            "PLU": "4037",
+            "Name": "Peaches Yellow Flesh",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4403-peaches-1-1625664942_1633449692.jpg"
+        },
+        {
+            "PLU": "4402",
+            "Name": "Peaches Yellow Flesh",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4403-peaches-1-1625664942_1633449878.jpg"
+        },
+        {
+            "PLU": "4044",
+            "Name": "Peaches Yellow Flesh - Tree Ripened/Ready-To-Eat",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4403-peaches-1-1625664942_1633449963.jpg"
+        },
+        {
+            "PLU": "4043",
+            "Name": "Peaches Yellow Flesh - Tree Ripened/Ready-To-Eat",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4403-peaches-1-1625664942_1633450270.jpg"
+        },
+        {
+            "PLU": "3117",
+            "Name": "Peaches Yellow Flesh (Tree Ripened/Ready-To-Eat)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4403-peaches-1-1625664942_1633450538.jpg"
+        },
+        {
+            "PLU": "3116",
+            "Name": "Peaches Yellow Flesh (Tree Ripened/Ready-To-Eat)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4403-peaches-1-1625664942_1633450458.jpg"
+        },
+        {
+            "PLU": "3317",
+            "Name": "Pears Angelys",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3317-angelys-pear_1460402454.jpg"
+        },
+        {
+            "PLU": "4416",
+            "Name": "Pears Anjou",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4416-pears-danjou-1_1625666594.jpg"
+        },
+        {
+            "PLU": "4025",
+            "Name": "Pears Anjou",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4025-anjou-pear_1629988897.PNG"
+        },
+        {
+            "PLU": "4417",
+            "Name": "Pears Anjou - Red",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4417-red-anjou_1630001903.png"
+        },
+        {
+            "PLU": "4408",
+            "Name": "Pears Asian/Nashi - Brown",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4408-asian-nashi-brown_1635174808.jpg"
+        },
+        {
+            "PLU": "4407",
+            "Name": "Pears Asian/Nashi - Yellow",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4407-pear-asian-03_1625665162.jpg"
+        },
+        {
+            "PLU": "4410",
+            "Name": "Pears Bartlett - Red/Red Sensation",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4410-pears-bartlett-2_1625665339.jpg"
+        },
+        {
+            "PLU": "4409",
+            "Name": "Pears Bartlett/Williams/Wbc",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4024-bartlett-pear_1629988325.PNG"
+        },
+        {
+            "PLU": "4024",
+            "Name": "Pears Bartlett/Williams/Wbc",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4024-bartlett-pear_1629988272.PNG"
+        },
+        {
+            "PLU": "3420",
+            "Name": "Pears Belle Du Jumet",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3420-belle-du-jumet-pear_1460403141.JPG"
+        },
+        {
+            "PLU": "4412",
+            "Name": "Pears Bosc/Beurre Bosc",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4026-bosc-pear_1629989437.PNG"
+        },
+        {
+            "PLU": "4413",
+            "Name": "Pears Bosc/Beurre Bosc",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4026-bosc-pear_1629989481.PNG"
+        },
+        {
+            "PLU": "4026",
+            "Name": "Pears Bosc/Beurre Bosc",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4026-bosc-pear_1629989301.PNG"
+        },
+        {
+            "PLU": "4411",
+            "Name": "Pears Bosc/Beurre Bosc",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4026-bosc-pear_1629989386.PNG"
+        },
+        {
+            "PLU": "3466",
+            "Name": "Pears Cape Rose",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3466-cape-rose-pear-image_1455298305.jpg"
+        },
+        {
+            "PLU": "3316",
+            "Name": "Pears Carmen",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3316-carmen-pear_1460403392.jpg"
+        },
+        {
+            "PLU": "3495",
+            "Name": "Pears Celina",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3495-celina-pear_1616443132.JPG"
+        },
+        {
+            "PLU": "3489",
+            "Name": "Pears Cepuna",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3489-cepuna-pear_1485985161.JPG"
+        },
+        {
+            "PLU": "4890",
+            "Name": "Pears Chinese Yali",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4890-pears-yali-03_1625755259.jpg"
+        },
+        {
+            "PLU": "4414",
+            "Name": "Pears Comice/ Doyenne Du Comice",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4414-pears-comice-03_1625665477.jpg"
+        },
+        {
+            "PLU": "3016",
+            "Name": "Pears Concorde",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3016-concorde-pear_1629985413.PNG"
+        },
+        {
+            "PLU": "4418",
+            "Name": "Pears Forelle/Corella",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4418-pears-forelle-03_1625666879.jpg"
+        },
+        {
+            "PLU": "4960",
+            "Name": "Pears Fragrant",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/fragrant-pear-2006-151_1629143631.JPG"
+        },
+        {
+            "PLU": "4419",
+            "Name": "Pears French",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4419-french-pear_1634140486.jpg"
+        },
+        {
+            "PLU": "3485",
+            "Name": "Pears Harovin Sundown",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3485-harovin-sundown-pear_1478113625.JPG"
+        },
+        {
+            "PLU": "3522",
+            "Name": "Pears Hw624",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/hw624-pear-image_1629300621.PNG"
+        },
+        {
+            "PLU": "3518",
+            "Name": "Pears Oksana",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/oksana-pear-image_1629299357.PNG"
+        },
+        {
+            "PLU": "4415",
+            "Name": "Pears Red",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4415-red-pear_1633452701.jpg"
+        },
+        {
+            "PLU": "4422",
+            "Name": "Pears Seckel",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4422-pears-seckel-07_1625667089.jpg"
+        },
+        {
+            "PLU": "3118",
+            "Name": "Pears Starkrimson",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3118-starkrimson-pear_1629985883.PNG"
+        },
+        {
+            "PLU": "3606",
+            "Name": "Pears Sweet Sensation",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3606-sweet-sensation-pear_1460476037.jpg"
+        },
+        {
+            "PLU": "3434",
+            "Name": "Pears Tosca",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/tosca-pear-photo_1629143259.jpg"
+        },
+        {
+            "PLU": "4428",
+            "Name": "Persimmon Japanese/Sharonfruit (Kaki)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4428-persimmons-fuyu-01_1625667410.jpg"
+        },
+        {
+            "PLU": "4427",
+            "Name": "Persimmon Regular (American Persimmon)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4427-persimmons-hachiya-01_1625667219.jpg"
+        },
+        {
+            "PLU": "3459",
+            "Name": "Persimmon Shiny Red",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3459-shiny-red-persimmon_1486570958.JPG"
+        },
+        {
+            "PLU": "3039",
+            "Name": "Physalis/Cape Gooseberry/Ground Cherry",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3039-cape-gooseberry_1630596655.jpg"
+        },
+        {
+            "PLU": "4430",
+            "Name": "Pineapple",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4430-pineapple-05_1625667649.jpg"
+        },
+        {
+            "PLU": "4029",
+            "Name": "Pineapple",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4029-pineapple_1630597815.jpg"
+        },
+        {
+            "PLU": "3040",
+            "Name": "Pitahaya Red (Skin Color)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3040-pitaya-dragon-fruit-01_1614282658.jpg"
+        },
+        {
+            "PLU": "3611",
+            "Name": "Plumcot (Interspecific Plum) Black",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/interspecific-plum-black-picture_1629142350.JPG"
+        },
+        {
+            "PLU": "3610",
+            "Name": "Plumcot (Interspecific Plum) Green",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/interspecific-plum-green-picture_1629142267.JPG"
+        },
+        {
+            "PLU": "3609",
+            "Name": "Plumcot (Interspecific Plum) Red",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/interspecific-plum-red-picture_1629142191.JPG"
+        },
+        {
+            "PLU": "3278",
+            "Name": "Plumcot (Interspecific Plum)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3278-plumcot_1634145240.jpg"
+        },
+        {
+            "PLU": "4435",
+            "Name": "Plums Green (Includes Dolly, Kelsey, Wickson)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4435-plums-greengage-01_1625667846.jpg"
+        },
+        {
+            "PLU": "4434",
+            "Name": "Plums Green (Includes Dolly, Kelsey, Wickson)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4435-plums-greengage-01-1625667846_1633453839.jpg"
+        },
+        {
+            "PLU": "4436",
+            "Name": "Plums Italian Prune/Sugar",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4436-plums-prune-01_1625668026.jpg"
+        },
+        {
+            "PLU": "3536",
+            "Name": "Plums Sweet Pixie",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/sweet-pixie-plum-image_1659043783.png"
+        },
+        {
+            "PLU": "4440",
+            "Name": "Plums Tree Ripened",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4440-plums-1_1625668316.jpg"
+        },
+        {
+            "PLU": "4439",
+            "Name": "Plums Tree Ripened",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4440-plums-1-1625668316_1633454074.jpg"
+        },
+        {
+            "PLU": "4442",
+            "Name": "Plums Yellow (Includes Golden Globe)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4442-plums-lemon-1_1625668470.jpg"
+        },
+        {
+            "PLU": "4441",
+            "Name": "Plums Yellow (Includes Golden Globe)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4442-plums-lemon-1-1625668470_1632335489.jpg"
+        },
+        {
+            "PLU": "3440",
+            "Name": "Pomegranate",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3440-large-pomegranate_1486484749.JPG"
+        },
+        {
+            "PLU": "3127",
+            "Name": "Pomegranate",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3127-pomegranate_1630597206.jpg"
+        },
+        {
+            "PLU": "4445",
+            "Name": "Pomegranate",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4445-pomegranates-07_1625668628.jpg"
+        },
+        {
+            "PLU": "4447",
+            "Name": "Quince",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4447-quince-1_1625668926.jpg"
+        },
+        {
+            "PLU": "3137",
+            "Name": "Sapote White",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3137-sapote-white_1635264028.jpg"
+        },
+        {
+            "PLU": "4448",
+            "Name": "Tamarind",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4448-tamarindo-01_1625669100.jpg"
+        },
+        {
+            "PLU": "3524",
+            "Name": "Tangerines/Mandarins C37",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/noble-juicycrunch-productisolated-900x900-rgb-copy_1627662136.png"
+        },
+        {
+            "PLU": "3632",
+            "Name": "Tangerines/Mandarins Dekopon",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3632-dekopon-mandarin_1460404047.jpg"
+        },
+        {
+            "PLU": "4453",
+            "Name": "Tangerines/Mandarins Honey/Murcott",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/murcott-mandarin-1629310772_1633455946.png"
+        },
+        {
+            "PLU": "3430",
+            "Name": "Tangerines/Mandarins Honey/Murcott",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/murcott-mandarin-1629310772_1633456245.png"
+        },
+        {
+            "PLU": "3429",
+            "Name": "Tangerines/Mandarins Honey/Murcott",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/murcott-mandarin-1629310772_1633456154.png"
+        },
+        {
+            "PLU": "3428",
+            "Name": "Tangerines/Mandarins Honey/Murcott",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/murcott-mandarin-1629310772_1633456088.png"
+        },
+        {
+            "PLU": "3029",
+            "Name": "Tangerines/Mandarins Satsuma",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3029-tangerines-satsumas-1_1614282365.jpg"
+        },
+        {
+            "PLU": "3389",
+            "Name": "Tangerines/Mandarins Satsuma",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3029-tangerines-satsumas-1-1614282365_1633455177.jpg"
+        },
+        {
+            "PLU": "4055",
+            "Name": "Tangerines/Mandarins",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4055-tangerine_1630598112.jpg"
+        }
+    ],
+    "Dried Fruits": [
+        {
+            "PLU": "4861",
+            "Name": "Apricots Dried",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/dried-apricots_1629314366.png"
+        },
+        {
+            "PLU": "4862",
+            "Name": "Dates Dried",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4862-dates_1630598790.jpg"
+        }
+    ],
+    "Vegetables": [
+        {
+            "PLU": "4519",
+            "Name": "Artichokes Baby/Cocktail",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4519-artichokes-baby-02_1625671366.jpg"
+        },
+        {
+            "PLU": "4762",
+            "Name": "Artichokes",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4762-artichokes_1630598603.jpg"
+        },
+        {
+            "PLU": "4084",
+            "Name": "Artichokes",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4084-artichokes_1630598258.jpg"
+        },
+        {
+            "PLU": "4516",
+            "Name": "Artichokes",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4516-artichokes_1630598556.jpg"
+        },
+        {
+            "PLU": "4521",
+            "Name": "Asparagus Green",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4521-asparagus-01_1625671446.jpg"
+        },
+        {
+            "PLU": "4080",
+            "Name": "Asparagus Green",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4521-asparagus-01-1625671446_1632939137.jpg"
+        },
+        {
+            "PLU": "3392",
+            "Name": "Asparagus Green - Bunch",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/asparagus-green-bunch_1629314437.png"
+        },
+        {
+            "PLU": "3079",
+            "Name": "Asparagus Purple",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3079-asparagus-purple-01_1614620893.jpg"
+        },
+        {
+            "PLU": "4523",
+            "Name": "Asparagus White",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4523-asparagus-white-02_1625671601.jpg"
+        },
+        {
+            "PLU": "4522",
+            "Name": "Asparagus White",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4523-asparagus-white-02-1625671601_1632939364.jpg"
+        },
+        {
+            "PLU": "3393",
+            "Name": "Asparagus White - Bunch",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4523-asparagus-white-02-1625671601_1632939562.jpg"
+        },
+        {
+            "PLU": "4527",
+            "Name": "Beans Chinese Long/Snake",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4527-beans-chinese-long-07_1625671743.jpg"
+        },
+        {
+            "PLU": "4528",
+            "Name": "Beans Fava/Broad",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4528-beans-fava-07_1625671831.jpg"
+        },
+        {
+            "PLU": "4066",
+            "Name": "Beans Green/French",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4066-beans-green-02_1625063351.jpg"
+        },
+        {
+            "PLU": "4537",
+            "Name": "Beets Baby Golden",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4537-baby-golden-beets_1635173500.jpg"
+        },
+        {
+            "PLU": "4538",
+            "Name": "Beets Baby Red",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4538-beets-13_1625672216.jpg"
+        },
+        {
+            "PLU": "3273",
+            "Name": "Beets Golden",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3273-golden-beets_1635172601.jpg"
+        },
+        {
+            "PLU": "4069",
+            "Name": "Cabbage Green",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4069-green-cabbage_1633958066.jpg"
+        },
+        {
+            "PLU": "4554",
+            "Name": "Cabbage Red",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4554-cabbage-red-01_1625673155.jpg"
+        },
+        {
+            "PLU": "4555",
+            "Name": "Cabbage Savoy, Green",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4555-cabbage-savoy-01_1625673273.jpg"
+        },
+        {
+            "PLU": "3166",
+            "Name": "Cabbage Tuscan",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3166-tuscan-lacinato-kale_1635170723.jpg"
+        },
+        {
+            "PLU": "4560",
+            "Name": "Carrots Baby",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4560-carrots-baby_1625673556.jpg"
+        },
+        {
+            "PLU": "4563",
+            "Name": "Carrots Carrot Sticks",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4563-carrots-sticks-03_1625673756.jpg"
+        },
+        {
+            "PLU": "4562",
+            "Name": "Carrots Loose",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4562-carrots-jumbo_1625673663.jpg"
+        },
+        {
+            "PLU": "3321",
+            "Name": "Celery Root/Celeriac With Leaves Attached",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3321-celery-root-03_1614720213.jpg"
+        },
+        {
+            "PLU": "4585",
+            "Name": "Celery Root/Celeriac",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3321-celery-root-03-1614720213_1632330070.jpg"
+        },
+        {
+            "PLU": "3087",
+            "Name": "Corn Indian, Strawberry",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3087-corn-04_1614633780.jpg"
+        },
+        {
+            "PLU": "4589",
+            "Name": "Corn Sweet Corn, Baby",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4589-corn-baby-03_1625675090.jpg"
+        },
+        {
+            "PLU": "4599",
+            "Name": "Eggplant (Aubergine) Baby",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4599-baby-eggplant-aubergine_1633372314.jpg"
+        },
+        {
+            "PLU": "3089",
+            "Name": "Eggplant (Aubergine) Chinese",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3089-egglplant-chinese_1635266232.jpg"
+        },
+        {
+            "PLU": "4601",
+            "Name": "Eggplant (Aubergine) Japanese",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4601-eggplant-japanese-05_1625679449.jpg"
+        },
+        {
+            "PLU": "4081",
+            "Name": "Eggplant (Aubergine) Regular",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4081-eggplant-04_1625064002.jpg"
+        },
+        {
+            "PLU": "3090",
+            "Name": "Eggplant (Aubergine) Thai",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3090-eggplant-thai_1635266761.jpg"
+        },
+        {
+            "PLU": "4606",
+            "Name": "Fiddlehead Ferns",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4606-fiddlehead-ferns-07_1625679559.jpg"
+        },
+        {
+            "PLU": "4608",
+            "Name": "Garlic Regular",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4608-garlic-regular_1637184640.jpg"
+        },
+        {
+            "PLU": "4612",
+            "Name": "Ginger Root Regular",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4612-ginger-root-06_1625679690.jpg"
+        },
+        {
+            "PLU": "3091",
+            "Name": "Gobo Root/Burdock",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3091gobo-root-02_1614634374.jpg"
+        },
+        {
+            "PLU": "4614",
+            "Name": "Greens Collard",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4614-collard-greens-trimmed_1625679839.JPG"
+        },
+        {
+            "PLU": "4625",
+            "Name": "Horseradish Root",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4625-horseradish-root-04_1625680026.jpg"
+        },
+        {
+            "PLU": "4626",
+            "Name": "Jicama/Yam Bean",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4626-jicama_1635179919.jpg"
+        },
+        {
+            "PLU": "4629",
+            "Name": "Leeks Regular",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4629-leeks-02_1625680225.jpg"
+        },
+        {
+            "PLU": "3099",
+            "Name": "Lotus Root",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3099-lotus-root-03_1614635240.jpg"
+        },
+        {
+            "PLU": "4644",
+            "Name": "Malanga",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4644-malanga_1633956612.jpg"
+        },
+        {
+            "PLU": "4647",
+            "Name": "Mushrooms Chanterelle",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4647-mushrooms-chanterelles-1_1625681503.jpg"
+        },
+        {
+            "PLU": "4648",
+            "Name": "Mushrooms Cremini/Brown/Swiss Brown",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4648-mushrooms-crimini-03_1625683668.jpg"
+        },
+        {
+            "PLU": "3103",
+            "Name": "Mushrooms Enoki",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3103-mushrooms-enoki-01_1614635622.jpg"
+        },
+        {
+            "PLU": "4649",
+            "Name": "Mushrooms Oyster",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4649-mushrooms-oyster-02-web_1625683754.jpg"
+        },
+        {
+            "PLU": "4650",
+            "Name": "Mushrooms Portabella (Synonymous With Cremini, Brown, Swiss Brown Mushrooms)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4650-mushrooms-portabellas-large-02_1625683846.jpg"
+        },
+        {
+            "PLU": "4085",
+            "Name": "Mushrooms Regular",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4645-mushrooms-white-button-02-1625681263_1632941165.jpg"
+        },
+        {
+            "PLU": "4645",
+            "Name": "Mushrooms Regular, Button",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4645-mushrooms-white-button-02_1625681263.jpg"
+        },
+        {
+            "PLU": "4651",
+            "Name": "Mushrooms Shiitake",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4651-mushrooms-shiitake-02_1625683935.jpg"
+        },
+        {
+            "PLU": "4652",
+            "Name": "Mushrooms Wood Ear",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4652-wood-ear-mushroom_1637096085.jpg"
+        },
+        {
+            "PLU": "3276",
+            "Name": "Name White (Nyah-May)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3276-name-white_1634146226.jpg"
+        },
+        {
+            "PLU": "4068",
+            "Name": "Onions Green (Scallions)/Spring",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4068-onions-green-2_1625063600.jpg"
+        },
+        {
+            "PLU": "4164",
+            "Name": "Onions Maui",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4164-onions-maui-02_1625074802.jpg"
+        },
+        {
+            "PLU": "4166",
+            "Name": "Onions Other Sweet",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4166-onions-sweet_1625075146.jpg"
+        },
+        {
+            "PLU": "4660",
+            "Name": "Onions Pearl",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4660-onions-pearl-white-02_1625684218.jpg"
+        },
+        {
+            "PLU": "4082",
+            "Name": "Onions Red",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4082-onions-red-1_1625064093.jpg"
+        },
+        {
+            "PLU": "4662",
+            "Name": "Onions Shallots",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4662-shallots_1634145796.jpg"
+        },
+        {
+            "PLU": "3520",
+            "Name": "Onions Sk-20",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/sk-20-onion-image_1629300230.PNG"
+        },
+        {
+            "PLU": "3535",
+            "Name": "Onions Sweetheart",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/sweetheart-onion-image_1659042680.jpg"
+        },
+        {
+            "PLU": "3493",
+            "Name": "Onions Tearless Sweet",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3493-tearless-sweet-onion_1616442954.jpg"
+        },
+        {
+            "PLU": "4663",
+            "Name": "Onions White",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4663-white-onion_1634144207.jpg"
+        },
+        {
+            "PLU": "4093",
+            "Name": "Onions Yellow/Brown",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4093-onions-yellow-01_1625064621.jpg"
+        },
+        {
+            "PLU": "4665",
+            "Name": "Onions Yellow/Brown",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4093-onions-yellow-01-1625064621_1632941716.jpg"
+        },
+        {
+            "PLU": "4672",
+            "Name": "Parsnip",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4672-parsnip_1633958885.jpg"
+        },
+        {
+            "PLU": "4673",
+            "Name": "Peas Blackeyed",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4673-peas-black-eyed-01_1625684339.jpg"
+        },
+        {
+            "PLU": "4092",
+            "Name": "Peas Chinese Snow Pea/Pea Pod/Mange Tout",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4092-peas-snow-03_1625064549.jpg"
+        },
+        {
+            "PLU": "4675",
+            "Name": "Peas Sugar Snap",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4675-peas-sugar-snap-01_1625684463.jpg"
+        },
+        {
+            "PLU": "3414",
+            "Name": "Potato Baking - White",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3414-baking-potato-white_1635179333.jpg"
+        },
+        {
+            "PLU": "3128",
+            "Name": "Potato Purple",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3128-potatoes-purple-06_1614708225.jpg"
+        },
+        {
+            "PLU": "4725",
+            "Name": "Potato Russet",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4725-potatoes-02_1625751284.jpg"
+        },
+        {
+            "PLU": "4734",
+            "Name": "Pumpkin Mini",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4734-mini-pumpkin_1633964765.jpg"
+        },
+        {
+            "PLU": "3134",
+            "Name": "Pumpkin Pie Pumpkin",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3134-pie-pumpkin_1633963673.jpg"
+        },
+        {
+            "PLU": "3631",
+            "Name": "Pumpkin Pink",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3631-pink-pumpkin_1460472104.jpg"
+        },
+        {
+            "PLU": "4735",
+            "Name": "Pumpkin Regular",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4735-pumpkin-regular_1633964898.jpg"
+        },
+        {
+            "PLU": "3132",
+            "Name": "Pumpkin White",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3132-white-pumpkin_1633964669.jpg"
+        },
+        {
+            "PLU": "3480",
+            "Name": "Pumpkin Vine",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/pumpkin-vine-3480_1625790222.jpg"
+        },
+        {
+            "PLU": "3478",
+            "Name": "Quelites",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/quelite-3478_1625790359.jpg"
+        },
+        {
+            "PLU": "3168",
+            "Name": "Radicchio Castlefranco",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3168-radicchio-castelfranco-02_1614718366.jpg"
+        },
+        {
+            "PLU": "4738",
+            "Name": "Radicchio",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4738-radicchio-04_1625751428.jpg"
+        },
+        {
+            "PLU": "4739",
+            "Name": "Radish Black",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4739-radish-black-03_1625751544.jpg"
+        },
+        {
+            "PLU": "4089",
+            "Name": "Radish Bunched Red",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4089-red-radish-bunch_1635263573.jpg"
+        },
+        {
+            "PLU": "4742",
+            "Name": "Radish Red",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4742-radishes-10_1625751647.jpg"
+        },
+        {
+            "PLU": "4745",
+            "Name": "Rhubarb Regular",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4745-rhubarb-01_1625751764.jpg"
+        },
+        {
+            "PLU": "4747",
+            "Name": "Rutabagas (Swede) Regular",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4747-rutabaga_1635168852.jpg"
+        },
+        {
+            "PLU": "4750",
+            "Name": "Squash Acorn/Table Queen",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4750-squash-acorn-01_1625751871.jpg"
+        },
+        {
+            "PLU": "4756",
+            "Name": "Squash Baby Green Zucchini/Courgette",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4756-squash-zucchini-baby-01_1625752136.jpg"
+        },
+        {
+            "PLU": "4757",
+            "Name": "Squash Banana",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4757-squash-banana_1625752222.JPG"
+        },
+        {
+            "PLU": "3441",
+            "Name": "Squash Butterkin",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3441-butterkin-squash_1460403302.jpg"
+        },
+        {
+            "PLU": "4759",
+            "Name": "Squash Butternut",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4759-squash-butternut-04_1625752374.jpg"
+        },
+        {
+            "PLU": "4761",
+            "Name": "Squash Chayote/Choko",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4761-squash-chayote_1635179721.jpg"
+        },
+        {
+            "PLU": "4763",
+            "Name": "Squash Delicata/Sweet Potato",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4763-squash-delicata-03_1625752465.JPG"
+        },
+        {
+            "PLU": "4769",
+            "Name": "Squash Kabocha",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4769-kabocha-squash_1635267562.jpg"
+        },
+        {
+            "PLU": "3141",
+            "Name": "Squash Opo",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3141-opo-squash_1635180261.jpg"
+        },
+        {
+            "PLU": "4776",
+            "Name": "Squash Spaghetti/Vegetable Spaghetti",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4776-spaghetti-squash_1633453264.jpg"
+        },
+        {
+            "PLU": "4784",
+            "Name": "Squash Yellow - Crookneck",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4784squash-yellow-crookneck-01_1625752922.jpg"
+        },
+        {
+            "PLU": "4782",
+            "Name": "Squash Yellow - Straightneck",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4782-squash-yellow-straightneck-03_1625752756.jpg"
+        },
+        {
+            "PLU": "4067",
+            "Name": "Squash Zucchini/Courgette",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4067-squash-zucchini-04_1625063439.jpg"
+        },
+        {
+            "PLU": "4790",
+            "Name": "Sugar Cane",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4790-sugar-cane_1630598686.jpg"
+        },
+        {
+            "PLU": "4791",
+            "Name": "Sunchokes (Jerusalem Artichokes)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4791-sunchokes-03_1625753005.jpg"
+        },
+        {
+            "PLU": "4816",
+            "Name": "Sweet Potato/Yam/Kumara Golden",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4816-sweet-potatoes-02_1625754367.jpg"
+        },
+        {
+            "PLU": "4817",
+            "Name": "Sweet Potato/Yam/Kumara Red/Orangy Red Flesh",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4817-sweet-potato-red-flesh-4074-1614281686_1633373797.png"
+        },
+        {
+            "PLU": "4074",
+            "Name": "Sweet Potato/Yam/Kumara Red/Orangy Red Flesh",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/sweet-potato-red-flesh-4074_1614281686.png"
+        },
+        {
+            "PLU": "3334",
+            "Name": "Sweet Potato/Yam/Kumara Red/Orangy White Flesh",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3334-yams-03_1616185216.jpg"
+        },
+        {
+            "PLU": "3333",
+            "Name": "Sweet Potato/Yam/Kumara Red/Orangy White Flesh",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/3334-yams-03-1616185216_1633374338.jpg"
+        },
+        {
+            "PLU": "3474",
+            "Name": "Sweet Potato/Yam/Kumara Saffron",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/saffron-sweet-potato-3474-crop_1625791682.jpg"
+        },
+        {
+            "PLU": "4091",
+            "Name": "Sweet Potato/Yam/Kumara White",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4091-sweet-potato-white_1633957061.jpg"
+        },
+        {
+            "PLU": "4795",
+            "Name": "Taro Root (Dasheen)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4795-taro-root-01_1625753179.jpg"
+        },
+        {
+            "PLU": "4794",
+            "Name": "Taro Root (Dasheen)",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4795-taro-root-01-1625753179_1633374616.jpg"
+        },
+        {
+            "PLU": "4811",
+            "Name": "Turnip Purple Top",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4811-turnip-purple-top_1635177577.jpg"
+        },
+        {
+            "PLU": "4814",
+            "Name": "Water Chestnuts",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4814-waterchestnuts-01_1625753939.jpg"
+        },
+        {
+            "PLU": "3481",
+            "Name": "Xpelon",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/expelon-3481_1625790150.jpg"
+        },
+        {
+            "PLU": "4819",
+            "Name": "Yuca Root/Cassava/Manioc",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4819-yucca-root-03_1625754507.jpg"
+        }
+    ],
+    "Herbs": [
+        {
+            "PLU": "4892",
+            "Name": "Dill Baby",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4892-dill-baby-02_1625755376.jpg"
+        },
+        {
+            "PLU": "4891",
+            "Name": "Dill",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/4891-dill_1630598880.jpg"
+        },
+        {
+            "PLU": "3475",
+            "Name": "Mint Peppermint",
+            "URL": "https://server-ifps.accurateig.com/assets/commodities/peppermint-3475_1625790587.jpg"
+        }
+    ]
+}
