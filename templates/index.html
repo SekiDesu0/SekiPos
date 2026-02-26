@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SekiPOS - Inventory Management</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            flex-direction: column;
+            padding: 20px; 
+            background: #f4f7f6; 
+            color: #333;
+            margin: 0;
+        }
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 10px 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .main-container { display: flex; gap: 25px; }
+        .column { flex: 1; min-width: 400px; }
+        .card { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #display-img { 
+            max-width: 250px; 
+            max-height: 250px;
+            border-radius: 10px; 
+            margin-bottom: 15px; 
+            object-fit: contain;
+        }
+        .price-tag { font-size: 3em; color: #2c3e50; font-weight: 800; margin: 10px 0; }
+        input { 
+            display: block; 
+            width: 100%; 
+            margin: 12px 0; 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        button { padding: 10px 15px; cursor: pointer; border-radius: 6px; border: none; transition: 0.2s; }
+        .btn-save { background: #2c3e50; color: white; width: 100%; font-size: 1.1em; }
+        .btn-save:hover { background: #34495e; }
+        .btn-edit { background: #f1c40f; color: #000; }
+        .btn-del { background: #e74c3c; color: white; }
+        
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 15px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #fafafa; }
+
+    #new-product-prompt {
+        display: none;
+        background: #3498db;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        animation: slideDown 0.4s ease;
+        
+        /* This is what you were missing */
+        display: none; /* JS will change this to flex */
+        justify-content: space-between;
+        align-items: center; 
+    }
+
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-bar">
+        <h2 style="margin:0;">SekiPOS v1.0</h2>
+        <div>
+            <span>Usuario: <b>{{ user.username }}</b></span> | 
+            <a href="/logout" style="color: #e74c3c; text-decoration: none; font-weight: bold;">Cerrar Sesión</a>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="column">
+            <!-- Notification for New Items -->
+            <div id="new-product-prompt">
+                <span style="flex-grow: 1;">¡Nuevo! Barcode <b><span id="new-barcode-display"></span></b>. ¿Deseas agregarlo?</span>
+                <button onclick="dismissPrompt()" style="background:rgba(255,255,255,0.2); color:white; margin-left: 15px;">Omitir</button>
+            </div>
+
+            <!-- Visual Display Card -->
+            <div class="card" id="scan-display">
+                <h2 style="color: #7f8c8d; margin-top:0;">Último Escaneado</h2>
+                <img id="display-img" src="./static/placeholder.png" alt="Producto">
+                <h1 id="display-name" style="margin: 10px 0;">Escanea un producto</h1>
+                <div class="price-tag" id="display-price">$0</div>
+                <p id="display-barcode" style="color: #bdc3c7; font-family: monospace;"></p>
+            </div>
+
+            <!-- Form Card -->
+            <div class="card">
+                <h3 id="form-title" style="margin-top:0;">Agregar/Editar Producto</h3>
+                <form action="/upsert" method="POST" id="product-form">
+                    <input type="text" name="barcode" id="form-barcode" placeholder="Barcode" required>
+                    <input type="text" name="name" id="form-name" placeholder="Nombre del Producto" required>
+                    <input type="number" name="price" id="form-price" placeholder="Precio (CLP)" required>
+                    <input type="text" name="image_url" id="form-image" placeholder="URL de Imagen">
+                    <button type="submit" class="btn-save">Guardar en Inventario</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="column">
+            <div class="card">
+                <h3 style="text-align: left; margin-top:0;">Inventario</h3>
+                <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Buscar por nombre o código...">
+                
+                <table id="inventoryTable">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Precio</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in products %}
+                        <tr>
+                            <td style="font-family: monospace;">{{ p[0] }}</td>
+                            <td>{{ p[1] }}</td>
+                            <td class="price-cell" data-value="{{ p[2] }}"></td>
+                            <td style="white-space: nowrap;">
+                                <button class="btn-edit" onclick="editProduct('{{ p[0] }}', '{{ p[1] }}', '{{ p[2] }}', '{{ p[3] }}')">Editar</button>
+                                <form action="/delete/{{ p[0] }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn-del" onclick="return confirm('¿Eliminar producto?')">Borrar</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var socket = io();
+
+        // Chilean Peso Formatter (e.g., 1500 -> $1.500)
+        const clpFormatter = new Intl.NumberFormat('es-CL', {
+            style: 'currency',
+            currency: 'CLP',
+            minimumFractionDigits: 0
+        });
+
+        function formatTablePrices() {
+            document.querySelectorAll('.price-cell').forEach(td => {
+                const val = parseFloat(td.getAttribute('data-value'));
+                td.innerText = clpFormatter.format(val);
+            });
+        }
+        formatTablePrices();
+
+        socket.on('new_scan', function(data) {
+            dismissPrompt();
+            document.getElementById('display-name').innerText = data.name;
+            document.getElementById('display-price').innerText = clpFormatter.format(data.price);
+            document.getElementById('display-barcode').innerText = data.barcode;
+            document.getElementById('display-img').src = data.image || './static/placeholder.png';
+        });
+
+        socket.on('scan_error', function(data) {
+            const prompt = document.getElementById('new-product-prompt');
+            document.getElementById('new-barcode-display').innerText = data.barcode;
+            document.getElementById('display-price').innerText = "$ ???";
+            prompt.style.display = 'flex';
+            
+            // Update big display card with internet data (if any)
+            if (data.name) {
+                document.getElementById('display-name').innerText = data.name + " (Nuevo)";
+                document.getElementById('display-price').innerText = "$ ???";
+                document.getElementById('display-img').src = data.image || './static/placeholder.png';
+            } else {
+                document.getElementById('display-name').innerText = "Producto Desconocido";
+                document.getElementById('display-img').src = './static/placeholder.png';
+            }
+            document.getElementById('display-barcode').innerText = data.barcode;
+
+            // Pre-fill form
+            document.getElementById('form-barcode').value = data.barcode;
+            document.getElementById('form-name').value = data.name || '';
+            document.getElementById('form-image').value = data.image || '';
+            document.getElementById('form-price').value = '';
+            document.getElementById('form-title').innerText = "Crear Nuevo: " + (data.name || data.barcode);
+            document.getElementById('form-price').focus();
+        });
+
+        function dismissPrompt() {
+            document.getElementById('new-product-prompt').style.display = 'none';
+        }
+
+        function editProduct(barcode, name, price, image) {
+            dismissPrompt();
+            document.getElementById('form-barcode').value = barcode;
+            document.getElementById('form-name').value = name;
+            document.getElementById('form-price').value = price;
+            document.getElementById('form-image').value = image;
+            document.getElementById('form-title').innerText = "Editando: " + name;
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        function searchTable() {
+            var input = document.getElementById("searchInput");
+            var filter = input.value.toUpperCase();
+            var tr = document.getElementById("inventoryTable").getElementsByTagName("tr");
+
+            for (var i = 1; i < tr.length; i++) {
+                var content = tr[i].textContent || tr[i].innerText;
+                tr[i].style.display = content.toUpperCase().indexOf(filter) > -1 ? "" : "none";
+            }
+        }
+
+        // Handle instant updates for deletions without full refresh
+        socket.on('product_deleted', function(data) {
+            window.location.reload(); 
+        });
+    </script>
+</body>
+</html>
