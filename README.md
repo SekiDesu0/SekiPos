@@ -81,7 +81,6 @@ python app.py
 
 ## 📋 TODOs?
 - Better admin registration(?)
-- clear edited fields after scanning of new product
 
 ## 🥼 Food Datasets
 - https://www.ifpsglobal.com/plu-codes-search
