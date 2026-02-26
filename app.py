@@ -35,7 +35,7 @@ def init_db():
         # Default user: admin / Pass: seki123
         user = conn.execute('SELECT * FROM users WHERE username = ?', ('admin',)).fetchone()
         if not user:
-            hashed_pw = generate_password_hash('seki123')
+            hashed_pw = generate_password_hash('choripan1234')
             conn.execute('INSERT INTO users (username, password) VALUES (?, ?)', ('admin', hashed_pw))
         conn.commit()
 
