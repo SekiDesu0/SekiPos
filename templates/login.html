@@ -1,19 +1,81 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+    <meta charset="UTF-8">
     <title>SekiPOS Login</title>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #2c3e50; }
-        .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
-        input { display: block; width: 250px; margin: 10px auto; padding: 12px; border: 1px solid #ccc; border-radius: 6px; }
-        button { background: #3498db; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 1.1em; }
+        :root {
+            --bg: #2c3e50;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --input-bg: #ffffff;
+            --input-border: #cccccc;
+        }
+
+        [data-theme="dark"] {
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --text: #e0e0e0;
+            --input-bg: #2d2d2d;
+            --input-border: #444444;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            background: var(--bg); 
+            margin: 0;
+            transition: background 0.3s;
+        }
+
+        .login-box { 
+            background: var(--card-bg); 
+            padding: 40px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); 
+            text-align: center;
+            color: var(--text);
+            transition: background 0.3s, color 0.3s;
+        }
+
+        h2 { margin-top: 0; }
+
+        input { 
+            display: block; 
+            width: 250px; 
+            margin: 10px auto; 
+            padding: 12px; 
+            border: 1px solid var(--input-border); 
+            border-radius: 6px; 
+            background: var(--input-bg);
+            color: var(--text);
+        }
+
+        button { 
+            background: #3498db; 
+            color: white; 
+            border: none; 
+            padding: 12px 24px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 1.1em; 
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover { background: #2980b9; }
+
+        .error-msg { color: #e74c3c; font-size: 0.9em; margin-bottom: 10px; }
     </style>
 </head>
 <body>
     <div class="login-box">
         <h2>SekiPOS Access</h2>
         {% with messages = get_flashed_messages() %}
-          {% if messages %}<p style="color: red;">{{ messages[0] }}</p>{% endif %}
+          {% if messages %}<p class="error-msg">{{ messages[0] }}</p>{% endif %}
         {% endwith %}
         <form method="POST">
             <input type="text" name="username" placeholder="Username" required>
@@ -21,5 +83,13 @@
             <button type="submit">Unlock</button>
         </form>
     </div>
+
+    <script>
+        // Sincronizar tema con el index
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    </script>
 </body>
 </html>
