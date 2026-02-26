@@ -14,7 +14,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-DB_FILE = 'pos_database.db'
+DB_FILE = 'db/pos_database.db'
 CACHE_DIR = 'static/cache'
 os.makedirs(CACHE_DIR, exist_ok=True)
 

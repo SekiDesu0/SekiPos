@@ -26,6 +26,20 @@ docker run -d \
   sekipos
 ```
 
+Or ose this stack:
+```yml
+name: sekipos
+services:
+    sekipos:
+        ports:
+            - 5000:5000
+        volumes:
+            - YOUR_PATH/sekipos/db:/app/db
+            - YOUR_PATH/sekipos/static/cache:/app/static/cache
+        container_name: sekipos-server
+        image: sekipos
+```
+
 ## 🔌 Hardware Scanner Bridge (`ScannerGO`)
 
 The server needs a bridge to talk to your physical COM port. Use the `ScannerGO` binary on the machine where the scanner is plugged in.
