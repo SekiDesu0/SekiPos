@@ -47,7 +47,7 @@ chmod +x ScannerGO-linux
 
 If you're too afraid of Docker:
 ```bash
-pip install Flask Flask-Login Flask-SocketIO requests eventlet
+pip install -r requirements.txt
 python app.py
 ```
 
