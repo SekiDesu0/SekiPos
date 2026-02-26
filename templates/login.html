@@ -5,87 +5,125 @@
     <title>SekiPOS Login</title>
     <style>
         :root {
-            --bg: #2c3e50;
+            /* Discord Branding Colors */
+            --bg: #5865F2; 
             --card-bg: #ffffff;
-            --text: #333333;
-            --input-bg: #ffffff;
-            --input-border: #cccccc;
+            --text: #2e3338;
+            --input-bg: #e3e5e8;
+            --input-border: transparent;
+            --accent: #5865F2;
+            --accent-hover: #4752c4;
+            --error: #ed4245;
         }
 
         [data-theme="dark"] {
-            --bg: #121212;
-            --card-bg: #1e1e1e;
-            --text: #e0e0e0;
-            --input-bg: #2d2d2d;
-            --input-border: #444444;
+            /* Discord Dark Mode */
+            --bg: #36393f;
+            --card-bg: #2f3136;
+            --text: #ffffff;
+            --input-bg: #202225;
+            --input-border: transparent;
         }
 
         body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            font-family: 'gg sans', 'Segoe UI', Tahoma, sans-serif; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
             height: 100vh; 
             background: var(--bg); 
             margin: 0;
-            transition: background 0.3s;
+            transition: background 0.2s;
         }
 
         .login-box { 
             background: var(--card-bg); 
-            padding: 40px; 
-            border-radius: 12px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3); 
+            padding: 32px; 
+            border-radius: 8px; 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2); 
             text-align: center;
             color: var(--text);
-            transition: background 0.3s, color 0.3s;
+            width: 400px;
+            transition: background 0.2s, color 0.2s;
         }
 
-        h2 { margin-top: 0; }
+        h2 { 
+            margin-top: 0; 
+            font-weight: 700;
+            font-size: 24px;
+        }
+
+        p.sub-text {
+            color: var(--text);
+            opacity: 0.7;
+            margin-bottom: 20px;
+        }
 
         input { 
             display: block; 
-            width: 250px; 
-            margin: 10px auto; 
+            width: 100%; 
+            margin: 16px 0; 
             padding: 12px; 
-            border: 1px solid var(--input-border); 
-            border-radius: 6px; 
+            border: none; 
+            border-radius: 4px; 
             background: var(--input-bg);
             color: var(--text);
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        input:focus {
+            outline: 2px solid var(--accent);
         }
 
         button { 
-            background: #3498db; 
+            background: var(--accent); 
             color: white; 
             border: none; 
             padding: 12px 24px; 
-            border-radius: 6px; 
+            border-radius: 4px; 
             cursor: pointer; 
-            font-size: 1.1em; 
+            font-size: 16px; 
+            font-weight: 600;
             width: 100%;
             margin-top: 10px;
+            transition: background 0.2s;
         }
 
-        button:hover { background: #2980b9; }
+        button:hover { 
+            background: var(--accent-hover); 
+        }
 
-        .error-msg { color: #e74c3c; font-size: 0.9em; margin-bottom: 10px; }
+        .error-msg { 
+            background: var(--error);
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.9em; 
+            margin-bottom: 15px; 
+        }
     </style>
 </head>
 <body>
     <div class="login-box">
-        <h2>SekiPOS Access</h2>
+        <h2>SekiPOS</h2>
+        <p class="sub-text">¡Hola de nuevo!</p>
+        
         {% with messages = get_flashed_messages() %}
-          {% if messages %}<p class="error-msg">{{ messages[0] }}</p>{% endif %}
+          {% if messages %}
+            <div class="error-msg">{{ messages[0] }}</div>
+          {% endif %}
         {% endwith %}
+
         <form method="POST">
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Unlock</button>
+            <input type="text" name="username" placeholder="Usuario" required>
+            <input type="password" name="password" placeholder="Contraseña" required>
+            <button type="submit">Iniciar Sesión</button>
         </form>
     </div>
 
     <script>
-        // Sincronizar tema con el index
+        // Sync theme with main page
         const savedTheme = localStorage.getItem('theme') || 'light';
         if (savedTheme === 'dark') {
             document.documentElement.setAttribute('data-theme', 'dark');
