@@ -80,6 +80,10 @@ python app.py
 - `db/pos_database.db`: SQLite storage.
 
 ## 📋 TODOs?
-- Fruits and vegetables list
 - Better admin registration(?)
 - Cache user edited pictures
+- clear edited filed after scanning of new product
+
+## 🥼 Food Dataset
+- https://www.ifpsglobal.com/plu-codes-search
+- https://world.openfoodfacts.org

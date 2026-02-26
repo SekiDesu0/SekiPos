@@ -6,35 +6,64 @@
     <title>SekiPOS - Inventory Management</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <style>
+        :root {
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-muted: #7f8c8d;
+            --border: #dddddd;
+            --header-bg: #ffffff;
+            --input-bg: #ffffff;
+            --table-head: #fafafa;
+            --price-color: #2c3e50;
+        }
+
+        [data-theme="dark"] {
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --border: #333333;
+            --header-bg: #1e1e1e;
+            --input-bg: #2d2d2d;
+            --table-head: #252525;
+            --price-color: #ecf0f1;
+        }
+
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             display: flex; 
             flex-direction: column;
             padding: 20px; 
-            background: #f4f7f6; 
-            color: #333;
+            background: var(--bg); 
+            color: var(--text-main);
             margin: 0;
+            transition: background 0.3s, color 0.3s;
         }
+
         .header-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: white;
+            background: var(--header-bg);
             padding: 10px 25px;
             border-radius: 10px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
+
         .main-container { display: flex; gap: 25px; }
         .column { flex: 1; min-width: 400px; }
+
         .card { 
-            background: white; 
+            background: var(--card-bg); 
             padding: 25px; 
             border-radius: 15px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
             text-align: center;
             margin-bottom: 20px;
         }
+
         #display-img { 
             max-width: 250px; 
             max-height: 250px;
@@ -42,40 +71,49 @@
             margin-bottom: 15px; 
             object-fit: contain;
         }
-        .price-tag { font-size: 3em; color: #2c3e50; font-weight: 800; margin: 10px 0; }
+
+        .price-tag { font-size: 3em; color: var(--price-color); font-weight: 800; margin: 10px 0; }
+
         input { 
             display: block; 
             width: 100%; 
             margin: 12px 0; 
             padding: 12px; 
-            border: 1px solid #ddd; 
+            border: 1px solid var(--border); 
             border-radius: 8px;
             box-sizing: border-box;
+            background: var(--input-bg);
+            color: var(--text-main);
         }
+
         button { padding: 10px 15px; cursor: pointer; border-radius: 6px; border: none; transition: 0.2s; }
         .btn-save { background: #2c3e50; color: white; width: 100%; font-size: 1.1em; }
         .btn-save:hover { background: #34495e; }
         .btn-edit { background: #f1c40f; color: #000; }
         .btn-del { background: #e74c3c; color: white; }
         
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; }
-        th, td { padding: 15px; border-bottom: 1px solid #eee; text-align: left; }
-        th { background: #fafafa; }
+        table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 10px; overflow: hidden; }
+        th, td { padding: 15px; border-bottom: 1px solid var(--border); text-align: left; }
+        th { background: var(--table-head); }
 
-    #new-product-prompt {
-        display: none;
-        background: #3498db;
-        color: white;
-        padding: 12px 20px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-        animation: slideDown 0.4s ease;
-        
-        /* This is what you were missing */
-        display: none; /* JS will change this to flex */
-        justify-content: space-between;
-        align-items: center; 
-    }
+        .theme-toggle-btn {
+            background: var(--text-main);
+            color: var(--bg);
+            font-weight: bold;
+            margin-right: 15px;
+        }
+
+        #new-product-prompt {
+            display: none;
+            background: #3498db;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            animation: slideDown 0.4s ease;
+            justify-content: space-between;
+            align-items: center; 
+        }
 
         @keyframes slideDown {
             from { transform: translateY(-20px); opacity: 0; }
@@ -86,31 +124,29 @@
 <body>
 
     <div class="header-bar">
-        <h2 style="margin:0;">SekiPOS v1.0</h2>
-        <div>
+        <h2 style="margin:0;">SekiPOS v1.1</h2>
+        <div style="display: flex; align-items: center;">
+            <button onclick="toggleTheme()" class="theme-toggle-btn" id="theme-text">Modo Oscuro</button>
             <span>Usuario: <b>{{ user.username }}</b></span> | 
-            <a href="/logout" style="color: #e74c3c; text-decoration: none; font-weight: bold;">Cerrar Sesión</a>
+            <a href="/logout" style="color: #e74c3c; text-decoration: none; font-weight: bold; margin-left: 10px;">Cerrar Sesión</a>
         </div>
     </div>
 
     <div class="main-container">
         <div class="column">
-            <!-- Notification for New Items -->
             <div id="new-product-prompt">
                 <span style="flex-grow: 1;">¡Nuevo! Barcode <b><span id="new-barcode-display"></span></b>. ¿Deseas agregarlo?</span>
                 <button onclick="dismissPrompt()" style="background:rgba(255,255,255,0.2); color:white; margin-left: 15px;">Omitir</button>
             </div>
 
-            <!-- Visual Display Card -->
             <div class="card" id="scan-display">
-                <h2 style="color: #7f8c8d; margin-top:0;">Último Escaneado</h2>
+                <h2 style="color: var(--text-muted); margin-top:0;">Último Escaneado</h2>
                 <img id="display-img" src="./static/placeholder.png" alt="Producto">
                 <h1 id="display-name" style="margin: 10px 0;">Escanea un producto</h1>
                 <div class="price-tag" id="display-price">$0</div>
-                <p id="display-barcode" style="color: #bdc3c7; font-family: monospace;"></p>
+                <p id="display-barcode" style="color: var(--text-muted); font-family: monospace;"></p>
             </div>
 
-            <!-- Form Card -->
             <div class="card">
                 <h3 id="form-title" style="margin-top:0;">Agregar/Editar Producto</h3>
                 <form action="/upsert" method="POST" id="product-form">
@@ -160,7 +196,6 @@
     <script>
         var socket = io();
 
-        // Chilean Peso Formatter (e.g., 1500 -> $1.500)
         const clpFormatter = new Intl.NumberFormat('es-CL', {
             style: 'currency',
             currency: 'CLP',
@@ -174,6 +209,27 @@
             });
         }
         formatTablePrices();
+
+        // Dark Mode Logic
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeUI(newTheme);
+        }
+
+        function updateThemeUI(theme) {
+            const btnText = document.getElementById('theme-text');
+            btnText.innerText = theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro';
+        }
+
+        // Initialize theme from storage
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeUI(savedTheme);
 
         socket.on('new_scan', function(data) {
             dismissPrompt();
@@ -189,7 +245,6 @@
             document.getElementById('display-price').innerText = "$ ???";
             prompt.style.display = 'flex';
             
-            // Update big display card with internet data (if any)
             if (data.name) {
                 document.getElementById('display-name').innerText = data.name + " (Nuevo)";
                 document.getElementById('display-price').innerText = "$ ???";
@@ -200,7 +255,6 @@
             }
             document.getElementById('display-barcode').innerText = data.barcode;
 
-            // Pre-fill form
             document.getElementById('form-barcode').value = data.barcode;
             document.getElementById('form-name').value = data.name || '';
             document.getElementById('form-image').value = data.image || '';
@@ -234,7 +288,6 @@
             }
         }
 
-        // Handle instant updates for deletions without full refresh
         socket.on('product_deleted', function(data) {
             window.location.reload(); 
         });
