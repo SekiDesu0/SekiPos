@@ -2,7 +2,7 @@ import pandas as pd
 import json
 import os
 
-file_path = os.getcwd() + 'PLU+FSMA+list+v1.0.xlsx'
+file_path = os.path.join(os.getcwd(), 'PLU+FSMA+list+v1.0.xlsx')
 sheet_name = 'Non FTL' 
 new_url_base = "https://server-ifps.accurateig.com/assets/commodities/"
 
