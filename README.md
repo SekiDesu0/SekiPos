@@ -81,7 +81,6 @@ python app.py
 
 ## 📋 TODOs?
 - Better admin registration(?)
-- Cache user edited pictures
 - clear edited fields after scanning of new product
 
 ## 🥼 Food Datasets
