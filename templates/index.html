@@ -15,7 +15,8 @@
     <div class="header-bar">
         <h2 style="margin:0;">SekiPOS v1.2</h2>
         <div style="display: flex; align-items: center; gap: 15px;">
-            <button onclick="toggleTheme()" class="theme-toggle-btn" id="theme-text" style="margin: 0;">Modo Oscuro</button>
+            <button onclick="toggleTheme()" class="theme-toggle-btn" id="theme-text" style="margin: 0;">Modo
+                Oscuro</button>
             <span style="color: var(--border);">|</span>
             <span>Usuario: <b>{{ user.username }}</b></span>
             <span style="color: var(--border);">|</span>
@@ -26,8 +27,10 @@
     <div class="main-container">
         <div class="column">
             <div id="new-product-prompt">
-                <span style="flex-grow: 1;">¡Nuevo! Barcode <b><span id="new-barcode-display"></span></b>. ¿Deseas agregarlo?</span>
-                <button onclick="dismissPrompt()" style="background:rgba(0,0,0,0.2); color:white; margin-left: 15px;">Omitir</button>
+                <span style="flex-grow: 1;">¡Nuevo! Barcode <b><span id="new-barcode-display"></span></b>. ¿Deseas
+                    agregarlo?</span>
+                <button onclick="dismissPrompt()"
+                    style="background:rgba(0,0,0,0.2); color:white; margin-left: 15px;">Omitir</button>
             </div>
 
             <div class="card" id="scan-display">
@@ -71,9 +74,11 @@
                             <td>{{ p[1] }}</td>
                             <td class="price-cell" data-value="{{ p[2] }}"></td>
                             <td style="white-space: nowrap;">
-                                <button class="btn-edit" onclick="editProduct('{{ p[0] }}', '{{ p[1] }}', '{{ p[2] }}', '{{ p[3] }}')">Editar</button>
+                                <button class="btn-edit"
+                                    onclick="editProduct('{{ p[0] }}', '{{ p[1] }}', '{{ p[2] }}', '{{ p[3] }}')">Editar</button>
                                 <form action="/delete/{{ p[0] }}" method="POST" style="display:inline;">
-                                    <button type="submit" class="btn-del" onclick="return confirm('¿Eliminar producto?')">Borrar</button>
+                                    <button type="submit" class="btn-del"
+                                        onclick="return confirm('¿Eliminar producto?')">Borrar</button>
                                 </form>
                             </td>
                         </tr>
@@ -131,6 +136,14 @@
             const prompt = document.getElementById('new-product-prompt');
             document.getElementById('new-barcode-display').innerText = data.barcode;
             prompt.style.display = 'flex';
+
+            // FIX: Update the main display card even if it's not in the DB yet
+            document.getElementById('display-name').innerText = data.name || "Producto Nuevo";
+            document.getElementById('display-price').innerText = clpFormatter.format(0);
+            document.getElementById('display-barcode').innerText = data.barcode;
+            document.getElementById('display-img').src = data.image || './static/placeholder.png';
+
+            // Fill the form
             document.getElementById('form-barcode').value = data.barcode;
             document.getElementById('form-name').value = data.name || '';
             document.getElementById('form-image').value = data.image || '';

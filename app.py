@@ -62,10 +62,16 @@ def download_image(url, barcode):
     return url
 
 def fetch_from_openfoodfacts(barcode):
+    # Check if we already have a cached image even if API fails
+    local_filename = f"{barcode}.jpg"
+    local_path = os.path.join(CACHE_DIR, local_filename)
+    cached_url = f"/static/cache/{local_filename}" if os.path.exists(local_path) else None
+
     url = f"https://world.openfoodfacts.org/api/v2/product/{barcode}.json"
     try:
         headers = {'User-Agent': 'SekiPOS/1.0'}
         resp = requests.get(url, headers=headers, timeout=5).json()
+        
         if resp.get('status') == 1:
             p = resp.get('product', {})
             name = p.get('product_name_es') or p.get('product_name') or p.get('brands', 'Unknown')
@@ -73,7 +79,14 @@ def fetch_from_openfoodfacts(barcode):
             img_url = imgs.get('es') or imgs.get('en') or p.get('image_url', '')
             local_img = download_image(img_url, barcode)
             return {"name": name, "image": local_img}
-    except: pass
+            
+    except Exception as e:
+        print(f"API Error: {e}")
+
+    # If API fails but we have a cache, return the cache with a generic name
+    if cached_url:
+        return {"name": "Producto Cacheado", "image": cached_url}
+        
     return None
 
 # --- ROUTES ---
@@ -137,13 +150,19 @@ def scan():
     if p:
         socketio.emit('new_scan', {"barcode": p[0], "name": p[1], "price": int(p[2]), "image": p[3]})
         return jsonify({"status": "ok"})
+    
+    # Not in DB, try external API or Local Cache
+    ext = fetch_from_openfoodfacts(barcode)
+    if ext:
+        socketio.emit('scan_error', {
+            "barcode": barcode, 
+            "name": ext['name'], 
+            "image": ext['image']
+        })
     else:
-        ext = fetch_from_openfoodfacts(barcode)
-        if ext:
-            socketio.emit('scan_error', {"barcode": barcode, "name": ext['name'], "image": ext['image']})
-        else:
-            socketio.emit('scan_error', {"barcode": barcode})
-        return jsonify({"status": "not_found"}), 404
+        socketio.emit('scan_error', {"barcode": barcode})
+        
+    return jsonify({"status": "not_found"}), 404
 
 @app.route('/static/cache/<path:filename>')
 def serve_cache(filename):
