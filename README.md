@@ -26,7 +26,7 @@ docker run -d \
   sekipos
 ```
 
-Or ose this stack:
+Or use this stack:
 ```yml
 name: sekipos
 services:
