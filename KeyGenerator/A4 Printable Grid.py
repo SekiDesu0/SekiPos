@@ -2,8 +2,8 @@ import os
 from PIL import Image
 
 # --- CONFIGURATION ---
-CARD_DIR = 'keychain_cards'
-OUTPUT_PDF = 'keychain_3x3_perfect.pdf'
+CARD_DIR = os.path.join(os.getcwd(),'keychain_cards')
+OUTPUT_PDF =  os.path.join(os.getcwd(), 'keychain_3x3_perfect.pdf')
 
 # A4 at 300 DPI
 PAGE_W, PAGE_H = 2480, 3508
