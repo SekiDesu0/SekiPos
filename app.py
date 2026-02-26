@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, f
 from flask_socketio import SocketIO, emit
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+import mimetypes
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'seki_super_secret_key_99' # Change this if you have actual friends
@@ -45,20 +46,31 @@ def load_user(user_id):
         user = conn.execute('SELECT id, username FROM users WHERE id = ?', (user_id,)).fetchone()
     return User(user[0], user[1]) if user else None
 
-# --- HELPERS ---
 def download_image(url, barcode):
-    if not url or not url.startswith('http'): return url
-    local_filename = f"{barcode}.jpg"
-    local_path = os.path.join(CACHE_DIR, local_filename)
-    if os.path.exists(local_path): return f"/static/cache/{local_filename}"
+    if not url or not url.startswith('http'): 
+        return url
+        
     try:
-        headers = {'User-Agent': 'SekiPOS/1.0'}
-        r = requests.get(url, headers=headers, stream=True, timeout=5)
-        if r.status_code == 200:
+        headers = {'User-Agent': 'SekiPOS/1.2'}
+        # Use stream=True to check headers before downloading the whole file
+        with requests.get(url, headers=headers, stream=True, timeout=5) as r:
+            r.raise_for_status()
+            
+            # Detect extension from Content-Type header
+            content_type = r.headers.get('content-type')
+            ext = mimetypes.guess_extension(content_type) or '.jpg'
+            
+            local_filename = f"{barcode}{ext}"
+            local_path = os.path.join(CACHE_DIR, local_filename)
+            
+            # Save the file
             with open(local_path, 'wb') as f:
-                for chunk in r.iter_content(1024): f.write(chunk)
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+                    
             return f"/static/cache/{local_filename}"
-    except: pass
+    except Exception as e:
+        print(f"Download failed: {e}")
     return url
 
 def fetch_from_openfoodfacts(barcode):
@@ -119,11 +131,17 @@ def index():
 @login_required
 def upsert():
     d = request.form
+    barcode = d['barcode']
+    original_url = d['image_url']
+    
+    # Process the URL: Download if external, or keep if already local/empty
+    final_image_path = download_image(original_url, barcode)
+    
     with sqlite3.connect(DB_FILE) as conn:
         conn.execute('''INSERT INTO products (barcode, name, price, image_url) VALUES (?,?,?,?)
                         ON CONFLICT(barcode) DO UPDATE SET name=excluded.name, 
                         price=excluded.price, image_url=excluded.image_url''',
-                     (d['barcode'], d['name'], d['price'], d['image_url']))
+                     (barcode, d['name'], d['price'], final_image_path))
         conn.commit()
     return redirect(url_for('index'))
 
