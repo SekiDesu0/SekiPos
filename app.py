@@ -32,7 +32,7 @@ def init_db():
         conn.execute('''CREATE TABLE IF NOT EXISTS products 
                         (barcode TEXT PRIMARY KEY, name TEXT, price REAL, image_url TEXT)''')
         
-        # Default user: admin / Pass: seki123
+        # Default user: admin / Pass: choripan1234
         user = conn.execute('SELECT * FROM users WHERE username = ?', ('admin',)).fetchone()
         if not user:
             hashed_pw = generate_password_hash('choripan1234')
