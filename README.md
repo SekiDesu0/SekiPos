@@ -1,22 +1,61 @@
 # SekiPOS v1.0 🍫🥤
 
-A dry-humored, over-engineered POS (Piece Of Shit) inventory system for software engineers who scan too many snacks. Uses a hardware barcode scanner (via Serial) or a phone to manage products with real-time UI updates.
+A reactive POS inventory system for software engineers with a snack addiction. Features real-time UI updates, automatic product discovery via Open Food Facts, and local image caching.
 
 ## 🚀 Features
-- **Real-time Inventory:** Instant UI updates using WebSockets (Socket.IO).
-- **Auto-Discovery:** Fetches product names and images from Open Food Facts API.
-- **Image Caching:** Locally stores product images to prevent IP bans and broken links.
-- **Chilean Formatting:** Native CLP currency support ($1.234).
-- **Security:** Session-based authentication (Flask-Login) with hashed passwords.
-- **Hardware Bridge:** A dedicated script to bridge Serial (COM) scanners to the web server.
+- **Real-time UI:** Instant updates via Socket.IO.
+- **Smart Fetch:** Pulls product names/images from Open Food Facts if not found locally.
+- **Local Cache:** Saves images locally to `static/cache` to avoid IP bans.
+- **CLP Ready:** Chilean Peso formatting ($1.234) for local commerce.
+- **Secure:** Hashed password authentication via Flask-Login.
 
-## 🛠️ Tech Stack
-- **Backend:** Python 3.x, Flask, SQLite
-- **Frontend:** Vanilla JS, Socket.IO, HTML5/CSS3
-- **Communication:** HTTP REST + WebSockets
+## 🐳 Docker Deployment (Server)
 
-## 📦 Installation
+Build and run the central inventory server:
 
-1. **Clean your messy environment:**
-   ```bash
-   pip install Flask Flask-Login Flask-SocketIO pyserial requests eventlet
+```bash
+# Build the image
+docker build -t sekipos .
+
+# Run the container (Map port 5000 and persist the database/cache)
+docker run -d \
+  -p 5000:5000 \
+  -v $(pwd)/pos_database.db:/app/pos_database.db \
+  -v $(pwd)/static/cache:/app/static/cache \
+  --name sekipos-server \
+  sekipos
+```
+
+## 🔌 Hardware Scanner Bridge (`ScannerGO`)
+
+The server needs a bridge to talk to your physical COM port. Use the `ScannerGO` binary on the machine where the scanner is plugged in.
+
+### 🐧 Linux
+```bash
+chmod +x ScannerGO-linux
+./ScannerGO-linux -port "/dev/ttyACM0" -baud 115200 -url "http://<SERVER_IP>:5000/scan"
+```
+
+### 🪟 Windows
+```powershell
+.\ScannerGO-windows.exe -port "COM3" -baud 115200 -url "http://<SERVER_IP>:5000/scan"
+```
+
+*Note: Ensure the `-url` points to your Docker container's IP address.*
+
+## 📦 Local Installation (Development)
+
+If you're too afraid of Docker:
+```bash
+pip install Flask Flask-Login Flask-SocketIO requests eventlet
+python app.py
+```
+
+## 🔐 Credentials
+- **Username:** `admin`
+- **Password:** `seki123` (Change this in `app.py` or you'll be hacked by a smart-fridge)
+
+## 📁 Structure
+- `app.py`: The inventory/web server.
+- `static/cache/`: Local repository for product images.
+- `pos_database.db`: SQLite storage.
