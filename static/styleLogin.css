@@ -1,0 +1,98 @@
+:root {
+    /* Discord Branding Colors */
+    --bg: #5865F2;
+    --card-bg: #ffffff;
+    --text: #2e3338;
+    --input-bg: #e3e5e8;
+    --input-border: transparent;
+    --accent: #5865F2;
+    --accent-hover: #4752c4;
+    --error: #ed4245;
+}
+
+[data-theme="dark"] {
+    /* Discord Dark Mode */
+    --bg: #36393f;
+    --card-bg: #2f3136;
+    --text: #ffffff;
+    --input-bg: #202225;
+    --input-border: transparent;
+}
+
+body {
+    font-family: 'gg sans', 'Segoe UI', Tahoma, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: var(--bg);
+    margin: 0;
+    transition: background 0.2s;
+}
+
+.login-box {
+    background: var(--card-bg);
+    padding: 32px;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    color: var(--text);
+    width: 400px;
+    transition: background 0.2s, color 0.2s;
+}
+
+h2 {
+    margin-top: 0;
+    font-weight: 700;
+    font-size: 24px;
+}
+
+p.sub-text {
+    color: var(--text);
+    opacity: 0.7;
+    margin-bottom: 20px;
+}
+
+input {
+    display: block;
+    width: 100%;
+    margin: 16px 0;
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    background: var(--input-bg);
+    color: var(--text);
+    box-sizing: border-box;
+    font-size: 16px;
+}
+
+input:focus {
+    outline: 2px solid var(--accent);
+}
+
+button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    width: 100%;
+    margin-top: 10px;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background: var(--accent-hover);
+}
+
+.error-msg {
+    background: var(--error);
+    color: white;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    margin-bottom: 15px;
+}
