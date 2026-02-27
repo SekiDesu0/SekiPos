@@ -121,9 +121,11 @@
 
         /* ── Price tag ── */
         .price-tag {
-            font-size: 2.2rem;
+            font-size: 2.8rem;
+            /* Slightly larger for the wider card */
             font-weight: 800;
-            color: var(--text-main);
+            color: var(--accent);
+            /* Optional: uses your accent color for better visibility */
         }
 
         /* ── Table ── */
@@ -185,8 +187,13 @@
 
         /* ── Product image ── */
         #display-img {
-            max-width: 160px;
-            max-height: 160px;
+            width: 100%;
+            /* Allows it to fill the new width */
+            max-width: 250px;
+            /* Increased from 160px */
+            height: auto;
+            max-height: 250px;
+            /* Increased from 160px */
             object-fit: contain;
         }
 
@@ -279,7 +286,7 @@
         <div class="row g-3">
 
             <!-- ── LEFT COLUMN ── -->
-            <div class="col-12 col-lg-4">
+            <div class="col-12 col-lg-5">
 
                 <!-- New product prompt -->
                 <div id="new-product-prompt"
@@ -313,17 +320,32 @@
                             required>
                         <input class="form-control mb-2" type="number" name="price" id="form-price"
                             placeholder="Precio (CLP)" required>
-                        <input class="form-control mb-3" type="text" name="image_url" id="form-image"
-                            placeholder="URL Imagen">
-                        <button type="submit" class="btn btn-accent w-100">
-                            <i class="bi bi-floppy me-1"></i>Guardar Cambios
-                        </button>
+
+                        <div class="input-group mb-3">
+                            <input class="form-control" type="text" name="image_url" id="form-image"
+                                placeholder="URL Imagen">
+                            <input type="file" id="camera-input" accept="image/*" capture="environment"
+                                style="display: none;" onchange="handleFileUpload(this)">
+                            <button class="btn btn-outline-secondary" type="button"
+                                onclick="document.getElementById('camera-input').click()">
+                                <i class="bi bi-camera"></i>
+                            </button>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-accent flex-grow-1">
+                                <i class="bi bi-floppy me-1"></i>Guardar
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="clearForm()">
+                                <i class="bi bi-eraser"></i>
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
 
             <!-- ── RIGHT COLUMN ── -->
-            <div class="col-12 col-lg-8">
+            <div class="col-12 col-lg-7">
                 <div class="discord-card p-3">
 
                     <!-- Bulk actions bar -->
@@ -559,10 +581,15 @@
             dismissPrompt();
             document.getElementById('form-barcode').value = b;
             document.getElementById('form-name').value = n;
-            // If p is undefined (from scan_error), set value to empty string
             document.getElementById('form-price').value = (p !== undefined && p !== null) ? p : '';
             document.getElementById('form-image').value = i || '';
             document.getElementById('form-title').innerText = t;
+
+            // ADD THESE LINES TO UPDATE THE PREVIEW CARD
+            document.getElementById('display-img').src = i || './static/placeholder.png';
+            document.getElementById('display-name').innerText = n || 'Producto Nuevo';
+            document.getElementById('display-price').innerText = clp.format(p || 0);
+            document.getElementById('display-barcode').innerText = b;
         }
 
         function dismissPrompt() {
@@ -574,7 +601,7 @@
             document.getElementById('editModal').dataset.barcode = b;
             document.getElementById('editModal').dataset.name = n;
             document.getElementById('editModal').dataset.price = p;
-            document.getElementById('editModal').dataset.image = i;
+            document.getElementById('editModal').dataset.image = i; // This captures the image
         }
 
         function confirmEdit() {
@@ -621,10 +648,49 @@
             document.getElementById('selected-count').innerText =
                 document.querySelectorAll('.product-checkbox:checked').length;
         }
-        function clearSelection() {
-            document.querySelectorAll('.product-checkbox').forEach(cb => cb.checked = false);
-            document.getElementById('select-all').checked = false;
-            updateBulkBar();
+
+        function clearForm() {
+            document.getElementById('product-form').reset();
+            document.getElementById('form-title').innerText = 'Editar / Crear';
+            // Reset preview card
+            document.getElementById('display-img').src = './static/placeholder.png';
+            document.getElementById('display-name').innerText = 'Esperando scan...';
+            document.getElementById('display-price').innerText = '$0';
+            document.getElementById('display-barcode').innerText = '';
+        }
+
+        async function handleFileUpload(input) {
+            const barcode = document.getElementById('form-barcode').value;
+            if (!barcode) {
+                alert("Primero escanea o ingresa un código de barras.");
+                input.value = '';
+                return;
+            }
+
+            const file = input.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('barcode', barcode);
+
+            try {
+                const res = await fetch('/upload_image', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    document.getElementById('form-image').value = data.image_url;
+                    document.getElementById('display-img').src = data.image_url;
+                } else {
+                    alert("Error al subir imagen: " + data.error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error de conexión al subir imagen.");
+            }
         }
 
         function applyBulkPrice() {
