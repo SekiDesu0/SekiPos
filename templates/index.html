@@ -542,11 +542,11 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                            <label class="form-label small text-muted">Seleccionar Cámara:</label>
-                            <select id="camera-select" class="form-select form-select-sm"
-                                onchange="switchCamera(this.value)">
-                                <option value="">Cargando cámaras...</option>
-                            </select>
+                        <label class="form-label small text-muted">Seleccionar Cámara:</label>
+                        <select id="camera-select" class="form-select form-select-sm"
+                            onchange="switchCamera(this.value)">
+                            <option value="">Cargando cámaras...</option>
+                        </select>
                     </div>
                     <div id="reader" style="width: 100%;"></div>
                 </div>
@@ -982,16 +982,19 @@
             return null;
         }
 
+        // A single, clean theme manager
         function applyTheme(t) {
             document.documentElement.setAttribute('data-theme', t);
             const isDark = t === 'dark';
+
+            // Update UI elements if they exist
             const themeIcon = document.getElementById('theme-icon');
             const themeLabel = document.getElementById('theme-label');
-
             if (themeIcon) themeIcon.className = isDark ? 'bi bi-sun me-2' : 'bi bi-moon-stars me-2';
             if (themeLabel) themeLabel.innerText = isDark ? 'Modo Claro' : 'Modo Oscuro';
 
-            setCookie('theme', t);
+            // Save to localStorage (much more reliable than cookies for this)
+            localStorage.setItem('theme', t);
         }
 
         function toggleTheme() {
@@ -1000,19 +1003,16 @@
             applyTheme(next);
         }
 
-        // Initialization Logic
-        function initTheme() {
-            const savedTheme = getCookie('theme');
-
+        // Run this immediately on load
+        (function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
             if (savedTheme) {
-                // Use user preference if it exists
                 applyTheme(savedTheme);
             } else {
-                // Otherwise, detect OS preference
                 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                 applyTheme(prefersDark ? 'dark' : 'light');
             }
-        }
+        })();
 
         // Listen for OS theme changes in real-time if no cookie is set
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
