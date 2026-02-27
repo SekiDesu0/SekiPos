@@ -345,8 +345,14 @@
                     </div>
 
                     <!-- Search -->
-                    <input type="text" id="searchInput" class="form-control mb-3" onkeyup="searchTable()"
-                        placeholder="Filtrar productos...">
+                    <div class="position-relative mb-3">
+                        <input type="text" id="searchInput" class="form-control pe-5" onkeyup="searchTable()"
+                            placeholder="Filtrar productos...">
+                        <button class="btn btn-link position-absolute end-0 top-50 translate-middle-y text-muted"
+                            onclick="clearSearch()" id="clearSearchBtn" style="display: none; text-decoration: none;">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
 
                     <!-- Table -->
                     <div class="table-responsive">
@@ -513,17 +519,18 @@
         }
         formatAll();
 
+        // Inside socket.on('new_scan')
         socket.on('new_scan', d => {
+            // Update the "Last Scanned" card
             document.getElementById('display-name').innerText = d.name;
             document.getElementById('display-price').innerText = clp.format(d.price);
             document.getElementById('display-barcode').innerText = d.barcode;
             document.getElementById('display-img').src = d.image || './static/placeholder.png';
 
             let title = 'Editando: ' + d.name;
-            if (d.note) {
-                title += ` (${d.note})`; // This will show "Editando: Item (Imagen recuperada)"
-            }
+            if (d.note) title += ` (${d.note})`;
 
+            // Update the actual form
             updateForm(d.barcode, d.name, d.price, d.image, title);
         });
 
@@ -531,6 +538,14 @@
             const prompt = document.getElementById('new-product-prompt');
             document.getElementById('new-barcode-display').innerText = d.barcode;
             prompt.classList.remove('d-none');
+
+            // Update the "Last Scanned" card so it doesn't show old data
+            document.getElementById('display-name').innerText = d.name || "Producto Nuevo";
+            document.getElementById('display-price').innerText = clp.format(0);
+            document.getElementById('display-barcode').innerText = d.barcode;
+            document.getElementById('display-img').src = d.image || './static/placeholder.png';
+
+            // Clear the price and set the name in the form
             updateForm(d.barcode, d.name || '', '', d.image || '', 'Crear: ' + d.barcode);
         });
 
@@ -538,8 +553,9 @@
             dismissPrompt();
             document.getElementById('form-barcode').value = b;
             document.getElementById('form-name').value = n;
-            document.getElementById('form-price').value = p;
-            document.getElementById('form-image').value = i;
+            // If p is undefined (from scan_error), set value to empty string
+            document.getElementById('form-price').value = (p !== undefined && p !== null) ? p : '';
+            document.getElementById('form-image').value = i || '';
             document.getElementById('form-title').innerText = t;
         }
 
@@ -681,12 +697,25 @@
 
         /* ── Search ── */
         function searchTable() {
-            const q = document.getElementById('searchInput').value.toUpperCase();
+            const input = document.getElementById('searchInput');
+            const q = input.value.toUpperCase();
+            const clearBtn = document.getElementById('clearSearchBtn');
+
+            // Show/hide clear button based on input
+            clearBtn.style.display = q.length > 0 ? 'block' : 'none';
+
             document.querySelectorAll('#inventoryTable tbody tr').forEach(tr => {
                 tr.style.display = tr.innerText.toUpperCase().includes(q) ? '' : 'none';
             });
-            // Reset select-all when search changes
+
             document.getElementById('select-all').checked = false;
+        }
+
+        function clearSearch() {
+            const input = document.getElementById('searchInput');
+            input.value = '';
+            searchTable(); // Re-run search to show all rows
+            input.focus();
         }
 
     </script>

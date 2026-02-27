@@ -23,6 +23,7 @@ docker run -d \
   -v $(pwd)/sekipos/db:/app/db \
   -v $(pwd)/sekipos/static/cache:/app/static/cache \
   --name sekipos-server \
+  --restart unless-stopped \
   sekipos:latest
 ```
 
