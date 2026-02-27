@@ -6,6 +6,7 @@ from flask_socketio import SocketIO, emit
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import mimetypes
+import time
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'seki_super_secret_key_99' # Change this if you have actual friends
@@ -250,22 +251,16 @@ def bulk_delete():
 def upload_image():
     if 'image' not in request.files or 'barcode' not in request.form:
         return jsonify({"error": "Missing data"}), 400
-    
     file = request.files['image']
     barcode = request.form['barcode']
-    
     if file.filename == '' or not barcode:
         return jsonify({"error": "Invalid data"}), 400
-
-    # Detect extension
     ext = mimetypes.guess_extension(file.mimetype) or '.jpg'
     filename = f"{barcode}{ext}"
     filepath = os.path.join(CACHE_DIR, filename)
-    
     file.save(filepath)
-    
-    # Return the relative path for the frontend
-    return jsonify({"status": "success", "image_url": f"/static/cache/{filename}"}), 200
+    timestamp = int(time.time())
+    return jsonify({"status": "success", "image_url": f"/static/cache/{filename}?t={timestamp}"}), 200
 
 if __name__ == '__main__':
     init_db()
