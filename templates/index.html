@@ -518,7 +518,13 @@
             document.getElementById('display-price').innerText = clp.format(d.price);
             document.getElementById('display-barcode').innerText = d.barcode;
             document.getElementById('display-img').src = d.image || './static/placeholder.png';
-            updateForm(d.barcode, d.name, d.price, d.image, 'Editando: ' + d.name);
+
+            let title = 'Editando: ' + d.name;
+            if (d.note) {
+                title += ` (${d.note})`; // This will show "Editando: Item (Imagen recuperada)"
+            }
+
+            updateForm(d.barcode, d.name, d.price, d.image, title);
         });
 
         socket.on('scan_error', d => {

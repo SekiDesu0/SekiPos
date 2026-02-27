@@ -74,11 +74,6 @@ def download_image(url, barcode):
     return url
 
 def fetch_from_openfoodfacts(barcode):
-    # Check if we already have a cached image even if API fails
-    local_filename = f"{barcode}.jpg"
-    local_path = os.path.join(CACHE_DIR, local_filename)
-    cached_url = f"/static/cache/{local_filename}" if os.path.exists(local_path) else None
-
     url = f"https://world.openfoodfacts.org/api/v2/product/{barcode}.json"
     try:
         headers = {'User-Agent': 'SekiPOS/1.0'}
@@ -89,16 +84,14 @@ def fetch_from_openfoodfacts(barcode):
             name = p.get('product_name_es') or p.get('product_name') or p.get('brands', 'Unknown')
             imgs = p.get('selected_images', {}).get('front', {}).get('display', {})
             img_url = imgs.get('es') or imgs.get('en') or p.get('image_url', '')
-            local_img = download_image(img_url, barcode)
-            return {"name": name, "image": local_img}
+            
+            if img_url:
+                local_img = download_image(img_url, barcode)
+                return {"name": name, "image": local_img}
+            return {"name": name, "image": None}
             
     except Exception as e:
         print(f"API Error: {e}")
-
-    # If API fails but we have a cache, return the cache with a generic name
-    if cached_url:
-        return {"name": "Producto Cacheado", "image": cached_url}
-        
     return None
 
 # --- ROUTES ---
@@ -169,17 +162,32 @@ def scan():
         p = conn.execute('SELECT * FROM products WHERE barcode = ?', (barcode,)).fetchone()
     
     if p:
-        socketio.emit('new_scan', {"barcode": p[0], "name": p[1], "price": int(p[2]), "image": p[3]})
+        barcode_val, name, price, image_path = p
+        
+        # Check if local cache image actually exists on disk
+        if image_path and image_path.startswith('/static/cache/'):
+            relative_path = image_path.lstrip('/')
+            if not os.path.exists(relative_path):
+                # Image lost! Attempting recovery
+                ext_data = fetch_from_openfoodfacts(barcode_val)
+                if ext_data and ext_data.get('image'):
+                    image_path = ext_data['image']
+                    # Update DB with the new path (might have a different extension now)
+                    with sqlite3.connect(DB_FILE) as conn:
+                        conn.execute('UPDATE products SET image_url = ? WHERE barcode = ?', (image_path, barcode_val))
+                        conn.commit()
+                    socketio.emit('new_scan', {
+                        "barcode": barcode_val, "name": name, "price": int(price), 
+                        "image": image_path, "note": "Imagen recuperada"
+                    })
+                    return jsonify({"status": "ok", "recovered": True})
+
+        socketio.emit('new_scan', {"barcode": barcode_val, "name": name, "price": int(price), "image": image_path})
         return jsonify({"status": "ok"})
     
-    # Not in DB, try external API or Local Cache
     ext = fetch_from_openfoodfacts(barcode)
     if ext:
-        socketio.emit('scan_error', {
-            "barcode": barcode, 
-            "name": ext['name'], 
-            "image": ext['image']
-        })
+        socketio.emit('scan_error', {"barcode": barcode, "name": ext['name'], "image": ext['image']})
     else:
         socketio.emit('scan_error', {"barcode": barcode})
         
@@ -208,6 +216,33 @@ def bulk_price_update():
         return jsonify({"status": "success"}), 200
     except Exception as e:
         print(f"Bulk update failed: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/bulk_delete', methods=['POST'])
+@login_required
+def bulk_delete():
+    data = request.get_json()
+    barcodes = data.get('barcodes', [])
+
+    if not barcodes:
+        return jsonify({"error": "No barcodes provided"}), 400
+
+    try:
+        with sqlite3.connect(DB_FILE) as conn:
+            # Delete records from DB
+            conn.execute(f'DELETE FROM products WHERE barcode IN ({",".join(["?"]*len(barcodes))})', barcodes)
+            conn.commit()
+        
+        # Clean up cache for each deleted product
+        for barcode in barcodes:
+            # This is a bit naive as it only checks .jpg, but matches your existing delete logic
+            img_p = os.path.join(CACHE_DIR, f"{barcode}.jpg")
+            if os.path.exists(img_p): 
+                os.remove(img_p)
+                
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        print(f"Bulk delete failed: {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
