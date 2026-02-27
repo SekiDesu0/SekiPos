@@ -363,9 +363,15 @@
                                         <input class="form-check-input" type="checkbox" id="select-all"
                                             onclick="toggleAll(this)">
                                     </th>
-                                    <th class="col-barcode">Código</th>
-                                    <th>Nombre</th>
-                                    <th>Precio</th>
+                                    <th class="col-barcode" onclick="sortTable(1)" style="cursor:pointer;">
+                                        Código <i class="bi bi-arrow-down-up ms-1" style="font-size: 0.6rem;"></i>
+                                    </th>
+                                    <th onclick="sortTable(2)" style="cursor:pointer;">
+                                        Nombre <i class="bi bi-arrow-down-up ms-1" style="font-size: 0.6rem;"></i>
+                                    </th>
+                                    <th onclick="sortTable(3)" style="cursor:pointer;">
+                                        Precio <i class="bi bi-arrow-down-up ms-1" style="font-size: 0.6rem;"></i>
+                                    </th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
@@ -718,6 +724,41 @@
             input.focus();
         }
 
+        let sortDirections = [true, true, true, true]; // Tracks asc/desc for each column
+
+        function sortTable(colIdx) {
+            const table = document.getElementById("inventoryTable");
+            const tbody = table.querySelector("tbody");
+            const rows = Array.from(tbody.querySelectorAll("tr"));
+            const isAscending = sortDirections[colIdx];
+
+            const sortedRows = rows.sort((a, b) => {
+                let valA = a.cells[colIdx].innerText.trim();
+                let valB = b.cells[colIdx].innerText.trim();
+
+                // If sorting price, use the data-value attribute for pure numbers
+                if (colIdx === 3) {
+                    valA = parseFloat(a.cells[colIdx].getAttribute('data-value')) || 0;
+                    valB = parseFloat(b.cells[colIdx].getAttribute('data-value')) || 0;
+                } else {
+                    valA = valA.toLowerCase();
+                    valB = valB.toLowerCase();
+                }
+
+                if (valA < valB) return isAscending ? -1 : 1;
+                if (valA > valB) return isAscending ? 1 : -1;
+                return 0;
+            });
+
+            // Toggle direction for next click
+            sortDirections[colIdx] = !isAscending;
+
+            // Append sorted rows back to tbody
+            sortedRows.forEach(row => tbody.appendChild(row));
+
+            // Optional: Reset "select all" state since order changed
+            document.getElementById('select-all').checked = false;
+        }
     </script>
 </body>
 
