@@ -38,6 +38,7 @@ services:
             - YOUR_PATH/sekipos/static/cache:/app/static/cache
         container_name: sekipos-server
         image: sekipos:latest
+        restart: unless-stopped
 ```
 
 ## 🔌 Hardware Scanner Bridge (`ScannerGO`)

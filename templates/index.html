@@ -227,6 +227,15 @@
         [data-theme="dark"] .btn-close {
             filter: invert(1) grayscale(100%) brightness(200%);
         }
+
+        /* Add this inside your <style> tag */
+        [data-theme="dark"] .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        [data-theme="dark"] .modal-body .text-muted {
+            color: #f6f6f7 !important;
+        }
     </style>
 </head>
 
@@ -325,7 +334,11 @@
                                 placeholder="Precio">
                             <button onclick="applyBulkPrice()" class="btn btn-sm"
                                 style="background:#fff; color:var(--accent); font-weight:600;">OK</button>
-                            <button onclick="clearSelection()" class="btn btn-sm btn-danger-discord">
+                            <button onclick="applyBulkDelete()" class="btn btn-sm btn-danger-discord">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <button onclick="clearSelection()" class="btn btn-sm"
+                                style="background: rgba(255,255,255,0.2); color:#fff;">
                                 <i class="bi bi-x-lg"></i>
                             </button>
                         </div>
@@ -426,6 +439,7 @@
             </div>
         </div>
     </div>
+
     <div class="modal fade" id="bulkConfirmModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -448,6 +462,30 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="bulkDeleteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Eliminación Masiva</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <i class="bi bi-exclamation-octagon text-danger" style="font-size: 3rem;"></i>
+                    <p class="mt-3">Vas a eliminar <strong id="bulk-delete-count">0</strong> productos permanentemente.
+                    </p>
+                    <p class="text-muted small">Esta acción borrará los datos y las imágenes de la caché.</p>
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-danger-discord" onclick="executeBulkDelete()">
+                            Eliminar permanentemente
+                        </button>
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         /* ── Theme ── */
@@ -602,6 +640,39 @@
                 bootstrap.Modal.getInstance(modalEl).hide();
             }
         }
+
+        function applyBulkDelete() {
+            const checked = document.querySelectorAll('.product-checkbox:checked');
+            if (checked.length === 0) return;
+
+            document.getElementById('bulk-delete-count').innerText = checked.length;
+            const delModal = new bootstrap.Modal(document.getElementById('bulkDeleteModal'));
+            delModal.show();
+        }
+
+        async function executeBulkDelete() {
+            const checked = document.querySelectorAll('.product-checkbox:checked');
+            const barcodes = Array.from(checked).map(cb => cb.closest('tr').getAttribute('data-barcode'));
+
+            const res = await fetch('/bulk_delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ barcodes })
+            });
+
+            if (res.ok) {
+                checked.forEach(cb => {
+                    cb.closest('tr').remove(); // Remove the row from the table immediately
+                });
+                updateBulkBar();
+
+                const modalEl = document.getElementById('bulkDeleteModal');
+                bootstrap.Modal.getInstance(modalEl).hide();
+            } else {
+                alert("Error al eliminar productos.");
+            }
+        }
+
         /* ── Search ── */
         function searchTable() {
             const q = document.getElementById('searchInput').value.toUpperCase();
