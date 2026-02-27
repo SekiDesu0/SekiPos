@@ -533,6 +533,13 @@
                     <button type="button" class="btn-close" onclick="stopScanner()" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Seleccionar Cámara:</label>
+                        <select id="camera-select" class="form-select form-select-sm"
+                            onchange="switchCamera(this.value)">
+                            <option value="">Cargando cámaras...</option>
+                        </select>
+                    </div>
                     <div id="reader" style="width: 100%;"></div>
                 </div>
             </div>
@@ -846,35 +853,73 @@
         }
 
         let html5QrCode;
+        let currentCameraId;
 
         async function startScanner() {
             const modal = new bootstrap.Modal(document.getElementById('scannerModal'));
             modal.show();
 
-            html5QrCode = new Html5Qrcode("reader");
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
+            }
+
+            try {
+                const devices = await Html5Qrcode.getCameras();
+                const select = document.getElementById('camera-select');
+                select.innerHTML = ''; // Clear "loading" message
+
+                if (devices && devices.length) {
+                    devices.forEach((device, index) => {
+                        const option = document.createElement('option');
+                        option.value = device.id;
+                        option.text = device.label || `Cámara ${index + 1}`;
+                        select.appendChild(option);
+                    });
+
+                    // Default to the last camera (often the main back camera on mobile)
+                    currentCameraId = devices[devices.length - 1].id;
+                    select.value = currentCameraId;
+
+                    launchCamera(currentCameraId);
+                } else {
+                    alert("No se encontraron cámaras.");
+                }
+            } catch (err) {
+                console.error("Error obteniendo cámaras:", err);
+                alert("Error de permisos de cámara. Revisa la conexión HTTPS.");
+            }
+        }
+
+        async function launchCamera(cameraId) {
             const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+
+            // If already scanning, stop first before switching
+            if (html5QrCode.isScanning) {
+                await html5QrCode.stop();
+            }
 
             try {
                 await html5QrCode.start(
-                    { facingMode: "environment" },
+                    cameraId,
                     config,
                     (decodedText) => {
-                        // Successfully scanned
                         stopScanner();
                         bootstrap.Modal.getInstance(document.getElementById('scannerModal')).hide();
-
-                        // Trigger your existing scan route
                         fetch(`/scan?content=${decodedText}`)
                             .then(res => {
-                                if (res.status === 404) {
-                                    console.log("Producto nuevo detectado vía cámara");
-                                }
+                                if (res.status === 404) console.log("Nuevo producto detectado");
                             });
                     }
                 );
             } catch (err) {
-                console.error("Error al iniciar cámara:", err);
-                alert("No se pudo acceder a la cámara. Asegúrate de dar permisos HTTPS.");
+                console.error("Error al iniciar cámara específica:", err);
+            }
+        }
+
+        function switchCamera(cameraId) {
+            if (cameraId) {
+                currentCameraId = cameraId;
+                launchCamera(cameraId);
             }
         }
 
@@ -882,7 +927,7 @@
             if (html5QrCode && html5QrCode.isScanning) {
                 html5QrCode.stop().then(() => {
                     html5QrCode.clear();
-                });
+                }).catch(err => console.error("Error stopping scanner", err));
             }
         }
     </script>
