@@ -603,16 +603,22 @@
             updateForm(d.barcode, d.name || '', '', d.image || '', 'Crear: ' + d.barcode);
         });
 
+        // Replace your existing updateForm function with this one
         function updateForm(b, n, p, i, t) {
             dismissPrompt();
             document.getElementById('form-barcode').value = b;
             document.getElementById('form-name').value = n;
             document.getElementById('form-price').value = (p !== undefined && p !== null) ? p : '';
+
+            // Add a timestamp to the URL if it's a local cache image
+            let displayImg = i || './static/placeholder.png';
+            if (displayImg.includes('/static/cache/')) {
+                displayImg += (displayImg.includes('?') ? '&' : '?') + 't=' + Date.now();
+            }
+
             document.getElementById('form-image').value = i || '';
             document.getElementById('form-title').innerText = t;
-
-            // ADD THESE LINES TO UPDATE THE PREVIEW CARD
-            document.getElementById('display-img').src = i || './static/placeholder.png';
+            document.getElementById('display-img').src = displayImg;
             document.getElementById('display-name').innerText = n || 'Producto Nuevo';
             document.getElementById('display-price').innerText = clp.format(p || 0);
             document.getElementById('display-barcode').innerText = b;
