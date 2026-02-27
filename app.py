@@ -189,6 +189,27 @@ def scan():
 def serve_cache(filename):
     return send_from_directory(CACHE_DIR, filename)
 
+@app.route('/bulk_price_update', methods=['POST'])
+@login_required
+def bulk_price_update():
+    data = request.get_json()
+    barcodes = data.get('barcodes', [])
+    new_price = data.get('new_price')
+
+    if not barcodes or new_price is None:
+        return jsonify({"error": "Missing data"}), 400
+
+    try:
+        with sqlite3.connect(DB_FILE) as conn:
+            # Use executemany for efficiency
+            params = [(float(new_price), b) for b in barcodes]
+            conn.executemany('UPDATE products SET price = ? WHERE barcode = ?', params)
+            conn.commit()
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        print(f"Bulk update failed: {e}")
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     init_db()
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
