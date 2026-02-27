@@ -157,26 +157,80 @@ th {
     font-weight: bold;
 }
 
-#new-product-prompt {
-    display: none;
+/* --- BULK ACTIONS PERMANENT BAR --- */
+.bulk-actions {
+    display: flex;
     background: var(--accent);
     color: white;
-    padding: 12px 20px;
+    padding: 10px 20px;
     border-radius: 8px;
-    margin-bottom: 20px;
-    animation: slideDown 0.4s ease;
+    margin-bottom: 15px;
     justify-content: space-between;
     align-items: center;
+    min-height: 60px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.bulk-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+/* Override the global 100% width for this specific input */
+.bulk-actions input#bulk-price-input {
+    width: 130px !important;
+    margin: 0 !important;
+    padding: 8px !important;
+    height: 36px !important;
+    background: rgba(0,0,0,0.2) !important;
+    border: 1px solid rgba(255,255,255,0.3) !important;
+    color: white !important;
+}
+
+.bulk-actions button {
+    height: 36px;
+    white-space: nowrap;
+    padding: 0 15px;
+    margin: 0;
+}
+
+/* --- RESPONSIVE DESIGN (MOBILE) --- */
+@media (max-width: 900px) {
+    .main-container {
+        flex-direction: column;
+    }
+    
+    .column {
+        min-width: 100%;
+    }
+
+    .bulk-actions {
+        flex-direction: column;
+        height: auto;
+        padding: 15px;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .bulk-controls {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .bulk-actions input#bulk-price-input {
+        width: 100% !important; /* On mobile, let it be wide */
+    }
+
+    /* Hide barcode on very small screens to save space */
+    td:nth-child(2), th:nth-child(2) {
+        display: none;
+    }
 }
 
 @keyframes slideDown {
-    from {
-        transform: translateY(-20px);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }

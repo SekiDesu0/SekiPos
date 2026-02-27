@@ -56,35 +56,48 @@
         <div class="column">
             <div class="card">
                 <h3 style="text-align: left; margin-top:0;">Inventario</h3>
-                <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Buscar por nombre o código...">
-
-                <table id="inventoryTable">
-                    <thead>
-                        <tr>
-                            <th>Código</th>
-                            <th>Nombre</th>
-                            <th>Precio</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for p in products %}
-                        <tr>
-                            <td style="font-family: monospace;">{{ p[0] }}</td>
-                            <td>{{ p[1] }}</td>
-                            <td class="price-cell" data-value="{{ p[2] }}"></td>
-                            <td style="white-space: nowrap;">
-                                <button class="btn-edit"
-                                    onclick="editProduct('{{ p[0] }}', '{{ p[1] }}', '{{ p[2] }}', '{{ p[3] }}')">Editar</button>
-                                <form action="/delete/{{ p[0] }}" method="POST" style="display:inline;">
-                                    <button type="submit" class="btn-del"
-                                        onclick="return confirm('¿Eliminar producto?')">Borrar</button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                
+                <!-- Bulk Action Bar -->
+                <div id="bulk-bar" class="bulk-actions">
+                    <span><b id="selected-count">0</b> seleccionados</span>
+                    <div class="bulk-controls">
+                        <input type="number" id="bulk-price-input" placeholder="Precio CLP">
+                        <button onclick="applyBulkPrice()" style="background: white; color: var(--accent);">OK</button>
+                        <button onclick="clearSelection()" class="btn-del">✕</button>
+                    </div>
+                </div>
+                <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Buscar...">
+                <div style="overflow-x: auto; width: 100%;">
+                    <table id="inventoryTable">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="select-all" onclick="toggleAll(this)"></th>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Precio</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in products %}
+                            <tr>
+                                <td><input type="checkbox" class="product-checkbox" data-barcode="{{ p[0] }}" onclick="updateBulkBar()"></td>
+                                <td style="font-family: monospace;">{{ p[0] }}</td>
+                                <td>{{ p[1] }}</td>
+                                <td class="price-cell" data-value="{{ p[2] }}"></td>
+                                <td style="white-space: nowrap;">
+                                    <button class="btn-edit"
+                                        onclick="editProduct('{{ p[0] }}', '{{ p[1] }}', '{{ p[2] }}', '{{ p[3] }}')">Editar</button>
+                                    <form action="/delete/{{ p[0] }}" method="POST" style="display:inline;">
+                                        <button type="submit" class="btn-del"
+                                            onclick="return confirm('¿Eliminar producto?')">Borrar</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -192,6 +205,51 @@
             for (var i = 1; i < tr.length; i++) {
                 var content = tr[i].textContent || tr[i].innerText;
                 tr[i].style.display = content.toUpperCase().indexOf(filter) > -1 ? "" : "none";
+            }
+        }
+
+        function toggleAll(source) {
+            const checkboxes = document.querySelectorAll('.product-checkbox');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+            updateBulkBar();
+        }
+
+        function updateBulkBar() {
+            const checked = document.querySelectorAll('.product-checkbox:checked');
+            document.getElementById('selected-count').innerText = checked.length;
+            
+            const okBtn = document.querySelector('.bulk-controls button[onclick="applyBulkPrice()"]');
+            if (okBtn) {
+                okBtn.disabled = checked.length === 0;
+                okBtn.style.opacity = checked.length === 0 ? "0.5" : "1";
+            }
+        }
+
+        function clearSelection() {
+            document.querySelectorAll('.product-checkbox').forEach(cb => cb.checked = false);
+            document.getElementById('select-all').checked = false;
+            updateBulkBar();
+        }
+
+        async function applyBulkPrice() {
+            const price = document.getElementById('bulk-price-input').value;
+            if (!price || price < 0) return alert("Ingresa un precio válido");
+
+            const barcodes = Array.from(document.querySelectorAll('.product-checkbox:checked'))
+                                .map(cb => cb.getAttribute('data-barcode'));
+
+            if (!confirm(`¿Actualizar el precio de ${barcodes.length} productos a ${clpFormatter.format(price)}?`)) return;
+
+            const response = await fetch('/bulk_price_update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ barcodes: barcodes, new_price: price })
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert("Error al actualizar productos.");
             }
         }
     </script>
