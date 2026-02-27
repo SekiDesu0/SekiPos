@@ -872,18 +872,25 @@
             try {
                 const devices = await Html5Qrcode.getCameras();
                 const select = document.getElementById('camera-select');
-                select.innerHTML = ''; // Clear "loading" message
+                select.innerHTML = '';
 
                 if (devices && devices.length) {
                     devices.forEach((device, index) => {
                         const option = document.createElement('option');
                         option.value = device.id;
+                        // Store the index in a data attribute for easier retrieval later
+                        option.dataset.index = index;
                         option.text = device.label || `Cámara ${index + 1}`;
                         select.appendChild(option);
                     });
 
-                    // Default to the last camera (often the main back camera on mobile)
-                    currentCameraId = devices[devices.length - 1].id;
+                    // Retrieve saved index or default to the last camera
+                    const savedIndex = getCookie('cameraIndex');
+                    const targetIndex = (savedIndex !== null && savedIndex < devices.length)
+                        ? savedIndex
+                        : devices.length - 1;
+
+                    currentCameraId = devices[targetIndex].id;
                     select.value = currentCameraId;
 
                     launchCamera(currentCameraId);
@@ -924,6 +931,14 @@
 
         function switchCamera(cameraId) {
             if (cameraId) {
+                const select = document.getElementById('camera-select');
+                const selectedOption = select.options[select.selectedIndex];
+
+                // Save the index of the selected camera to a cookie
+                if (selectedOption && selectedOption.dataset.index !== undefined) {
+                    setCookie('cameraIndex', selectedOption.dataset.index, 365);
+                }
+
                 currentCameraId = cameraId;
                 launchCamera(cameraId);
             }
@@ -936,6 +951,69 @@
                 }).catch(err => console.error("Error stopping scanner", err));
             }
         }
+
+        /* ── Theme Management ── */
+
+        // Helper to set a cookie
+        function setCookie(name, value, days = 365) {
+            const d = new Date();
+            d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+            let expires = "expires=" + d.toUTCString();
+            document.cookie = name + "=" + value + ";" + expires + ";path=/;SameSite=Lax";
+        }
+
+        // Helper to get a cookie
+        function getCookie(name) {
+            let nameEQ = name + "=";
+            let ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        function applyTheme(t) {
+            document.documentElement.setAttribute('data-theme', t);
+            const isDark = t === 'dark';
+            const themeIcon = document.getElementById('theme-icon');
+            const themeLabel = document.getElementById('theme-label');
+
+            if (themeIcon) themeIcon.className = isDark ? 'bi bi-sun me-2' : 'bi bi-moon-stars me-2';
+            if (themeLabel) themeLabel.innerText = isDark ? 'Modo Claro' : 'Modo Oscuro';
+
+            setCookie('theme', t);
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            applyTheme(next);
+        }
+
+        // Initialization Logic
+        function initTheme() {
+            const savedTheme = getCookie('theme');
+
+            if (savedTheme) {
+                // Use user preference if it exists
+                applyTheme(savedTheme);
+            } else {
+                // Otherwise, detect OS preference
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                applyTheme(prefersDark ? 'dark' : 'light');
+            }
+        }
+
+        // Listen for OS theme changes in real-time if no cookie is set
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            if (!getCookie('theme')) {
+                applyTheme(e.matches ? 'dark' : 'light');
+            }
+        });
+
+        initTheme();
     </script>
 </body>
 
