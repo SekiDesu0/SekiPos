@@ -245,6 +245,28 @@ def bulk_delete():
         print(f"Bulk delete failed: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/upload_image', methods=['POST'])
+@login_required
+def upload_image():
+    if 'image' not in request.files or 'barcode' not in request.form:
+        return jsonify({"error": "Missing data"}), 400
+    
+    file = request.files['image']
+    barcode = request.form['barcode']
+    
+    if file.filename == '' or not barcode:
+        return jsonify({"error": "Invalid data"}), 400
+
+    # Detect extension
+    ext = mimetypes.guess_extension(file.mimetype) or '.jpg'
+    filename = f"{barcode}{ext}"
+    filepath = os.path.join(CACHE_DIR, filename)
+    
+    file.save(filepath)
+    
+    # Return the relative path for the frontend
+    return jsonify({"status": "success", "image_url": f"/static/cache/{filename}"}), 200
+
 if __name__ == '__main__':
     init_db()
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
