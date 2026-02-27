@@ -165,15 +165,17 @@ def scan():
     if p:
         barcode_val, name, price, image_path = p
         
-        # Check if local cache image actually exists on disk
-        if image_path and image_path.startswith('/static/cache/'):
-            relative_path = image_path.lstrip('/')
-            if not os.path.exists(relative_path):
-                # Image lost! Attempting recovery
+        # FIX: Check if the file exists relative to the application root
+        # We lstrip('/') to convert '/static/cache/xxx.jpg' to 'static/cache/xxx.jpg'
+        if image_path and image_path.startswith('/static/'):
+            # Strip query parameters like ?t=12345 before checking disk
+            clean_path = image_path.split('?')[0].lstrip('/')
+            
+            if not os.path.exists(clean_path):
+                # ONLY if the file is truly gone from the disk, try to recover
                 ext_data = fetch_from_openfoodfacts(barcode_val)
                 if ext_data and ext_data.get('image'):
                     image_path = ext_data['image']
-                    # Update DB with the new path (might have a different extension now)
                     with sqlite3.connect(DB_FILE) as conn:
                         conn.execute('UPDATE products SET image_url = ? WHERE barcode = ?', (image_path, barcode_val))
                         conn.commit()
@@ -183,6 +185,7 @@ def scan():
                     })
                     return jsonify({"status": "ok", "recovered": True})
 
+        # If image exists OR it's a raw URL, just send what we have in the DB
         socketio.emit('new_scan', {"barcode": barcode_val, "name": name, "price": int(price), "image": image_path})
         return jsonify({"status": "ok"})
     
