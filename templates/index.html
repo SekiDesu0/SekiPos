@@ -244,6 +244,14 @@
         [data-theme="dark"] .modal-body .text-muted {
             color: #f6f6f7 !important;
         }
+
+        .btn-close {
+            filter: none;
+        }
+
+        [data-theme="dark"] .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
     </style>
 </head>
 
@@ -534,11 +542,11 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label small text-muted">Seleccionar Cámara:</label>
-                        <select id="camera-select" class="form-select form-select-sm"
-                            onchange="switchCamera(this.value)">
-                            <option value="">Cargando cámaras...</option>
-                        </select>
+                            <label class="form-label small text-muted">Seleccionar Cámara:</label>
+                            <select id="camera-select" class="form-select form-select-sm"
+                                onchange="switchCamera(this.value)">
+                                <option value="">Cargando cámaras...</option>
+                            </select>
                     </div>
                     <div id="reader" style="width: 100%;"></div>
                 </div>
