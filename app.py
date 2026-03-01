@@ -157,45 +157,53 @@ def delete(barcode):
 @app.route('/scan', methods=['GET'])
 def scan():
     barcode = request.args.get('content', '').replace('{content}', '')
-    if not barcode: return jsonify({"err": "empty"}), 400
+    if not barcode: 
+        return jsonify({"status": "error", "message": "empty barcode"}), 400
     
     with sqlite3.connect(DB_FILE) as conn:
         p = conn.execute('SELECT * FROM products WHERE barcode = ?', (barcode,)).fetchone()
     
+    # 1. Product exists in local Database
     if p:
         barcode_val, name, price, image_path = p
         
-        # FIX: Check if the file exists relative to the application root
-        # We lstrip('/') to convert '/static/cache/xxx.jpg' to 'static/cache/xxx.jpg'
+        # Image recovery logic for missing local files
         if image_path and image_path.startswith('/static/'):
-            # Strip query parameters like ?t=12345 before checking disk
             clean_path = image_path.split('?')[0].lstrip('/')
-            
             if not os.path.exists(clean_path):
-                # ONLY if the file is truly gone from the disk, try to recover
                 ext_data = fetch_from_openfoodfacts(barcode_val)
                 if ext_data and ext_data.get('image'):
                     image_path = ext_data['image']
                     with sqlite3.connect(DB_FILE) as conn:
                         conn.execute('UPDATE products SET image_url = ? WHERE barcode = ?', (image_path, barcode_val))
                         conn.commit()
-                    socketio.emit('new_scan', {
-                        "barcode": barcode_val, "name": name, "price": int(price), 
-                        "image": image_path, "note": "Imagen recuperada"
-                    })
-                    return jsonify({"status": "ok", "recovered": True})
 
-        # If image exists OR it's a raw URL, just send what we have in the DB
-        socketio.emit('new_scan', {"barcode": barcode_val, "name": name, "price": int(price), "image": image_path})
-        return jsonify({"status": "ok"})
+        product_data = {
+            "barcode": barcode_val, 
+            "name": name, 
+            "price": int(price), 
+            "image": image_path
+        }
+        
+        socketio.emit('new_scan', product_data)
+        return jsonify({"status": "ok", "data": product_data}), 200
     
+    # 2. Product not in DB, try external API
     ext = fetch_from_openfoodfacts(barcode)
     if ext:
-        socketio.emit('scan_error', {"barcode": barcode, "name": ext['name'], "image": ext['image']})
-    else:
-        socketio.emit('scan_error', {"barcode": barcode})
-        
-    return jsonify({"status": "not_found"}), 404
+        # We found it externally, but it's still a 404 relative to our local DB
+        external_data = {
+            "barcode": barcode, 
+            "name": ext['name'], 
+            "image": ext['image'],
+            "source": "openfoodfacts"
+        }
+        socketio.emit('scan_error', external_data)
+        return jsonify({"status": "not_found", "data": external_data}), 404
+    
+    # 3. Truly not found anywhere
+    socketio.emit('scan_error', {"barcode": barcode})
+    return jsonify({"status": "not_found", "data": {"barcode": barcode}}), 404
 
 @app.route('/static/cache/<path:filename>')
 def serve_cache(filename):

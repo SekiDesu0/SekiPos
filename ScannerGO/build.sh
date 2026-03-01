@@ -2,6 +2,7 @@
 
 # Define binary names
 LINUX_BIN="ScannerGO-linux"
+LINUX_ARM_BIN="ScannerGO-linuxARMv7"
 WINDOWS_BIN="ScannerGO-windows.exe"
 
 echo "Starting build process..."
@@ -25,6 +26,16 @@ if [ $? -eq 0 ]; then
     echo "Successfully built: $WINDOWS_BIN"
 else
     echo "Failed to build Windows binary"
+    exit 1
+fi
+
+# Build for Linux ARM (ARMv7)
+echo "Building for Linux ARMv7..."
+GOOS=linux GOARCH=arm GOARM=7 go build -o "$LINUX_ARM_BIN" main.go
+if [ $? -eq 0 ]; then
+    echo "Successfully built: $LINUX_ARM_BIN"
+else
+    echo "Failed to build Linux ARMv7 binary"
     exit 1
 fi
 
