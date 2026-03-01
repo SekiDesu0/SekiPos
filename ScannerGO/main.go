@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -49,7 +50,7 @@ func main() {
 	serialConfig := &serial.Config{
 		Name:        cfg.Port,
 		Baud:        cfg.BaudRate,
-		ReadTimeout: time.Second * 2,
+		ReadTimeout: 0,
 	}
 
 	port, err := serial.OpenPort(serialConfig)
@@ -62,22 +63,16 @@ func main() {
 	fmt.Printf("Listening on %s (Baud: %d)...\n", cfg.Port, cfg.BaudRate)
 	fmt.Printf("Sending data to: %s\n", cfg.URL)
 
-	buf := make([]byte, 128)
-	for {
-		n, err := port.Read(buf)
-		if err != nil {
-			if err != io.EOF {
-				fmt.Printf("Read error: %v\n", err)
-			}
-			continue
+	scanner := bufio.NewScanner(port)
+	for scanner.Scan() {
+		content := strings.TrimSpace(scanner.Text())
+		if content != "" {
+			sendToEndpoint(cfg.URL, content)
 		}
+	}
 
-		if n > 0 {
-			content := strings.TrimSpace(string(buf[:n]))
-			if content != "" {
-				sendToEndpoint(cfg.URL, content)
-			}
-		}
+	if err := scanner.Err(); err != nil {
+		fmt.Printf("Scanner error: %v\n", err)
 	}
 }
 
@@ -127,7 +122,6 @@ func sendToEndpoint(baseURL, content string) {
 	}
 	defer resp.Body.Close()
 
-	// Read the response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Printf("Error reading response: %v\n", err)
