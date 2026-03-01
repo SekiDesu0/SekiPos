@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -16,15 +17,17 @@ import (
 )
 
 type Config struct {
-	Port     string `json:"port"`
-	URL      string `json:"url"`
-	BaudRate int    `json:"baud"`
+	Port      string `json:"port"`
+	URL       string `json:"url"`
+	BaudRate  int    `json:"baud"`
+	Delimiter string `json:"delimiter"`
 }
 
 var defaultConfig = Config{
-	Port:     "/dev/ttyACM0",
-	URL:      "https://scanner.sekidesu.xyz/scan",
-	BaudRate: 115200,
+	Port:      "/dev/ttyACM0",
+	URL:       "https://scanner.sekidesu.xyz/scan",
+	BaudRate:  115200,
+	Delimiter: "\n",
 }
 
 const configPath = "config.json"
@@ -35,12 +38,14 @@ func main() {
 	portName := flag.String("port", cfg.Port, "Serial port name")
 	endpoint := flag.String("url", cfg.URL, "Target URL endpoint")
 	baudRate := flag.Int("baud", cfg.BaudRate, "Baud rate")
+	delim := flag.String("delim", cfg.Delimiter, "Line delimiter")
 	save := flag.Bool("save", false, "Save current parameters to config.json")
 	flag.Parse()
 
 	cfg.Port = *portName
 	cfg.URL = *endpoint
 	cfg.BaudRate = *baudRate
+	cfg.Delimiter = *delim
 
 	if *save {
 		saveConfig(cfg)
@@ -60,10 +65,24 @@ func main() {
 	}
 	defer port.Close()
 
-	fmt.Printf("Listening on %s (Baud: %d)...\n", cfg.Port, cfg.BaudRate)
-	fmt.Printf("Sending data to: %s\n", cfg.URL)
+	fmt.Printf("Listening on %s (Baud: %d, Delim: %q)...\n", cfg.Port, cfg.BaudRate, cfg.Delimiter)
 
 	scanner := bufio.NewScanner(port)
+
+	// Custom split function to handle the configurable delimiter
+	scanner.Split(func(data []byte, atEOF bool) (advance int, token []byte, err error) {
+		if atEOF && len(data) == 0 {
+			return 0, nil, nil
+		}
+		if i := bytes.Index(data, []byte(cfg.Delimiter)); i >= 0 {
+			return i + len(cfg.Delimiter), data[0:i], nil
+		}
+		if atEOF {
+			return len(data), data, nil
+		}
+		return 0, nil, nil
+	})
+
 	for scanner.Scan() {
 		content := strings.TrimSpace(scanner.Text())
 		if content != "" {
@@ -92,6 +111,10 @@ func loadConfig() Config {
 	decoder := json.NewDecoder(file)
 	if err := decoder.Decode(&cfg); err != nil {
 		return defaultConfig
+	}
+	// Handle case where JSON exists but field is missing
+	if cfg.Delimiter == "" {
+		cfg.Delimiter = "\n"
 	}
 	return cfg
 }
