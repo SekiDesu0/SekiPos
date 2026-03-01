@@ -1,4 +1,4 @@
-# SekiPOS v1.5 🍫🥤
+# SekiPOS v1.6 🍫🥤
 
 A reactive POS inventory system for software engineers with a snack addiction. Features real-time UI updates, automatic product discovery via Open Food Facts, and local image caching.
 
@@ -8,6 +8,7 @@ A reactive POS inventory system for software engineers with a snack addiction. F
 - **Local Cache:** Saves images locally to `static/cache` to avoid IP bans.
 - **CLP Ready:** Chilean Peso formatting ($1.234) for local commerce.
 - **Secure:** Hashed password authentication via Flask-Login.
+- **On device scanner:** Add and scan products from within your phone!
 
 ## 🐳 Docker Deployment (Server)
 
@@ -82,7 +83,7 @@ python app.py
 - `db/pos_database.db`: SQLite storage.
 
 ## 📋 TODOs?
-- Better admin registration(?)
+- Some form of user registration(?)
 
 ## 🥼 Food Datasets
 - https://www.ifpsglobal.com/plu-codes-search
