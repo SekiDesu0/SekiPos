@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -13,27 +14,53 @@ import (
 	"github.com/tarm/serial"
 )
 
+type Config struct {
+	Port     string `json:"port"`
+	URL      string `json:"url"`
+	BaudRate int    `json:"baud"`
+}
+
+var defaultConfig = Config{
+	Port:     "/dev/ttyACM0",
+	URL:      "https://scanner.sekidesu.xyz/scan",
+	BaudRate: 115200,
+}
+
+const configPath = "config.json"
+
 func main() {
-	portName := flag.String("port", "/dev/ttyACM0", "Serial port name")
-	endpoint := flag.String("url", "https://scanner.sekidesu.xyz/scan", "Target URL endpoint")
-	baudRate := flag.Int("baud", 115200, "Baud rate")
+	cfg := loadConfig()
+
+	portName := flag.String("port", cfg.Port, "Serial port name")
+	endpoint := flag.String("url", cfg.URL, "Target URL endpoint")
+	baudRate := flag.Int("baud", cfg.BaudRate, "Baud rate")
+	save := flag.Bool("save", false, "Save current parameters to config.json")
 	flag.Parse()
 
-	config := &serial.Config{
-		Name:        *portName,
-		Baud:        *baudRate,
+	cfg.Port = *portName
+	cfg.URL = *endpoint
+	cfg.BaudRate = *baudRate
+
+	if *save {
+		saveConfig(cfg)
+		fmt.Println("Settings saved to", configPath)
+	}
+
+	serialConfig := &serial.Config{
+		Name:        cfg.Port,
+		Baud:        cfg.BaudRate,
 		ReadTimeout: time.Second * 2,
 	}
 
-	port, err := serial.OpenPort(config)
+	port, err := serial.OpenPort(serialConfig)
 	if err != nil {
-		fmt.Printf("Error opening port %s: %v\n", *portName, err)
+		fmt.Printf("Error opening port %s: %v\n", cfg.Port, err)
 		os.Exit(1)
 	}
 	defer port.Close()
 
-	fmt.Printf("Listening on %s (Baud: %d)...\n", *portName, *baudRate)
-	fmt.Printf("Sending data to: %s\n", *endpoint)
+	fmt.Printf("Listening on %s (Baud: %d)...\n", cfg.Port, cfg.BaudRate)
+	fmt.Printf("Sending data to: %s\n", cfg.URL)
 
 	buf := make([]byte, 128)
 	for {
@@ -48,25 +75,55 @@ func main() {
 		if n > 0 {
 			content := strings.TrimSpace(string(buf[:n]))
 			if content != "" {
-				sendToEndpoint(*endpoint, content)
+				sendToEndpoint(cfg.URL, content)
 			}
 		}
 	}
+}
+
+func loadConfig() Config {
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		saveConfig(defaultConfig)
+		return defaultConfig
+	}
+
+	file, err := os.Open(configPath)
+	if err != nil {
+		return defaultConfig
+	}
+	defer file.Close()
+
+	var cfg Config
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&cfg); err != nil {
+		return defaultConfig
+	}
+	return cfg
+}
+
+func saveConfig(cfg Config) {
+	file, err := os.Create(configPath)
+	if err != nil {
+		fmt.Printf("Failed to create/save config: %v\n", err)
+		return
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	encoder.Encode(cfg)
 }
 
 func sendToEndpoint(baseURL, content string) {
 	client := &http.Client{
 		Timeout: 5 * time.Second,
 	}
-
 	fullURL := fmt.Sprintf("%s?content=%s", baseURL, url.QueryEscape(content))
-
 	resp, err := client.Get(fullURL)
 	if err != nil {
 		fmt.Printf("Network Error: %v\n", err)
 		return
 	}
 	defer resp.Body.Close()
-
 	fmt.Printf("Data: [%s] | Status: %s\n", content, resp.Status)
 }
