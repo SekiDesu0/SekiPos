@@ -541,14 +541,18 @@
                     <button type="button" class="btn-close" onclick="stopScanner()" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label small text-muted">Seleccionar Cámara:</label>
-                        <select id="camera-select" class="form-select form-select-sm"
-                            onchange="switchCamera(this.value)">
-                            <option value="">Cargando cámaras...</option>
-                        </select>
+                    <div class="mb-3 d-flex align-items-end gap-2">
+                        <div class="flex-grow-1">
+                            <label class="form-label small text-muted">Seleccionar Cámara:</label>
+                            <select id="camera-select" class="form-select form-select-sm"
+                                onchange="switchCamera(this.value)">
+                                <option value="">Cargando cámaras...</option>
+                            </select>
+                        </div>
+                        <button id="torch-btn" class="btn btn-outline-secondary btn-sm" onclick="toggleTorch()"
+                            style="height: 31px; min-width: 40px;">
                     </div>
-                    <div id="reader" style="width: 100%;"></div>
+                    <div id="reader" style="width: 100%; border-radius: 8px; overflow: hidden;"></div>
                 </div>
             </div>
         </div>
@@ -911,10 +915,39 @@
             }
         }
 
+        let torchEnabled = false;
+
+        function isTorchSupported() {
+            if (!html5QrCode || !html5QrCode.isScanning) return false;
+            const settings = html5QrCode.getRunningTrackSettings();
+            return "torch" in settings;
+        }
+
+        async function toggleTorch() {
+            if (!isTorchSupported()) return;
+
+            torchEnabled = !torchEnabled;
+            try {
+                await html5QrCode.applyVideoConstraints({
+                    advanced: [{ torch: torchEnabled }]
+                });
+
+                const btn = document.getElementById('torch-btn');
+                if (torchEnabled) {
+                    btn.classList.replace('btn-outline-secondary', 'btn-accent');
+                    btn.innerHTML = '<i class="bi bi-lightbulb-fill"></i>';
+                } else {
+                    btn.classList.replace('btn-accent', 'btn-outline-secondary');
+                    btn.innerHTML = '<i class="bi bi-lightbulb"></i>';
+                }
+            } catch (err) {
+                console.error("Torch error:", err);
+            }
+        }
+
         async function launchCamera(cameraId) {
             const config = { fps: 10, qrbox: { width: 250, height: 150 } };
 
-            // If already scanning, stop first before switching
             if (html5QrCode.isScanning) {
                 await html5QrCode.stop();
             }
@@ -932,8 +965,36 @@
                             });
                     }
                 );
+
+                setTimeout(() => {
+                    html5QrCode.applyVideoConstraints({
+                        focusMode: "continuous",
+                        advanced: [{ zoom: 2.0 }],
+                    });
+                    const torchBtn = document.getElementById('torch-btn');
+                    if (isTorchSupported()) {
+                        torchBtn.style.setProperty('display', 'block', 'important'); // Use !important to override inline styles
+                        torchEnabled = false;
+                        torchBtn.classList.replace('btn-accent', 'btn-outline-secondary');
+                        torchBtn.innerHTML = '<i class="bi bi-lightbulb"></i>';
+                    } else {
+                        torchBtn.style.display = 'none';
+                        console.log("Torch not supported on this device/browser.");
+                    }
+                }, 500); // 500ms delay to let the camera stream stabilize
+
             } catch (err) {
-                console.error("Error al iniciar cámara específica:", err);
+                console.error("Camera start error:", err);
+            }
+        }
+
+        function stopScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                // Hide the button when the camera stops
+                document.getElementById('torch-btn').style.display = 'none';
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                }).catch(err => console.error("Stop error", err));
             }
         }
 
@@ -949,14 +1010,6 @@
 
                 currentCameraId = cameraId;
                 launchCamera(cameraId);
-            }
-        }
-
-        function stopScanner() {
-            if (html5QrCode && html5QrCode.isScanning) {
-                html5QrCode.stop().then(() => {
-                    html5QrCode.clear();
-                }).catch(err => console.error("Error stopping scanner", err));
             }
         }
 
