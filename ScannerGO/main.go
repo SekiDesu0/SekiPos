@@ -118,6 +118,7 @@ func sendToEndpoint(baseURL, content string) {
 	client := &http.Client{
 		Timeout: 5 * time.Second,
 	}
+
 	fullURL := fmt.Sprintf("%s?content=%s", baseURL, url.QueryEscape(content))
 	resp, err := client.Get(fullURL)
 	if err != nil {
@@ -125,5 +126,17 @@ func sendToEndpoint(baseURL, content string) {
 		return
 	}
 	defer resp.Body.Close()
+
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Printf("Error reading response: %v\n", err)
+		return
+	}
+
 	fmt.Printf("Data: [%s] | Status: %s\n", content, resp.Status)
+	if len(body) > 0 {
+		fmt.Printf("Response: %s\n", string(body))
+	}
+	fmt.Println(strings.Repeat("-", 30))
 }
