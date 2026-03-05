@@ -112,7 +112,8 @@ def login():
 @app.route('/logout')
 @login_required
 def logout():
-    logout_user(); return redirect(url_for('login'))
+    logout_user()
+    return redirect(url_for('login'))
 
 @app.route('/')
 @login_required
@@ -121,7 +122,13 @@ def index():
         products = conn.execute('SELECT * FROM products').fetchall()
     return render_template('index.html', products=products, user=current_user)
 
-@app.route('/upsert', methods=['POST'])
+@app.route("/checkout")
+@login_required
+def checkout():
+    return render_template("checkout.html", user=current_user)
+
+
+@app.route("/upsert", methods=["POST"])
 @login_required
 def upsert():
     d = request.form
@@ -161,10 +168,11 @@ def scan():
         return jsonify({"status": "error", "message": "empty barcode"}), 400
     
     with sqlite3.connect(DB_FILE) as conn:
-        p = conn.execute('SELECT * FROM products WHERE barcode = ?', (barcode,)).fetchone()
+        # Specifically select the 4 columns the code expects
+        p = conn.execute('SELECT barcode, name, price, image_url FROM products WHERE barcode = ?', (barcode,)).fetchone()
     
-    # 1. Product exists in local Database
     if p:
+        # Now this will always have exactly 4 values, regardless of DB changes
         barcode_val, name, price, image_path = p
         
         # Image recovery logic for missing local files
@@ -266,8 +274,8 @@ def upload_image():
     barcode = request.form['barcode']
     if file.filename == '' or not barcode:
         return jsonify({"error": "Invalid data"}), 400
-    ext = mimetypes.guess_extension(file.mimetype) or '.jpg'
-    filename = f"{barcode}{ext}"
+
+    filename = f"{barcode}.jpg"
     filepath = os.path.join(CACHE_DIR, filename)
     file.save(filepath)
     timestamp = int(time.time())
