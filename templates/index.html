@@ -261,7 +261,11 @@
     <nav class="navbar navbar-expand-md sticky-top px-3 mb-3">
         <span class="navbar-brand">SekiPOS <small class="text-muted fw-normal"
                 style="font-size:0.65rem;">v1.6</small></span>
-
+        <div class="ms-3">
+            <a href="/checkout" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-cart-fill me-1"></i>Ir a Caja
+            </a>
+        </div>
         <!-- Always-visible dropdown on the right -->
         <div class="ms-auto">
             <div class="dropdown">
@@ -714,11 +718,17 @@
             const file = input.files[0];
             if (!file) return;
 
-            const formData = new FormData();
-            formData.append('image', file);
-            formData.append('barcode', barcode);
+            // Show a "loading" state if you feel like being fancy
+            const originalBtnContent = document.querySelector('button[onclick*="camera-input"]').innerHTML;
+            document.querySelector('button[onclick*="camera-input"]').innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
 
             try {
+                const compressedBlob = await compressImage(file, 800, 0.7); // Max 800px, 70% quality
+
+                const formData = new FormData();
+                formData.append('image', compressedBlob, `photo_${barcode}.jpg`);
+                formData.append('barcode', barcode);
+
                 const res = await fetch('/upload_image', {
                     method: 'POST',
                     body: formData
@@ -733,8 +743,44 @@
                 }
             } catch (err) {
                 console.error(err);
-                alert("Error de conexión al subir imagen.");
+                alert("Error procesando imagen.");
+            } finally {
+                document.querySelector('button[onclick*="camera-input"]').innerHTML = originalBtnContent;
             }
+        }
+
+        // The compression engine
+        function compressImage(file, maxWidth, quality) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = event => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        canvas.toBlob(blob => {
+                            resolve(blob);
+                        }, 'image/jpeg', quality);
+                    };
+                    img.onerror = err => reject(err);
+                };
+                reader.onerror = err => reject(err);
+            });
         }
 
         function applyBulkPrice() {
