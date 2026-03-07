@@ -8,12 +8,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import mimetypes
 import time
 import uuid
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv()
 
-MP_ACCESS_TOKEN = os.getenv('MP_ACCESS_TOKEN')
-MP_TERMINAL_ID = os.getenv('MP_TERMINAL_ID')
+# MP_ACCESS_TOKEN = os.getenv('MP_ACCESS_TOKEN')
+# MP_TERMINAL_ID = os.getenv('MP_TERMINAL_ID')
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'seki_super_secret_key_99' # Change this if you have actual friends
