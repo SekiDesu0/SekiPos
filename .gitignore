@@ -2,3 +2,4 @@ pos_database.db
 ScannerGO/ScannerGO-*
 ScannerGO/config.json
 DataToolsGO/imageTools-*
+.env

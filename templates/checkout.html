@@ -173,10 +173,69 @@
         [data-theme="dark"] .modal-body {
             color: var(--text-main);
         }
+
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
     </style>
 </head>
 
 <body>
+    <div class="modal fade" id="removeConfirmModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Quitar Producto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Estás seguro de que quieres quitar <strong id="removeItemName"></strong> del carrito?
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-danger-discord" id="btn-confirm-remove">Quitar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="clearCartModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Vaciar Carrito</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <i class="bi bi-cart-x text-danger" style="font-size: 3rem;"></i>
+                    <p class="mt-3">¿Seguro que quieres eliminar todos los productos del carrito?</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">No, volver</button>
+                    <button class="btn btn-danger-discord" onclick="executeClearCart()">Sí, vaciar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="successModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-success">
+                <div class="modal-body text-center py-4">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                    <h4 class="mt-3">¡Venta Exitosa!</h4>
+                    <p class="text-muted">El carrito se ha procesado correctamente.</p>
+                    <button class="btn btn-accent px-5" data-bs-dismiss="modal">Listo</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <nav class="navbar navbar-expand-md sticky-top px-3 mb-3">
         <span class="navbar-brand">SekiPOS <small class="text-muted fw-normal"
                 style="font-size:0.65rem;">Caja</small></span>
@@ -222,6 +281,7 @@
                     <table class="table mt-3" id="cart-table">
                         <thead>
                             <tr>
+                                <th>Código</th>
                                 <th>Producto</th>
                                 <th>Precio/U</th>
                                 <th>Cant/Peso</th>
@@ -310,12 +370,6 @@
                 }
             }
 
-            function addToCart(product, qty) {
-                const subtotal = product.price * qty;
-                cart.push({ ...product, qty, subtotal });
-                renderCart();
-            }
-
             function renderCart() {
                 const tbody = document.getElementById('cart-items');
                 tbody.innerHTML = '';
@@ -340,16 +394,163 @@
                 document.getElementById('grand-total').innerText = clp.format(total);
             }
 
-            // Updated removeItem with confirmation prompt
+            let itemIndexToRemove = null;
+
             function removeItem(idx, name) {
-                if (confirm(`¿Quitar ${name} del carrito?`)) {
-                    cart.splice(idx, 1);
+                itemIndexToRemove = idx;
+                document.getElementById('removeItemName').innerText = name;
+                const modal = new bootstrap.Modal(document.getElementById('removeConfirmModal'));
+                modal.show();
+            }
+
+            // Attach listener to the confirm button in the modal
+            document.getElementById('btn-confirm-remove').addEventListener('click', () => {
+                if (itemIndexToRemove !== null) {
+                    cart.splice(itemIndexToRemove, 1);
+                    renderCart();
+                    bootstrap.Modal.getInstance(document.getElementById('removeConfirmModal')).hide();
+                    itemIndexToRemove = null;
+                }
+            });
+
+            function clearCart() {
+                if (cart.length === 0) return;
+                const modal = new bootstrap.Modal(document.getElementById('clearCartModal'));
+                modal.show();
+            }
+
+            function executeClearCart() {
+                cart = [];
+                renderCart();
+                bootstrap.Modal.getInstance(document.getElementById('clearCartModal')).hide();
+            }
+
+            async function processSale() {
+                if (cart.length === 0) return;
+
+                const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+
+                // Disable button to prevent spam
+                const btn = document.querySelector('button[onclick="processSale()"]');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Procesando...';
+
+                try {
+                    alert("total: " total)
+                    // const response = await fetch('/process_payment', {
+                    //     method: 'POST',
+                    //     headers: { 'Content-Type': 'application/json' },
+                    //     body: JSON.stringify({ total: total })
+                    // });
+
+                    // const result = await response.json();
+
+                    // if (response.ok) {
+                    //     const modal = new bootstrap.Modal(document.getElementById('successModal'));
+                    //     modal.show();
+                    //     cart = [];
+                    //     renderCart();
+                    // } else {
+                    //     alert("Error en el pago: " + (result.message || "Error desconocido"));
+                    // }
+                } catch (err) {
+                    alert("Error de conexión con el servidor.");
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-cash-coin"></i> COBRAR';
+                }
+            }
+
+            function confirmWeight() {
+                const weightInput = document.getElementById('weight-input');
+                const weight = parseFloat(weightInput.value);
+                if (weight > 0) {
+                    // For weighted items, we usually append new entries or you can sum them.
+                    // Here we append to allow different weighings of the same product type.
+                    addToCart(pendingProduct, weight);
+                    bootstrap.Modal.getInstance('#weightModal').hide();
+                    weightInput.value = '';
+                }
+            }
+
+            function addToCart(product, qty) {
+                // Check if product (unit-based only) already exists in cart
+                const existingIndex = cart.findIndex(item => item.barcode === product.barcode && item.unit !== 'kg');
+
+                if (existingIndex !== -1) {
+                    cart[existingIndex].qty += qty;
+                    cart[existingIndex].subtotal = cart[existingIndex].qty * cart[existingIndex].price;
+                } else {
+                    const subtotal = product.price * qty;
+                    cart.push({ ...product, qty, subtotal });
+                }
+                renderCart();
+            }
+
+            function updateQty(index, delta) {
+                if (cart[index].unit === 'kg') return; // Delta buttons disabled for weighted items
+
+                cart[index].qty += delta;
+                if (cart[index].qty <= 0) {
+                    removeItem(index, cart[index].name);
+                } else {
+                    cart[index].subtotal = cart[index].qty * cart[index].price;
                     renderCart();
                 }
             }
 
-            function clearCart() { cart = []; renderCart(); }
-            function processSale() { alert("Venta procesada con éxito"); clearCart(); }
+            function manualQty(index, val) {
+                const newQty = parseFloat(val);
+                if (isNaN(newQty) || newQty <= 0) return;
+
+                cart[index].qty = newQty;
+                cart[index].subtotal = cart[index].qty * cart[index].price;
+                renderCart();
+                // Don't re-render immediately to avoid losing input focus while typing
+            }
+
+            function renderCart() {
+                const tbody = document.getElementById('cart-items');
+                tbody.innerHTML = '';
+                let total = 0;
+
+                cart.forEach((item, index) => {
+                    total += item.subtotal;
+                    const row = document.createElement('tr');
+
+                    // Logic for quantity controls
+                    let qtyControls;
+                    if (item.unit === 'kg') {
+                        qtyControls = `<span>${item.qty.toFixed(3)} kg</span>`;
+                    } else {
+                        qtyControls = `
+                            <div class="d-flex align-items-center gap-1">
+                                <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="updateQty(${index}, -1)">-</button>
+                                <input type="number" class="form-control form-control-sm text-center p-0" 
+                                    style="width: 50px;" value="${item.qty}" 
+                                    onchange="manualQty(${index}, this.value)"
+                                    onblur="renderCart()">
+                                <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="updateQty(${index}, 1)">+</button>
+                            </div>
+                        `;
+                    }
+
+                    row.innerHTML = `
+                        <td class="font-monospace small text-muted">${item.barcode}</td>
+                        <td>${item.name}</td>
+                        <td>${clp.format(item.price)}</td>
+                        <td>${qtyControls}</td>
+                        <td>${clp.format(item.subtotal)}</td>
+                        <td>
+                            <button class="btn-danger-discord btn-sm" onclick="removeItem(${index}, '${item.name}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                document.getElementById('grand-total').innerText = clp.format(total);
+            }
 
             function applyTheme(t) {
                 document.documentElement.setAttribute('data-theme', t);

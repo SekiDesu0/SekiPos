@@ -7,6 +7,13 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 import mimetypes
 import time
+import uuid
+from dotenv import load_dotenv
+
+load_dotenv()
+
+MP_ACCESS_TOKEN = os.getenv('MP_ACCESS_TOKEN')
+MP_TERMINAL_ID = os.getenv('MP_TERMINAL_ID')
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'seki_super_secret_key_99' # Change this if you have actual friends
@@ -280,6 +287,81 @@ def upload_image():
     file.save(filepath)
     timestamp = int(time.time())
     return jsonify({"status": "success", "image_url": f"/static/cache/{filename}?t={timestamp}"}), 200
+
+# @app.route('/process_payment', methods=['POST'])
+# @login_required
+# def process_payment():
+#     data = request.get_json()
+#     total_amount = data.get('total')
+    
+#     if not total_amount or total_amount <= 0:
+#         return jsonify({"error": "Invalid amount"}), 400
+
+#     url = "https://api.mercadopago.com/v1/orders"
+    
+#     headers = {
+#         "Authorization": f"Bearer {MP_ACCESS_TOKEN}",
+#         "Content-Type": "application/json",
+#         "X-Idempotency-Key": str(uuid.uuid4())
+#     }
+    
+#     # MP Point API often prefers integer strings for CLP or exact strings
+#     # We use int() here if you are dealing with CLP (no cents)
+#     formatted_amount = str(int(float(total_amount)))
+
+#     payload = {
+#         "type": "point",
+#         "external_reference": f"ref_{int(time.time())}",
+#         "description": "Venta SekiPOS",
+#         "expiration_time": "PT16M",
+#         "transactions": {
+#             "payments": [
+#                 {
+#                     "amount": formatted_amount
+#                 }
+#             ]
+#         },
+#         "config": {
+#             "point": {
+#                 "terminal_id": MP_TERMINAL_ID,
+#                 "print_on_terminal": "no_ticket"
+#             },
+#             "payment_method": {
+#                 "default_type": "credit_card"
+#             }
+#         },
+#         "integration_data": {
+#             "platform_id": "dev_1234567890",
+#             "integrator_id": "dev_1234567890"
+#         },
+#         "taxes": [
+#             {
+#                 "payer_condition": "payment_taxable_iva"
+#             }
+#         ]
+#     }
+
+#     try:
+#         # Verify the payload in your terminal if it fails again
+#         response = requests.post(url, json=payload, headers=headers)
+        
+#         if response.status_code != 201 and response.status_code != 200:
+#             print(f"DEBUG MP ERROR: {response.text}")
+            
+#         return jsonify(response.json()), response.status_code
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
+
+# @app.route('/api/mp-webhook', methods=['POST'])
+# def webhook_notify():
+#     data = request.get_json()
+#     action = data.get('action', 'unknown')
+#     # Emitimos a todos los clientes conectados
+#     socketio.emit('payment_update', {
+#         "status": action,
+#         "id": data.get('data', {}).get('id')
+#     })
+#     return jsonify({"status": "ok"}), 200
 
 if __name__ == '__main__':
     init_db()
