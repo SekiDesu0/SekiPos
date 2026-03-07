@@ -38,10 +38,16 @@ def init_db():
     with sqlite3.connect(DB_FILE) as conn:
         conn.execute('''CREATE TABLE IF NOT EXISTS users 
                         (id INTEGER PRIMARY KEY, username TEXT UNIQUE, password TEXT)''')
+        # Updated table definition
         conn.execute('''CREATE TABLE IF NOT EXISTS products 
-                        (barcode TEXT PRIMARY KEY, name TEXT, price REAL, image_url TEXT)''')
+                        (barcode TEXT PRIMARY KEY, 
+                         name TEXT, 
+                         price REAL, 
+                         image_url TEXT, 
+                         stock REAL DEFAULT 0, 
+                         unit_type TEXT DEFAULT 'unit')''')
         
-        # Default user: admin / Pass: choripan1234
+        # Default user logic remains same...
         user = conn.execute('SELECT * FROM users WHERE username = ?', ('admin',)).fetchone()
         if not user:
             hashed_pw = generate_password_hash('choripan1234')
@@ -143,16 +149,25 @@ def upsert():
     
     try:
         price = float(d['price'])
+        stock = float(d.get('stock', 0)) # New field
     except (ValueError, TypeError):
         price = 0.0
+        stock = 0.0
 
+    unit_type = d.get('unit_type', 'unit') # New field (unit or kg)
     final_image_path = download_image(d['image_url'], barcode)
     
     with sqlite3.connect(DB_FILE) as conn:
-        conn.execute('''INSERT INTO products (barcode, name, price, image_url) VALUES (?,?,?,?)
-                        ON CONFLICT(barcode) DO UPDATE SET name=excluded.name, 
-                        price=excluded.price, image_url=excluded.image_url''',
-                     (barcode, d['name'], price, final_image_path))
+        # Updated UPSERT query
+        conn.execute('''INSERT INTO products (barcode, name, price, image_url, stock, unit_type) 
+                        VALUES (?,?,?,?,?,?)
+                        ON CONFLICT(barcode) DO UPDATE SET 
+                        name=excluded.name, 
+                        price=excluded.price, 
+                        image_url=excluded.image_url,
+                        stock=excluded.stock,
+                        unit_type=excluded.unit_type''',
+                     (barcode, d['name'], price, final_image_path, stock, unit_type))
         conn.commit()
     return redirect(url_for('index'))
 
@@ -175,14 +190,13 @@ def scan():
         return jsonify({"status": "error", "message": "empty barcode"}), 400
     
     with sqlite3.connect(DB_FILE) as conn:
-        # Specifically select the 4 columns the code expects
-        p = conn.execute('SELECT barcode, name, price, image_url FROM products WHERE barcode = ?', (barcode,)).fetchone()
+        # Fixed: Selecting all 6 necessary columns
+        p = conn.execute('SELECT barcode, name, price, image_url, stock, unit_type FROM products WHERE barcode = ?', (barcode,)).fetchone()
     
     if p:
-        # Now this will always have exactly 4 values, regardless of DB changes
-        barcode_val, name, price, image_path = p
+        # Now matches the 6 columns in the SELECT statement
+        barcode_val, name, price, image_path, stock, unit_type = p        
         
-        # Image recovery logic for missing local files
         if image_path and image_path.startswith('/static/'):
             clean_path = image_path.split('?')[0].lstrip('/')
             if not os.path.exists(clean_path):
@@ -197,7 +211,9 @@ def scan():
             "barcode": barcode_val, 
             "name": name, 
             "price": int(price), 
-            "image": image_path
+            "image": image_path,
+            "stock": stock,
+            "unit_type": unit_type
         }
         
         socketio.emit('new_scan', product_data)
@@ -287,6 +303,25 @@ def upload_image():
     file.save(filepath)
     timestamp = int(time.time())
     return jsonify({"status": "success", "image_url": f"/static/cache/{filename}?t={timestamp}"}), 200
+
+@app.route('/api/scale/weight', methods=['POST'])
+def update_scale_weight():
+    data = request.get_json()
+    
+    # Assuming the scale sends {"weight": 1250} (in grams)
+    weight_grams = data.get('weight', 0)
+    
+    # Optional: Convert to kg if you prefer
+    weight_kg = round(weight_grams / 1000, 3)
+
+    # Broadcast to all connected clients via SocketIO
+    socketio.emit('scale_update', {
+        "grams": weight_grams,
+        "kilograms": weight_kg,
+        "timestamp": time.time()
+    })
+    
+    return jsonify({"status": "received"}), 200
 
 # @app.route('/process_payment', methods=['POST'])
 # @login_required

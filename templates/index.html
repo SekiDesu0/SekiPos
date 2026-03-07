@@ -252,6 +252,23 @@
         [data-theme="dark"] .btn-close {
             filter: invert(1) grayscale(100%) brightness(200%);
         }
+
+        /* Fix for the missing dropdown arrow */
+        .form-select {
+            background-color: var(--input-bg) !important;
+            color: var(--text-main) !important;
+            border: none !important;
+            /* This ensures the arrow icon is still rendered over the custom background */
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23adb5bd' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 0.75rem center !important;
+            background-size: 16px 12px !important;
+        }
+
+        [data-theme="dark"] .form-select {
+            /* Lighter arrow for dark mode */
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23dcddde' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+        }
     </style>
 </head>
 
@@ -335,8 +352,22 @@
                             placeholder="Barcode" required>
                         <input class="form-control mb-2" type="text" name="name" id="form-name" placeholder="Nombre"
                             required>
-                        <input class="form-control mb-2" type="number" name="price" id="form-price"
-                            placeholder="Precio (CLP)" required>
+
+                        <div class="row g-2 mb-2">
+                            <div class="col-8">
+                                <input class="form-control" type="number" name="price" id="form-price"
+                                    placeholder="Precio (CLP)" required>
+                            </div>
+                            <div class="col-4">
+                                <select class="form-select" name="unit_type" id="form-unit-type">
+                                    <option value="unit">Unidad</option>
+                                    <option value="kg">Kg</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <input class="form-control mb-2" type="number" step="1" name="stock" id="form-stock"
+                            placeholder="Stock Inicial">
 
                         <div class="input-group mb-3">
                             <input class="form-control" type="text" name="image_url" id="form-image"
@@ -398,36 +429,27 @@
                         <table class="table table-borderless mb-0" id="inventoryTable">
                             <thead>
                                 <tr>
-                                    <th style="width:36px;">
-                                        <input class="form-check-input" type="checkbox" id="select-all"
-                                            onclick="toggleAll(this)">
-                                    </th>
-                                    <th class="col-barcode" onclick="sortTable(1)" style="cursor:pointer;">
-                                        Código <i class="bi bi-arrow-down-up ms-1" style="font-size: 0.6rem;"></i>
-                                    </th>
-                                    <th onclick="sortTable(2)" style="cursor:pointer;">
-                                        Nombre <i class="bi bi-arrow-down-up ms-1" style="font-size: 0.6rem;"></i>
-                                    </th>
-                                    <th onclick="sortTable(3)" style="cursor:pointer;">
-                                        Precio <i class="bi bi-arrow-down-up ms-1" style="font-size: 0.6rem;"></i>
-                                    </th>
+                                    <th style="width:36px;"><input class="form-check-input" type="checkbox"
+                                            id="select-all" onclick="toggleAll(this)"></th>
+                                    <th class="col-barcode" onclick="sortTable(1)">Código</th>
+                                    <th onclick="sortTable(2)">Nombre</th>
+                                    <th onclick="sortTable(3)">Stock</th>
+                                    <th onclick="sortTable(4)">Precio</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for p in products %}
                                 <tr data-barcode="{{ p[0] }}">
-                                    <td>
-                                        <input class="form-check-input product-checkbox" type="checkbox"
-                                            onclick="updateBulkBar()">
-                                    </td>
-                                    <td class="col-barcode" style="font-family:monospace; font-size:.8rem;">{{ p[0] }}
-                                    </td>
+                                    <td><input class="form-check-input product-checkbox" type="checkbox"
+                                            onclick="updateBulkBar()"></td>
+                                    <td class="col-barcode">{{ p[0] }}</td>
                                     <td class="name-cell">{{ p[1] }}</td>
+                                    <td>{{ p[4] }} <small class="text-muted">{{ p[5] }}</small></td>
                                     <td class="price-cell" data-value="{{ p[2] }}"></td>
-                                    <td style="white-space:nowrap;">
-                                        <button class="btn btn-accent btn-sm btn-edit-sm me-1"
-                                            onclick="editProduct('{{ p[0] }}', '{{ p[1] }}', '{{ p[2] }}', '{{ p[3] }}')"
+                                    <td>
+                                        <button class="btn btn-accent btn-sm"
+                                            onclick="editProduct('{{ p[0] }}', '{{ p[1] }}', '{{ p[2] }}', '{{ p[3] }}', '{{ p[4] }}', '{{ p[5] }}')"
                                             data-bs-toggle="modal" data-bs-target="#editModal">
                                             <i class="bi bi-pencil"></i>
                                         </button>
@@ -442,7 +464,6 @@
                             </tbody>
                         </table>
                     </div>
-
                 </div>
             </div>
         </div><!-- /row -->
@@ -619,12 +640,25 @@
             updateForm(d.barcode, d.name || '', '', d.image || '', 'Crear: ' + d.barcode);
         });
 
+        socket.on('scale_update', function (data) {
+            console.log("Current Weight:", data.grams + "g");
+            // If the unit type is 'kg', update the stock field automatically
+            const unitType = document.getElementById('form-unit-type').value;
+            if (unitType === 'kg') {
+                document.getElementById('form-stock').value = data.kilograms;
+            }
+        });
+
         // Replace your existing updateForm function with this one
-        function updateForm(b, n, p, i, t) {
+        function updateForm(b, n, p, i, t, stock, unit) {
             dismissPrompt();
             document.getElementById('form-barcode').value = b;
             document.getElementById('form-name').value = n;
-            document.getElementById('form-price').value = (p !== undefined && p !== null) ? p : '';
+            document.getElementById('form-price').value = p || '';
+            document.getElementById('form-stock').value = stock || 0;
+            document.getElementById('form-unit-type').value = unit || 'unit';
+            document.getElementById('form-image').value = i || '';
+            document.getElementById('form-title').innerText = t;
 
             // Add a timestamp to the URL if it's a local cache image
             let displayImg = i || './static/placeholder.png';
@@ -644,25 +678,22 @@
             document.getElementById('new-product-prompt').classList.add('d-none');
         }
 
-        function editProduct(b, n, p, i) {
+        function editProduct(b, n, p, i, stock, unit) {
             document.getElementById('editProductName').innerText = n;
-            document.getElementById('editModal').dataset.barcode = b;
-            document.getElementById('editModal').dataset.name = n;
-            document.getElementById('editModal').dataset.price = p;
-            document.getElementById('editModal').dataset.image = i; // This captures the image
+            const modal = document.getElementById('editModal');
+            modal.dataset.barcode = b;
+            modal.dataset.name = n;
+            modal.dataset.price = p;
+            modal.dataset.image = i;
+            modal.dataset.stock = stock;
+            modal.dataset.unit = unit;
         }
 
         function confirmEdit() {
-            const modal = document.getElementById('editModal');
-            updateForm(
-                modal.dataset.barcode,
-                modal.dataset.name,
-                modal.dataset.price,
-                modal.dataset.image,
-                'Editando: ' + modal.dataset.name
-            );
+            const m = document.getElementById('editModal');
+            updateForm(m.dataset.barcode, m.dataset.name, m.dataset.price, m.dataset.image, 'Editando: ' + m.dataset.name, m.dataset.stock, m.dataset.unit);
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            bootstrap.Modal.getInstance(modal).hide();
+            bootstrap.Modal.getInstance(m).hide();
         }
 
         function confirmDelete() {
