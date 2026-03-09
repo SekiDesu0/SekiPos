@@ -84,6 +84,7 @@ python app.py
 
 ## 📋 TODOs?
 - Some form of user registration(?)
+- Major refactoring of the codebase
 
 ## 🥼 Food Datasets
 - https://www.ifpsglobal.com/plu-codes-search

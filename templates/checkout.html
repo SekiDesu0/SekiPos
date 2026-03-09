@@ -241,13 +241,38 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem;">Total a Pagar</h5>
+                    <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center pt-1 pb-4">
+                    <h1 id="payment-modal-total" class="mb-4" style="color: var(--accent); font-weight: 800; font-size: 3rem;">$0</h1>
+                    
+                    <div class="d-grid gap-3 px-3">
+                        <button class="btn btn-lg btn-success py-3" onclick="executeCheckout('efectivo')">
+                            <i class="bi bi-cash-coin me-2" style="font-size: 1.5rem; vertical-align: middle;"></i> Efectivo
+                        </button>
+                        <button class="btn btn-lg btn-secondary py-3" onclick="executeCheckout('tarjeta')" disabled>
+                            <i class="bi bi-credit-card me-2" style="font-size: 1.5rem; vertical-align: middle;"></i> Tarjeta (Pronto)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <nav class="navbar navbar-expand-md sticky-top px-3 mb-3">
         <span class="navbar-brand">SekiPOS <small class="text-muted fw-normal"
                 style="font-size:0.65rem;">Caja</small></span>
 
-        <div class="ms-3">
+        <div class="ms-3 gap-2 d-flex">
             <a href="/" class="btn btn-outline-primary btn-sm">
                 <i class="bi bi-box-seam me-1"></i>Inventario
+            </a>
+            <a href="/sales" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-receipt me-1"></i>Ventas
             </a>
         </div>
 
@@ -442,41 +467,53 @@
                 bootstrap.Modal.getInstance(document.getElementById('clearCartModal')).hide();
             }
 
-            async function processSale() {
+            function processSale() {
+                if (cart.length === 0) return;
+                
+                // Calculate total and show the payment modal
+                const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+                document.getElementById('payment-modal-total').innerText = clp.format(total);
+                
+                const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModal'));
+                modal.show();
+            }
+
+            async function executeCheckout(method) {
                 if (cart.length === 0) return;
 
-                const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
-
-                // Disable button to prevent spam
-                const btn = document.querySelector('button[onclick="processSale()"]');
-                btn.disabled = true;
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Procesando...';
-
                 try {
-                    alert("total: " + total)
-                    // const response = await fetch('/process_payment', {
-                    //     method: 'POST',
-                    //     headers: { 'Content-Type': 'application/json' },
-                    //     body: JSON.stringify({ total: total })
-                    // });
+                    const response = await fetch('/api/checkout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ cart: cart, payment_method: method })
+                    });
 
-                    // const result = await response.json();
+                    const result = await response.json();
 
-                    // if (response.ok) {
-                    //     const modal = new bootstrap.Modal(document.getElementById('successModal'));
-                    //     modal.show();
-                    //     cart = [];
-                    //     renderCart();
-                    // } else {
-                    //     alert("Error en el pago: " + (result.message || "Error desconocido"));
-                    // }
+                    if (response.ok) {
+                        // Hide the payment modal
+                        bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+                        
+                        // Show the success checkmark
+                        const successModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('successModal'));
+                        successModal.show();
+                        
+                        // Nuke the cart and auto-save the empty state
+                        cart = [];
+                        renderCart();
+                        
+                        // Auto-hide the success modal after 2 seconds so you don't have to click it
+                        setTimeout(() => successModal.hide(), 2000);
+                        
+                    } else {
+                        alert("Error en la venta: " + (result.error || "Error desconocido"));
+                    }
                 } catch (err) {
+                    console.error(err);
                     alert("Error de conexión con el servidor.");
-                } finally {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-cash-coin"></i> COBRAR';
                 }
             }
+
             function confirmWeight() {
                 const weightInput = document.getElementById('weight-input');
                 const weightGrams = parseInt(weightInput.value, 10);

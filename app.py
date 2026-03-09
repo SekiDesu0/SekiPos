@@ -47,6 +47,23 @@ def init_db():
                          stock REAL DEFAULT 0, 
                          unit_type TEXT DEFAULT 'unit')''')
         
+        # Add these two tables for sales history
+        conn.execute('''CREATE TABLE IF NOT EXISTS sales 
+                        (id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                         date TEXT DEFAULT CURRENT_TIMESTAMP, 
+                         total REAL, 
+                         payment_method TEXT)''')
+                         
+        conn.execute('''CREATE TABLE IF NOT EXISTS sale_items 
+                        (id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                         sale_id INTEGER, 
+                         barcode TEXT, 
+                         name TEXT, 
+                         price REAL, 
+                         quantity REAL, 
+                         subtotal REAL,
+                         FOREIGN KEY(sale_id) REFERENCES sales(id))''')
+        
         # Default user logic remains same...
         user = conn.execute('SELECT * FROM users WHERE username = ?', ('admin',)).fetchone()
         if not user:
@@ -325,6 +342,80 @@ def update_scale_weight():
     })
     
     return jsonify({"status": "received"}), 200
+
+
+@app.route('/api/checkout', methods=['POST'])
+@login_required
+def process_checkout():
+    data = request.get_json()
+    cart = data.get('cart', [])
+    payment_method = data.get('payment_method', 'efectivo')
+    
+    if not cart:
+        return jsonify({"error": "Cart is empty"}), 400
+        
+    # Recalculate total on the server because trusting the frontend is a security risk
+    total = sum(item.get('subtotal', 0) for item in cart)
+    
+    try:
+        with sqlite3.connect(DB_FILE) as conn:
+            cur = conn.cursor()
+            
+            # 1. Create the main sale record
+            cur.execute('INSERT INTO sales (total, payment_method) VALUES (?, ?)', (total, payment_method))
+            sale_id = cur.lastrowid
+            
+            # 2. Record each item and deduct stock
+            for item in cart:
+                cur.execute('''INSERT INTO sale_items (sale_id, barcode, name, price, quantity, subtotal)
+                               VALUES (?, ?, ?, ?, ?, ?)''', 
+                            (sale_id, item['barcode'], item['name'], item['price'], item['qty'], item['subtotal']))
+                
+                # Deduct from inventory
+                cur.execute('UPDATE products SET stock = stock - ? WHERE barcode = ?', (item['qty'], item['barcode']))
+                
+            conn.commit()
+            
+        return jsonify({"status": "success", "sale_id": sale_id}), 200
+        
+    except Exception as e:
+        print(f"Checkout Error: {e}")
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/sales')
+@login_required
+def sales():
+    selected_date = request.args.get('date')
+    with sqlite3.connect(DB_FILE) as conn:
+        cur = conn.cursor()
+        
+        # Determine the target date for the "Daily" stat
+        target_date = selected_date if selected_date else cur.execute("SELECT date('now', 'localtime')").fetchone()[0]
+        
+        stats = {
+            "daily": cur.execute("SELECT SUM(total) FROM sales WHERE date(date, 'localtime') = ?", (target_date,)).fetchone()[0] or 0,
+            "week": cur.execute("SELECT SUM(total) FROM sales WHERE date(date, 'localtime') >= date('now', 'localtime', '-7 days')").fetchone()[0] or 0,
+            "month": cur.execute("SELECT SUM(total) FROM sales WHERE strftime('%Y-%m', date, 'localtime') = strftime('%Y-%m', 'now', 'localtime')").fetchone()[0] or 0
+        }
+        
+        if selected_date:
+            sales_data = cur.execute('''SELECT id, date, total, payment_method FROM sales 
+                                        WHERE date(date, 'localtime') = ? 
+                                        ORDER BY date DESC''', (selected_date,)).fetchall()
+        else:
+            sales_data = cur.execute('SELECT id, date, total, payment_method FROM sales ORDER BY date DESC LIMIT 100').fetchall()
+        
+    return render_template('sales.html', user=current_user, sales=sales_data, stats=stats, selected_date=selected_date)
+
+@app.route('/api/sale/<int:sale_id>')
+@login_required
+def get_sale_details(sale_id):
+    with sqlite3.connect(DB_FILE) as conn:
+        items = conn.execute('SELECT barcode, name, price, quantity, subtotal FROM sale_items WHERE sale_id = ?', (sale_id,)).fetchall()
+        
+    # Format it as a neat list of dictionaries for JavaScript to digest
+    item_list = [{"barcode": i[0], "name": i[1], "price": i[2], "qty": i[3], "subtotal": i[4]} for i in items]
+    return jsonify(item_list), 200
 
 # @app.route('/process_payment', methods=['POST'])
 # @login_required
