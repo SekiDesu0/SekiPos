@@ -382,13 +382,47 @@
                     <h1 id="payment-modal-total" class="mb-4" style="color: var(--accent); font-weight: 800; font-size: 3rem;">$0</h1>
                     
                     <div class="d-grid gap-3 px-3">
-                        <button class="btn btn-lg btn-success py-3" onclick="executeCheckout('efectivo')">
+                        <button class="btn btn-lg btn-success py-3" onclick="openVueltoModal()">
                             <i class="bi bi-cash-coin me-2" style="font-size: 1.5rem; vertical-align: middle;"></i> Efectivo
                         </button>
                         <button class="btn btn-lg btn-secondary py-3" onclick="executeCheckout('tarjeta')">
                             <i class="bi bi-credit-card me-2" style="font-size: 1.5rem; vertical-align: middle;"></i> Tarjeta (Pronto)
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="vueltoModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem;">Pago en Efectivo</h5>
+                    <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center pt-1 pb-4">
+                    <div class="mb-3">
+                        <span class="text-muted small">Total a Pagar:</span><br>
+                        <span id="vuelto-total-display" class="fs-4 fw-bold" style="color: var(--text-main);">$0</span>
+                    </div>
+                    
+                    <div class="mb-3 text-start">
+                        <label class="text-muted small mb-1">Monto Recibido</label>
+                        <input type="number" id="monto-recibido" class="form-control form-control-lg text-center fw-bold fs-4" 
+                            placeholder="$0" onkeyup="calculateVuelto()" onchange="calculateVuelto()"
+                            onkeydown="if(event.key === 'Enter' && !document.getElementById('btn-confirm-vuelto').disabled) executeCheckout('efectivo')">
+                    </div>
+                    
+                    <div class="d-flex justify-content-center gap-2 mb-3" id="vuelto-quick-buttons"></div>
+                    
+                    <div class="p-3 mb-3" style="background: var(--input-bg); border-radius: 8px;">
+                        <span class="text-muted small text-uppercase fw-bold">Vuelto a Entregar</span><br>
+                        <span id="vuelto-amount" class="fs-1 fw-bold text-muted">$0</span>
+                    </div>
+                    
+                    <button id="btn-confirm-vuelto" class="btn btn-success w-100 py-3 fw-bold" onclick="executeCheckout('efectivo')" disabled>
+                        Confirmar Venta
+                    </button>
                 </div>
             </div>
         </div>
@@ -609,8 +643,13 @@
                     const result = await response.json();
 
                     if (response.ok) {
-                        // Hide the payment modal
-                        bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+
+                        // Safely hide whichever modal was open
+                        const pModal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'));
+                        if (pModal) pModal.hide();
+                        
+                        const vModal = bootstrap.Modal.getInstance(document.getElementById('vueltoModal'));
+                        if (vModal) vModal.hide();
 
                         // Pass the new sale_id from the result to the printer
                         const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
@@ -752,12 +791,19 @@
                 document.getElementById('display-barcode').innerText = product.barcode;
                 document.getElementById('display-img').src = product.image || './static/placeholder.png';
 
-                if (product.unit === 'kg') {
+                // Standardize the unit key because Python sends 'unit_type' but the JS array uses 'unit'
+                const actualUnit = product.unit || product.unit_type;
+
+                if (actualUnit === 'kg') {
                     pendingProduct = product;
+                    pendingProduct.unit = 'kg'; // Force it to match the cart's expected format
+                    
                     const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('weightModal'));
                     modal.show();
                     setTimeout(() => document.getElementById('weight-input').focus(), 500);
                 } else {
+                    // Ensure unit products also get the standardized key
+                    product.unit = 'unit'; 
                     addToCart(product, 1);
                 }
             }
@@ -945,6 +991,59 @@
                     itemIndexToRemove = null;
                 }
             });
+
+            function openVueltoModal() {
+                // Hide the main payment selection modal
+                bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+                
+                const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+                document.getElementById('vuelto-total-display').innerText = clp.format(total);
+                
+                const input = document.getElementById('monto-recibido');
+                input.value = '';
+                document.getElementById('vuelto-amount').innerText = '$0';
+                document.getElementById('vuelto-amount').className = "fs-1 fw-bold text-muted";
+                document.getElementById('btn-confirm-vuelto').disabled = true;
+
+                // Generate smart quick-buttons (Exacto, 5k, 10k, 20k)
+                const quickBox = document.getElementById('vuelto-quick-buttons');
+                quickBox.innerHTML = `<button class="btn btn-sm btn-outline-secondary fw-bold" onclick="setMonto(${total})">Exacto</button>`;
+                
+                [5000, 10000, 20000].forEach(bill => {
+                    if (bill > total && (bill - total) <= 20000) {
+                        quickBox.innerHTML += `<button class="btn btn-sm btn-outline-secondary fw-bold" onclick="setMonto(${bill})">${clp.format(bill)}</button>`;
+                    }
+                });
+
+                const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('vueltoModal'));
+                modal.show();
+                
+                // Auto-focus input so you can start typing immediately
+                setTimeout(() => input.focus(), 500);
+            }
+
+            function setMonto(amount) {
+                document.getElementById('monto-recibido').value = amount;
+                calculateVuelto();
+            }
+
+            function calculateVuelto() {
+                const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+                const recibido = parseInt(document.getElementById('monto-recibido').value, 10);
+                const vueltoDisplay = document.getElementById('vuelto-amount');
+                const confirmBtn = document.getElementById('btn-confirm-vuelto');
+
+                if (isNaN(recibido) || recibido < total) {
+                    vueltoDisplay.innerText = "Falta Dinero";
+                    vueltoDisplay.className = "fs-4 fw-bold text-danger mt-2 d-block";
+                    confirmBtn.disabled = true;
+                } else {
+                    const vuelto = recibido - total;
+                    vueltoDisplay.innerText = clp.format(vuelto);
+                    vueltoDisplay.className = "fs-1 fw-bold text-success";
+                    confirmBtn.disabled = false;
+                }
+            }
 
             // Initialize on load
             (function initTheme() {

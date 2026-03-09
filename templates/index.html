@@ -631,7 +631,7 @@
             if (d.note) title += ` (${d.note})`;
 
             // Update the actual form
-            updateForm(d.barcode, d.name, d.price, d.image, title);
+            updateForm(d.barcode, d.name, d.price, d.image, title, d.stock, d.unit_type);
         });
 
         socket.on('scan_error', d => {
