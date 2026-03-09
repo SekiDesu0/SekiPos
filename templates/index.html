@@ -445,7 +445,13 @@
                                             onclick="updateBulkBar()"></td>
                                     <td class="col-barcode">{{ p[0] }}</td>
                                     <td class="name-cell">{{ p[1] }}</td>
-                                    <td>{{ p[4] }} <small class="text-muted">{{ p[5] }}</small></td>
+                                    <td>
+                                        {% if p[5] == 'kg' %}
+                                            <span class="text-muted d-inline-block text-center" style="width: 45px;">-</span>
+                                        {% else %}
+                                            {{ p[4] | int }} <small class="text-muted">Uni</small>
+                                        {% endif %}
+                                    </td>
                                     <td class="price-cell" data-value="{{ p[2] }}"></td>
                                     <td>
                                         <button class="btn btn-accent btn-sm"
@@ -654,8 +660,11 @@
             dismissPrompt();
             document.getElementById('form-barcode').value = b;
             document.getElementById('form-name').value = n;
-            document.getElementById('form-price').value = p || '';
-            document.getElementById('form-stock').value = stock || 0;
+
+            // Force integers here to nuke the decimals once and for all
+            document.getElementById('form-price').value = p ? parseInt(p, 10) : '';
+            document.getElementById('form-stock').value = stock ? parseInt(stock, 10) : 0;
+            
             document.getElementById('form-unit-type').value = unit || 'unit';
             document.getElementById('form-image').value = i || '';
             document.getElementById('form-title').innerText = t;
@@ -672,6 +681,8 @@
             document.getElementById('display-name').innerText = n || 'Producto Nuevo';
             document.getElementById('display-price').innerText = clp.format(p || 0);
             document.getElementById('display-barcode').innerText = b;
+
+            toggleStockInput(); // Show/hide stock input based on unit type
         }
 
         function dismissPrompt() {
@@ -736,6 +747,8 @@
             document.getElementById('display-name').innerText = 'Esperando scan...';
             document.getElementById('display-price').innerText = '$0';
             document.getElementById('display-barcode').innerText = '';
+
+            toggleStockInput(); // Show/hide stock input based on default unit type
         }
 
         async function handleFileUpload(input) {
@@ -1150,6 +1163,25 @@
                 applyTheme(e.matches ? 'dark' : 'light');
             }
         });
+
+
+        // Function to toggle stock state
+        function toggleStockInput() {
+            const unitSelect = document.getElementById('form-unit-type');
+            const stockInput = document.getElementById('form-stock');
+            
+            if (unitSelect.value === 'kg') {
+                stockInput.classList.add('d-none'); // Poof.
+                stockInput.disabled = true;         // Prevent form submission errors
+                stockInput.value = '';
+            } else {
+                stockInput.classList.remove('d-none'); // Bring it back for units
+                stockInput.disabled = false;
+            }
+        }
+
+        // Listen for manual dropdown changes
+        document.getElementById('form-unit-type').addEventListener('change', toggleStockInput);
 
         initTheme();
     </script>
