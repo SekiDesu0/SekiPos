@@ -191,7 +191,22 @@
 
         /* ── Thermal Printer Styles (80mm) ── */
         @media print {
-            body { background: #fff !important; margin: 0; padding: 0; }
+            /* Kill all animations instantly so the printer doesn't photograph a mid-fade background */
+            *, *::before, *::after {
+                transition: none !important;
+                animation: none !important;
+            }
+
+            /* Force true white background */
+            html, body { 
+                background: #ffffff !important; 
+                color: #000000 !important;
+                margin: 0 !important; 
+                padding: 0 !important; 
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
             .navbar, .container-fluid, .modal { display: none !important; } 
             
             #receipt-print-zone {
@@ -201,20 +216,26 @@
                 margin: 0;
                 font-family: "Courier New", Courier, monospace;
                 font-size: 12px;
+                background: #ffffff !important;
             }
 
-            /* This forces true black on everything inside the receipt */
+            /* Force extra bold black text with no backgrounds */
             #receipt-print-zone * {
-                color: #000 !important; 
+                background: transparent !important;
+                color: #000000 !important;
+                opacity: 1 !important;
+                font-weight: 800 !important; 
+                text-shadow: none !important;
+                box-shadow: none !important;
             }
             
             @page { margin: 0; } 
             
             .receipt-header { text-align: center; margin-bottom: 10px; }
             .receipt-table { width: 100%; margin-bottom: 10px; }
-            .receipt-table th { text-align: left; border-bottom: 1px dashed #000; padding-bottom: 3px; }
+            .receipt-table th { text-align: left; border-bottom: 1px dashed #000 !important; padding-bottom: 3px; }
             .receipt-table td { padding: 3px 0; vertical-align: top; }
-            .receipt-total-row { border-top: 1px dashed #000; font-weight: bold; font-size: 14px; }
+            .receipt-total-row { border-top: 1px dashed #000 !important; font-weight: 800 !important; font-size: 14px; }
         }
 
         /* ── Dropdown Select Fix ── */
@@ -844,7 +865,6 @@
                 const tbody = document.getElementById('receipt-items-print');
                 tbody.innerHTML = '';
                 
-                // Populate the items
                 cart.forEach(item => {
                     const qtyStr = item.unit === 'kg' ? item.qty.toFixed(3) : item.qty;
                     tbody.innerHTML += `
@@ -856,11 +876,10 @@
                     `;
                 });
                 
-                // Set total and timestamp
                 document.getElementById('receipt-total-print').innerText = clp.format(total);
                 document.getElementById('receipt-date').innerText = new Date().toLocaleString('es-CL');
                 
-                // Trigger the print dialog
+                // No hacks, just print
                 window.print();
             }
 
