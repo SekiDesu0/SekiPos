@@ -106,17 +106,22 @@
             color: #fff;
         }
 
-        .form-control {
-            background: var(--input-bg);
-            color: var(--text-main);
-            border: none;
+        .form-control,
+        .form-control:focus {
+            background-color: var(--input-bg) !important;
+            color: var(--text-main) !important;
+            border: 1px solid var(--border) !important;
+            box-shadow: none !important;
         }
 
         .form-control:focus {
-            background: var(--input-bg);
-            color: var(--text-main);
-            outline: 2px solid var(--accent);
-            box-shadow: none;
+            border-color: var(--accent) !important;
+            outline: none !important;
+        }
+
+        .form-control::placeholder {
+            color: var(--text-muted) !important;
+            opacity: 1; /* Forces Firefox to respect the color */
         }
 
         #grand-total {
@@ -278,6 +283,18 @@
             <div class="col-md-8">
                 <div class="cart-card p-3 shadow-sm">
                     <h4><i class="bi bi-cart3"></i> Carrito</h4>
+                    <div class="position-relative mb-4">
+                        <div class="input-group">
+                            <span class="input-group-text border-0 position-absolute" style="background: transparent; z-index: 10;">
+                                <i class="bi bi-search text-muted"></i>
+                            </span>
+                            <input type="text" id="manual-search" class="form-control ps-5 py-2 rounded" 
+                                placeholder="Buscar producto por nombre o código..." autocomplete="off" onkeyup="filterSearch()">
+                        </div>
+                        <div id="search-results" class="dropdown-menu w-100 shadow-lg position-absolute mt-1" 
+                            style="display: none; max-height: 300px; overflow-y: auto; z-index: 1000;">
+                        </div>
+                    </div>
                     <table class="table mt-3" id="cart-table">
                         <thead>
                             <tr>
@@ -321,11 +338,11 @@
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5>Ingresar Peso (kg)</h5>
+                        <h5>Ingresar Peso (Gramos)</h5>
                     </div>
                     <div class="modal-body">
-                        <input type="number" id="weight-input" class="form-control form-control-lg" step="0.001"
-                            placeholder="0.000">
+                        <input type="number" id="weight-input" class="form-control form-control-lg" step="1"
+                            placeholder="Ej: 400">
                     </div>
                     <div class="modal-footer">
                         <button class="btn btn-primary w-100" onclick="confirmWeight()">Agregar</button>
@@ -360,15 +377,6 @@
                     window.location.href = `/?barcode=${data.barcode}`;
                 }
             });
-
-            function confirmWeight() {
-                const weight = parseFloat(document.getElementById('weight-input').value);
-                if (weight > 0) {
-                    addToCart(pendingProduct, weight);
-                    bootstrap.Modal.getInstance('#weightModal').hide();
-                    document.getElementById('weight-input').value = '';
-                }
-            }
 
             function renderCart() {
                 const tbody = document.getElementById('cart-items');
@@ -463,12 +471,16 @@
 
             function confirmWeight() {
                 const weightInput = document.getElementById('weight-input');
-                const weight = parseFloat(weightInput.value);
-                if (weight > 0) {
-                    // For weighted items, we usually append new entries or you can sum them.
-                    // Here we append to allow different weighings of the same product type.
-                    addToCart(pendingProduct, weight);
-                    bootstrap.Modal.getInstance('#weightModal').hide();
+                const weightGrams = parseInt(weightInput.value, 10);
+                
+                if (weightGrams > 0) {
+                    // Convert back to kg for the cart's subtotal math
+                    const weightKg = weightGrams / 1000; 
+                    
+                    addToCart(pendingProduct, weightKg);
+                    
+                    // Hide modal and clear input
+                    bootstrap.Modal.getInstance(document.getElementById('weightModal')).hide();
                     weightInput.value = '';
                 }
             }
@@ -479,9 +491,9 @@
 
                 if (existingIndex !== -1) {
                     cart[existingIndex].qty += qty;
-                    cart[existingIndex].subtotal = cart[existingIndex].qty * cart[existingIndex].price;
+                    cart[existingIndex].subtotal = calculateSubtotal(cart[existingIndex].price, cart[existingIndex].qty);
                 } else {
-                    const subtotal = product.price * qty;
+                    const subtotal = calculateSubtotal(product.price, qty);
                     cart.push({ ...product, qty, subtotal });
                 }
                 renderCart();
@@ -575,6 +587,106 @@
                 const savedTheme = localStorage.getItem('theme') || 'light';
                 applyTheme(savedTheme);
             })();
+
+
+            // 1. Load all products from Python into a JavaScript array safely
+            const allProducts = [
+                {% for p in products %}
+                {
+                    barcode: {{ p[0] | tojson }},
+                    name: {{ p[1] | tojson }},
+                    price: {{ p[2] | int }},
+                    image: {{ p[3] | tojson }},
+                    stock: {{ p[4] | int }},
+                    unit: {{ p[5] | tojson }}
+                },
+                {% endfor %}
+            ];
+
+            // 2. Extracted this into a helper so both Scanner and Search can use it
+            function handleProductScan(product) {
+                document.getElementById('display-name').innerText = product.name;
+                document.getElementById('display-barcode').innerText = product.barcode;
+                document.getElementById('display-img').src = product.image || './static/placeholder.png';
+
+                if (product.unit === 'kg') {
+                    pendingProduct = product;
+                    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('weightModal'));
+                    modal.show();
+                    setTimeout(() => document.getElementById('weight-input').focus(), 500);
+                } else {
+                    addToCart(product, 1);
+                }
+            }
+
+            // 3. Update your existing socket listener to use the new helper
+            socket.on('new_scan', (product) => {
+                handleProductScan(product);
+            });
+
+            // 4. The Search Logic
+            function filterSearch() {
+                const query = document.getElementById('manual-search').value.toLowerCase().trim();
+                const resultsBox = document.getElementById('search-results');
+                
+                if (query.length < 2) {
+                    resultsBox.style.display = 'none';
+                    return;
+                }
+
+                // Find matches by name or barcode
+                const matches = allProducts.filter(p => 
+                    p.name.toLowerCase().includes(query) || p.barcode.includes(query)
+                ).slice(0, 10); // Limit to 10 results so it doesn't lag out
+
+                if (matches.length === 0) {
+                    resultsBox.innerHTML = '<div class="p-3 text-muted text-center">No se encontraron productos</div>';
+                } else {
+                    resultsBox.innerHTML = matches.map(p => `
+                        <a href="#" class="dropdown-item d-flex justify-content-between align-items-center py-2" 
+                        onclick="selectSearchResult('${p.barcode}')">
+                            <div>
+                                <strong>${p.name}</strong><br>
+                                <small class="text-muted font-monospace">${p.barcode}</small>
+                            </div>
+                            <div class="text-end">
+                                <span style="color: var(--accent); font-weight: bold;">${clp.format(p.price)}</span><br>
+                                <small class="text-muted">${p.unit === 'kg' ? 'Kg' : 'Unidad'}</small>
+                            </div>
+                        </a>
+                    `).join('');
+                }
+                
+                resultsBox.style.display = 'block';
+            }
+
+            function selectSearchResult(barcode) {
+                const product = allProducts.find(p => p.barcode === barcode);
+                if (product) {
+                    handleProductScan(product);
+                }
+                
+                // Clean up UI after selection
+                const searchInput = document.getElementById('manual-search');
+                searchInput.value = '';
+                document.getElementById('search-results').style.display = 'none';
+                searchInput.focus(); // Keep focus for fast back-to-back searching
+            }
+
+            // Close the search dropdown if user clicks outside of it
+            document.addEventListener('click', function(e) {
+                const searchArea = document.getElementById('manual-search');
+                const resultsBox = document.getElementById('search-results');
+                if (e.target !== searchArea && !resultsBox.contains(e.target)) {
+                    resultsBox.style.display = 'none';
+                }
+            });
+
+            function calculateSubtotal(price, qty) {
+                const rawTotal = price * qty;
+                // Ley del Redondeo: rounds to the nearest 10
+                return Math.round(rawTotal / 10) * 10;
+            }
         </script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
