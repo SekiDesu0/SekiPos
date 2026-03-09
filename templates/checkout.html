@@ -190,11 +190,9 @@
         }
 
         /* ── Thermal Printer Styles (80mm) ── */
-        #receipt-print-zone { display: none; } /* Hidden on screen */
-        
         @media print {
-            body { background: #fff; margin: 0; padding: 0; }
-            .navbar, .container-fluid, .modal { display: none !important; } /* Hide the UI */
+            body { background: #fff !important; margin: 0; padding: 0; }
+            .navbar, .container-fluid, .modal { display: none !important; } 
             
             #receipt-print-zone {
                 display: block !important;
@@ -202,11 +200,15 @@
                 padding: 0;
                 margin: 0;
                 font-family: "Courier New", Courier, monospace;
-                color: #000;
                 font-size: 12px;
             }
+
+            /* This forces true black on everything inside the receipt */
+            #receipt-print-zone * {
+                color: #000 !important; 
+            }
             
-            @page { margin: 0; } /* Kills the browser's default blank page margins */
+            @page { margin: 0; } 
             
             .receipt-header { text-align: center; margin-bottom: 10px; }
             .receipt-table { width: 100%; margin-bottom: 10px; }
@@ -491,7 +493,7 @@
             let pendingProduct = null;
             const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 });
 
-            socket.on('new_scan', (product) => {
+            {% comment %} socket.on('new_scan', (product) => {
                 // Update the Preview Card
                 document.getElementById('display-name').innerText = product.name;
                 document.getElementById('display-barcode').innerText = product.barcode;
@@ -504,7 +506,7 @@
                 } else {
                     addToCart(product, 1);
                 }
-            });
+            }); {% endcomment %}
 
             socket.on('scan_error', (data) => {
                 if (confirm("Producto no encontrado. ¿Deseas crearlo?")) {
