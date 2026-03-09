@@ -138,7 +138,10 @@ def index():
 @app.route("/checkout")
 @login_required
 def checkout():
-    return render_template("checkout.html", user=current_user)
+    with sqlite3.connect(DB_FILE) as conn:
+        # Fetching the same columns the scanner expects
+        products = conn.execute('SELECT barcode, name, price, image_url, stock, unit_type FROM products').fetchall()
+    return render_template("checkout.html", user=current_user, products=products)
 
 
 @app.route("/upsert", methods=["POST"])
