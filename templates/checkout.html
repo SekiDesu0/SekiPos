@@ -188,10 +188,64 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
+
+        /* ── Thermal Printer Styles (80mm) ── */
+        #receipt-print-zone { display: none; } /* Hidden on screen */
+        
+        @media print {
+            body { background: #fff; margin: 0; padding: 0; }
+            .navbar, .container-fluid, .modal { display: none !important; } /* Hide the UI */
+            
+            #receipt-print-zone {
+                display: block !important;
+                width: 80mm;
+                padding: 0;
+                margin: 0;
+                font-family: "Courier New", Courier, monospace;
+                color: #000;
+                font-size: 12px;
+            }
+            
+            @page { margin: 0; } /* Kills the browser's default blank page margins */
+            
+            .receipt-header { text-align: center; margin-bottom: 10px; }
+            .receipt-table { width: 100%; margin-bottom: 10px; }
+            .receipt-table th { text-align: left; border-bottom: 1px dashed #000; padding-bottom: 3px; }
+            .receipt-table td { padding: 3px 0; vertical-align: top; }
+            .receipt-total-row { border-top: 1px dashed #000; font-weight: bold; font-size: 14px; }
+        }
     </style>
 </head>
 
 <body>
+    <div id="receipt-print-zone">
+        <div class="receipt-header">
+            <h3 style="margin: 0; font-weight: 800;">SekiPOS</h3>
+            <div style="font-size: 10px; margin-bottom: 5px;">Comprobante de Venta</div>
+            <div id="receipt-date" style="font-size: 11px;"></div>
+        </div>
+        
+        <table class="receipt-table">
+            <thead>
+                <tr>
+                    <th style="width: 15%;">Cant</th>
+                    <th style="width: 60%; padding-left: 5px;">Desc</th>
+                    <th style="width: 25%; text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody id="receipt-items-print">
+                </tbody>
+        </table>
+        
+        <div class="receipt-total-row d-flex justify-content-between pt-2">
+            <span>TOTAL:</span>
+            <span id="receipt-total-print"></span>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px; font-size: 10px;">
+            ¡Gracias por su compra!
+        </div>
+    </div>
     <div class="modal fade" id="removeConfirmModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -209,7 +263,6 @@
             </div>
         </div>
     </div>
-
     <div class="modal fade" id="clearCartModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -255,7 +308,7 @@
                         <button class="btn btn-lg btn-success py-3" onclick="executeCheckout('efectivo')">
                             <i class="bi bi-cash-coin me-2" style="font-size: 1.5rem; vertical-align: middle;"></i> Efectivo
                         </button>
-                        <button class="btn btn-lg btn-secondary py-3" onclick="executeCheckout('tarjeta')" disabled>
+                        <button class="btn btn-lg btn-secondary py-3" onclick="executeCheckout('tarjeta')">
                             <i class="bi bi-credit-card me-2" style="font-size: 1.5rem; vertical-align: middle;"></i> Tarjeta (Pronto)
                         </button>
                     </div>
@@ -493,6 +546,10 @@
                     if (response.ok) {
                         // Hide the payment modal
                         bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+
+                        // Calculate total and print BEFORE wiping the cart
+                        const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+                        printReceipt(total);
                         
                         // Show the success checkmark
                         const successModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('successModal'));
@@ -741,6 +798,30 @@
                 // getOrCreateInstance prevents UI-breaking ghost backdrops
                 const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('removeConfirmModal'));
                 modal.show();
+            }
+
+            function printReceipt(total) {
+                const tbody = document.getElementById('receipt-items-print');
+                tbody.innerHTML = '';
+                
+                // Populate the items
+                cart.forEach(item => {
+                    const qtyStr = item.unit === 'kg' ? item.qty.toFixed(3) : item.qty;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${qtyStr}</td>
+                            <td style="padding-left: 5px; padding-right: 5px; word-break: break-word;">${item.name}</td>
+                            <td style="text-align: right;">${clp.format(item.subtotal)}</td>
+                        </tr>
+                    `;
+                });
+                
+                // Set total and timestamp
+                document.getElementById('receipt-total-print').innerText = clp.format(total);
+                document.getElementById('receipt-date').innerText = new Date().toLocaleString('es-CL');
+                
+                // Trigger the print dialog
+                window.print();
             }
 
             // Ensure the listener is intact
