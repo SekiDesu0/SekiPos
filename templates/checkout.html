@@ -273,7 +273,7 @@
             </div>
         </div>
     </div>
-    <div id="receipt-print-zone">
+    <div id="receipt-print-zone" class="d-none d-print-block">
         <div class="receipt-header">
             <h3 style="margin: 0; font-weight: 800;">SekiPOS</h3>
             <div style="font-size: 10px; margin-bottom: 5px;">Comprobante de Venta</div>
@@ -492,21 +492,6 @@
             let cart = [];
             let pendingProduct = null;
             const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 });
-
-            {% comment %} socket.on('new_scan', (product) => {
-                // Update the Preview Card
-                document.getElementById('display-name').innerText = product.name;
-                document.getElementById('display-barcode').innerText = product.barcode;
-                document.getElementById('display-img').src = product.image || './static/placeholder.png';
-
-                if (product.unit === 'kg') {
-                    pendingProduct = product;
-                    new bootstrap.Modal('#weightModal').show();
-                    setTimeout(() => document.getElementById('weight-input').focus(), 500);
-                } else {
-                    addToCart(product, 1);
-                }
-            }); {% endcomment %}
 
             socket.on('scan_error', (data) => {
                 if (confirm("Producto no encontrado. ¿Deseas crearlo?")) {
