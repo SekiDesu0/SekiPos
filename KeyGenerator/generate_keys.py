@@ -11,7 +11,7 @@ from io import BytesIO
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # --- CONFIGURATION ---
-JSON_FILE = os.path.join(os.getcwd(), 'frutas.json')
+JSON_FILE = os.path.join(os.getcwd(), 'frutas2.json')
 OUTPUT_DIR = os.path.join(os.getcwd(), 'keychain_cards')
 IMG_CACHE_DIR = os.path.join(os.getcwd(), 'image_cache')
 os.makedirs(OUTPUT_DIR, exist_ok=True)
