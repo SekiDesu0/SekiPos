@@ -298,6 +298,7 @@
         <div class="receipt-header">
             <h3 style="margin: 0; font-weight: 800;">SekiPOS</h3>
             <div style="font-size: 10px; margin-bottom: 5px;">Comprobante de Venta</div>
+            <div style="font-size: 11px; font-weight: bold;">Ticket Nº <span id="receipt-ticket-id"></span></div>
             <div id="receipt-date" style="font-size: 11px;"></div>
         </div>
         
@@ -447,6 +448,9 @@
                             <button class="btn btn-accent px-3" type="button" onclick="openCustomProductModal()" title="Agregar manual">
                                 <i class="bi bi-plus-lg"></i> <span class="d-none d-sm-inline ms-1">Manual</span>
                             </button>
+                        </div>
+                        <div id="search-results" class="dropdown-menu w-100 shadow-sm mt-1" 
+                             style="display: none; position: absolute; top: 100%; left: 0; z-index: 1000; max-height: 300px; overflow-y: auto;">
                         </div>
                     </div>
                     <table class="table mt-3" id="cart-table">
@@ -608,9 +612,9 @@
                         // Hide the payment modal
                         bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
 
-                        // Calculate total and print BEFORE wiping the cart
+                        // Pass the new sale_id from the result to the printer
                         const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
-                        printReceipt(total);
+                        printReceipt(total, result.sale_id);
                         
                         // Show the success checkmark
                         const successModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('successModal'));
@@ -861,7 +865,7 @@
                 modal.show();
             }
 
-            function printReceipt(total) {
+        function printReceipt(total, saleId) {
                 const tbody = document.getElementById('receipt-items-print');
                 tbody.innerHTML = '';
                 
@@ -876,6 +880,7 @@
                     `;
                 });
                 
+                document.getElementById('receipt-ticket-id').innerText = saleId || "N/A";
                 document.getElementById('receipt-total-print').innerText = clp.format(total);
                 document.getElementById('receipt-date').innerText = new Date().toLocaleString('es-CL');
                 

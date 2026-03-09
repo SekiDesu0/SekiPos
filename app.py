@@ -8,6 +8,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import mimetypes
 import time
 import uuid
+from datetime import datetime
 # from dotenv import load_dotenv
 
 # load_dotenv()
@@ -347,31 +348,31 @@ def update_scale_weight():
 @app.route('/api/checkout', methods=['POST'])
 @login_required
 def process_checkout():
-    data = request.get_json()
-    cart = data.get('cart', [])
-    payment_method = data.get('payment_method', 'efectivo')
-    
-    if not cart:
-        return jsonify({"error": "Cart is empty"}), 400
-        
-    # Recalculate total on the server because trusting the frontend is a security risk
-    total = sum(item.get('subtotal', 0) for item in cart)
-    
     try:
+        data = request.get_json()
+        cart = data.get('cart', [])
+        payment_method = data.get('payment_method', 'efectivo')
+        
+        if not cart:
+            return jsonify({"error": "Cart is empty"}), 400
+            
+        # Recalculate total on the server because the frontend is a liar
+        total = sum(item.get('subtotal', 0) for item in cart)
+        
         with sqlite3.connect(DB_FILE) as conn:
             cur = conn.cursor()
             
-            # 1. Create the main sale record
-            cur.execute('INSERT INTO sales (total, payment_method) VALUES (?, ?)', (total, payment_method))
+            # Let SQLite handle the exact UTC timestamp internally
+            cur.execute('INSERT INTO sales (date, total, payment_method) VALUES (CURRENT_TIMESTAMP, ?, ?)', (total, payment_method))
             sale_id = cur.lastrowid
             
-            # 2. Record each item and deduct stock
+            # Record each item and deduct stock
             for item in cart:
                 cur.execute('''INSERT INTO sale_items (sale_id, barcode, name, price, quantity, subtotal)
                                VALUES (?, ?, ?, ?, ?, ?)''', 
                             (sale_id, item['barcode'], item['name'], item['price'], item['qty'], item['subtotal']))
                 
-                # Deduct from inventory
+                # Deduct from inventory (Manual products will safely be ignored here)
                 cur.execute('UPDATE products SET stock = stock - ? WHERE barcode = ?', (item['qty'], item['barcode']))
                 
             conn.commit()
@@ -417,6 +418,32 @@ def get_sale_details(sale_id):
     item_list = [{"barcode": i[0], "name": i[1], "price": i[2], "qty": i[3], "subtotal": i[4]} for i in items]
     return jsonify(item_list), 200
 
+@app.route('/api/sale/<int:sale_id>', methods=['DELETE'])
+@login_required
+def reverse_sale(sale_id):
+    try:
+        with sqlite3.connect(DB_FILE) as conn:
+            cur = conn.cursor()
+            
+            # 1. Get the items and quantities from the receipt
+            items = cur.execute('SELECT barcode, quantity FROM sale_items WHERE sale_id = ?', (sale_id,)).fetchall()
+            
+            # 2. Add the stock back to the inventory
+            for barcode, qty in items:
+                # This safely ignores manual products since their fake barcodes won't match any row
+                cur.execute('UPDATE products SET stock = stock + ? WHERE barcode = ?', (qty, barcode))
+                
+            # 3. Destroy the evidence
+            cur.execute('DELETE FROM sale_items WHERE sale_id = ?', (sale_id,))
+            cur.execute('DELETE FROM sales WHERE id = ?', (sale_id,))
+            
+            conn.commit()
+            
+        return jsonify({"status": "success"}), 200
+        
+    except Exception as e:
+        print(f"Reverse Sale Error: {e}")
+        return jsonify({"error": str(e)}), 500
 # @app.route('/process_payment', methods=['POST'])
 # @login_required
 # def process_payment():
