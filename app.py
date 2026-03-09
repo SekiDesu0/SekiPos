@@ -65,6 +65,13 @@ def init_db():
                          subtotal REAL,
                          FOREIGN KEY(sale_id) REFERENCES sales(id))''')
         
+        conn.execute('''CREATE TABLE IF NOT EXISTS dicom 
+                        (id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                         name TEXT UNIQUE, 
+                         amount REAL DEFAULT 0, 
+                         notes TEXT,
+                         last_updated TEXT DEFAULT CURRENT_TIMESTAMP)''')
+        
         # Default user logic remains same...
         user = conn.execute('SELECT * FROM users WHERE username = ?', ('admin',)).fetchone()
         if not user:
@@ -444,6 +451,57 @@ def reverse_sale(sale_id):
     except Exception as e:
         print(f"Reverse Sale Error: {e}")
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/dicom')
+@login_required
+def dicom():
+    with sqlite3.connect(DB_FILE) as conn:
+        debtors = conn.execute('SELECT id, name, amount, notes, datetime(last_updated, "localtime") FROM dicom ORDER BY amount DESC').fetchall()
+    return render_template('dicom.html', user=current_user, debtors=debtors)
+
+@app.route('/api/dicom/update', methods=['POST'])
+@login_required
+def update_dicom():
+    data = request.get_json()
+    name = data.get('name', '').strip()
+    amount = float(data.get('amount', 0))
+    notes = data.get('notes', '')
+    action = data.get('action') # 'add' or 'pay'
+    
+    if not name or amount <= 0:
+        return jsonify({"error": "Nombre y monto válidos son requeridos"}), 400
+        
+    # If we are giving them credit (Fiar), their balance drops into the negative
+    if action == 'add':
+        amount = -amount
+
+    try:
+        with sqlite3.connect(DB_FILE) as conn:
+            cur = conn.cursor()
+            # Upsert logic: if they exist, modify debt. If they don't, create them.
+            cur.execute('''INSERT INTO dicom (name, amount, notes, last_updated) 
+                           VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+                           ON CONFLICT(name) DO UPDATE SET 
+                           amount = amount + excluded.amount,
+                           notes = excluded.notes,
+                           last_updated = CURRENT_TIMESTAMP''', (name, amount, notes))
+            conn.commit()
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/dicom/<int:debtor_id>', methods=['DELETE'])
+@login_required
+def delete_dicom(debtor_id):
+    try:
+        with sqlite3.connect(DB_FILE) as conn:
+            conn.execute('DELETE FROM dicom WHERE id = ?', (debtor_id,))
+            conn.commit()
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+    
 # @app.route('/process_payment', methods=['POST'])
 # @login_required
 # def process_payment():
