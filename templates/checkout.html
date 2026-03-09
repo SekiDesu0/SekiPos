@@ -342,16 +342,19 @@
                     </div>
                     <div class="modal-body">
                         <input type="number" id="weight-input" class="form-control form-control-lg" step="1"
-                            placeholder="Ej: 400">
+                            placeholder="Ej: 500" onkeydown="if(event.key === 'Enter') confirmWeight()">
                     </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-primary w-100" onclick="confirmWeight()">Agregar</button>
+                    <div class="modal-footer d-flex">
+                        <button class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal">Cancelar</button>
+                        <button class="btn btn-accent flex-grow-1" onclick="confirmWeight()">Agregar</button>
                     </div>
                 </div>
             </div>
         </div>
 
         <script>
+            let editingCartIndex = null;
+            let itemIndexToRemove = null;
             const socket = io();
             let cart = [];
             let pendingProduct = null;
@@ -386,40 +389,46 @@
                 cart.forEach((item, index) => {
                     total += item.subtotal;
                     const row = document.createElement('tr');
+
+                    let qtyControls;
+                    if (item.unit === 'kg') {
+                        qtyControls = `
+                            <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="editWeight(${index})">
+                                ${item.qty.toFixed(3)} kg <i class="bi bi-pencil ms-1" style="font-size: 0.7rem;"></i>
+                            </button>
+                        `;
+                    } else {
+                        qtyControls = `
+                            <div class="d-flex align-items-center gap-1">
+                                <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="updateQty(${index}, -1)">-</button>
+                                <input type="number" class="form-control form-control-sm text-center p-0" 
+                                    style="width: 50px;" value="${item.qty}" 
+                                    onchange="manualQty(${index}, this.value)">
+                                <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="updateQty(${index}, 1)">+</button>
+                            </div>
+                        `;
+                    }
+
                     row.innerHTML = `
-            <td>${item.name}</td>
-            <td>${clp.format(item.price)}</td>
-            <td>${item.qty} ${item.unit === 'kg' ? 'kg' : 'u'}</td>
-            <td>${clp.format(item.subtotal)}</td>
-            <td>
-                <button class="btn-danger-discord btn-sm" onclick="removeItem(${index}, '${item.name}')">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </td>
-        `;
+                        <td class="font-monospace small text-muted">${item.barcode}</td>
+                        <td>${item.name}</td>
+                        <td>${clp.format(item.price)}</td>
+                        <td>${qtyControls}</td>
+                        <td>${clp.format(item.subtotal)}</td>
+                        <td>
+                            <button class="btn btn-danger-discord btn-sm" onclick="removeItem(${index})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    `;
                     tbody.appendChild(row);
                 });
+                
                 document.getElementById('grand-total').innerText = clp.format(total);
+                
+                // This will actually run now
+                saveCart(); 
             }
-
-            let itemIndexToRemove = null;
-
-            function removeItem(idx, name) {
-                itemIndexToRemove = idx;
-                document.getElementById('removeItemName').innerText = name;
-                const modal = new bootstrap.Modal(document.getElementById('removeConfirmModal'));
-                modal.show();
-            }
-
-            // Attach listener to the confirm button in the modal
-            document.getElementById('btn-confirm-remove').addEventListener('click', () => {
-                if (itemIndexToRemove !== null) {
-                    cart.splice(itemIndexToRemove, 1);
-                    renderCart();
-                    bootstrap.Modal.getInstance(document.getElementById('removeConfirmModal')).hide();
-                    itemIndexToRemove = null;
-                }
-            });
 
             function clearCart() {
                 if (cart.length === 0) return;
@@ -468,20 +477,26 @@
                     btn.innerHTML = '<i class="bi bi-cash-coin"></i> COBRAR';
                 }
             }
-
             function confirmWeight() {
                 const weightInput = document.getElementById('weight-input');
                 const weightGrams = parseInt(weightInput.value, 10);
                 
                 if (weightGrams > 0) {
-                    // Convert back to kg for the cart's subtotal math
                     const weightKg = weightGrams / 1000; 
                     
-                    addToCart(pendingProduct, weightKg);
+                    if (editingCartIndex !== null) {
+                        // We are editing an existing row
+                        cart[editingCartIndex].qty = weightKg;
+                        cart[editingCartIndex].subtotal = calculateSubtotal(cart[editingCartIndex].price, weightKg);
+                        renderCart();
+                    } else {
+                        // We are adding a new scan/search
+                        addToCart(pendingProduct, weightKg);
+                    }
                     
-                    // Hide modal and clear input
                     bootstrap.Modal.getInstance(document.getElementById('weightModal')).hide();
                     weightInput.value = '';
+                    editingCartIndex = null; // Clear the tracker
                 }
             }
 
@@ -521,47 +536,22 @@
                 // Don't re-render immediately to avoid losing input focus while typing
             }
 
-            function renderCart() {
-                const tbody = document.getElementById('cart-items');
-                tbody.innerHTML = '';
-                let total = 0;
-
-                cart.forEach((item, index) => {
-                    total += item.subtotal;
-                    const row = document.createElement('tr');
-
-                    // Logic for quantity controls
-                    let qtyControls;
-                    if (item.unit === 'kg') {
-                        qtyControls = `<span>${item.qty.toFixed(3)} kg</span>`;
-                    } else {
-                        qtyControls = `
-                            <div class="d-flex align-items-center gap-1">
-                                <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="updateQty(${index}, -1)">-</button>
-                                <input type="number" class="form-control form-control-sm text-center p-0" 
-                                    style="width: 50px;" value="${item.qty}" 
-                                    onchange="manualQty(${index}, this.value)"
-                                    onblur="renderCart()">
-                                <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="updateQty(${index}, 1)">+</button>
-                            </div>
-                        `;
-                    }
-
-                    row.innerHTML = `
-                        <td class="font-monospace small text-muted">${item.barcode}</td>
-                        <td>${item.name}</td>
-                        <td>${clp.format(item.price)}</td>
-                        <td>${qtyControls}</td>
-                        <td>${clp.format(item.subtotal)}</td>
-                        <td>
-                            <button class="btn-danger-discord btn-sm" onclick="removeItem(${index}, '${item.name}')">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
-                document.getElementById('grand-total').innerText = clp.format(total);
+            function editWeight(index) {
+                editingCartIndex = index;
+                const item = cart[index];
+                const weightInput = document.getElementById('weight-input');
+                
+                // Convert current kg back to grams for the input
+                weightInput.value = Math.round(item.qty * 1000); 
+                
+                const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('weightModal'));
+                modal.show();
+                
+                // Auto-focus and highlight the existing number so you can just type over it
+                setTimeout(() => { 
+                    weightInput.focus(); 
+                    weightInput.select(); 
+                }, 500);
             }
 
             function applyTheme(t) {
@@ -581,12 +571,6 @@
                 const next = current === 'dark' ? 'light' : 'dark';
                 applyTheme(next);
             }
-
-            // Initialize on load
-            (function initTheme() {
-                const savedTheme = localStorage.getItem('theme') || 'light';
-                applyTheme(savedTheme);
-            })();
 
 
             // 1. Load all products from Python into a JavaScript array safely
@@ -682,11 +666,63 @@
                 }
             });
 
+            // Make sure we clear the tracker if the user hits Cancel
+            document.getElementById('weightModal').addEventListener('hidden.bs.modal', function () {
+                document.getElementById('weight-input').value = '';
+                pendingProduct = null;
+                editingCartIndex = null; 
+            });
+
             function calculateSubtotal(price, qty) {
                 const rawTotal = price * qty;
                 // Ley del Redondeo: rounds to the nearest 10
                 return Math.round(rawTotal / 10) * 10;
             }
+
+            function saveCart() {
+                localStorage.setItem('seki_cart', JSON.stringify(cart));
+            }
+
+            function loadCart() {
+                const saved = localStorage.getItem('seki_cart');
+                if (saved) {
+                    try {
+                        cart = JSON.parse(saved);
+                        renderCart();
+                    } catch(e) {
+                        console.error("Error cargando el carrito", e);
+                        cart = [];
+                    }
+                }
+            }
+
+            function removeItem(idx) {
+                itemIndexToRemove = idx;
+                // Look up the name safely from the array
+                document.getElementById('removeItemName').innerText = cart[idx].name; 
+                
+                // getOrCreateInstance prevents UI-breaking ghost backdrops
+                const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('removeConfirmModal'));
+                modal.show();
+            }
+
+            // Ensure the listener is intact
+            document.getElementById('btn-confirm-remove').addEventListener('click', () => {
+                if (itemIndexToRemove !== null) {
+                    cart.splice(itemIndexToRemove, 1);
+                    renderCart(); // This will auto-save the cart now!
+                    bootstrap.Modal.getInstance(document.getElementById('removeConfirmModal')).hide();
+                    itemIndexToRemove = null;
+                }
+            });
+
+            // Initialize on load
+            (function initTheme() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                applyTheme(savedTheme);
+            })();
+
+            loadCart();
         </script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
