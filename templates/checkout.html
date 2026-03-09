@@ -427,6 +427,29 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="notFoundModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-warning">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center pt-0 pb-4">
+                    <i class="bi bi-question-circle text-warning mb-3" style="font-size: 3rem;"></i>
+                    <h4 class="mb-2">Producto No Registrado</h4>
+                    <p class="text-muted px-3 small">El código <strong id="not-found-barcode" style="color: var(--text-main);"></strong> no existe en la base de datos.</p>
+                    
+                    <div class="d-flex flex-column gap-2 px-3 mt-4">
+                        <button class="btn btn-accent w-100 py-2" onclick="goToInventory()">
+                            <i class="bi bi-database-add me-2"></i>Registrar en Inventario
+                        </button>
+                        <button class="btn btn-outline-secondary w-100 py-2" onclick="openTempProduct()">
+                            <i class="bi bi-cart-plus me-2"></i>Venta Temporal (Solo por esta vez)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <nav class="navbar navbar-expand-md sticky-top px-3 mb-3">
         <span class="navbar-brand">SekiPOS <small class="text-muted fw-normal"
                 style="font-size:0.65rem;">Caja</small></span>
@@ -547,16 +570,49 @@
         <script>
             let editingCartIndex = null;
             let itemIndexToRemove = null;
+
+            let missingProductData = null;
+            let tempBarcode = null; // Stores the real barcode if we do a temp sale
+
             const socket = io();
             let cart = [];
             let pendingProduct = null;
             const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 });
 
             socket.on('scan_error', (data) => {
-                if (confirm("Producto no encontrado. ¿Deseas crearlo?")) {
-                    window.location.href = `/?barcode=${data.barcode}`;
-                }
+                missingProductData = data;
+                document.getElementById('not-found-barcode').innerText = data.barcode;
+                
+                const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('notFoundModal'));
+                modal.show();
             });
+
+            function goToInventory() {
+                if (missingProductData) {
+                    window.location.href = `/?barcode=${missingProductData.barcode}`;
+                }
+            }
+
+            function openTempProduct() {
+                bootstrap.Modal.getInstance(document.getElementById('notFoundModal')).hide();
+                
+                // Save the actual scanned barcode so it prints on the receipt instead of "MANUAL-XXX"
+                tempBarcode = missingProductData.barcode;
+                
+                // Pre-fill the name if the OpenFoodFacts API managed to find it
+                document.getElementById('custom-name').value = missingProductData.name || '';
+                document.getElementById('custom-price').value = '';
+                document.getElementById('custom-unit').value = 'unit';
+                
+                const customModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('customProductModal'));
+                customModal.show();
+                
+                // Auto-focus the price if we already have a name, otherwise focus the name
+                setTimeout(() => {
+                    if (missingProductData.name) document.getElementById('custom-price').focus();
+                    else document.getElementById('custom-name').focus();
+                }, 500);
+            }
 
             function renderCart() {
                 const tbody = document.getElementById('cart-items');
@@ -935,6 +991,9 @@
             }
 
             function openCustomProductModal() {
+
+                tempBarcode = null; // Clear any leftover scanned barcodes
+
                 // Scrub the inputs clean
                 document.getElementById('custom-name').value = '';
                 document.getElementById('custom-price').value = '';
@@ -955,12 +1014,12 @@
                     return;
                 }
                 
-                // Generate a unique dummy barcode so the cart math doesn't implode
-                const fakeBarcode = `MANUAL-${Date.now().toString().slice(-6)}`;
+                // Use the scanned barcode if it exists, otherwise generate a fake one
+                const finalBarcode = tempBarcode ? tempBarcode : `MANUAL-${Date.now().toString().slice(-6)}`;
                 
                 const customProduct = {
-                    barcode: fakeBarcode,
-                    name: `* ${nameInput}`, // Adds a star to the receipt so you know it was manual
+                    barcode: finalBarcode,
+                    name: `* ${nameInput}`, 
                     price: priceInput,
                     image: '',
                     stock: 0, 
@@ -968,7 +1027,6 @@
                 };
                 
                 if (unitInput === 'kg') {
-                    // Send it to your existing weight modal flow
                     pendingProduct = customProduct;
                     bootstrap.Modal.getInstance(document.getElementById('customProductModal')).hide();
                     
@@ -976,10 +1034,11 @@
                     weightModal.show();
                     setTimeout(() => document.getElementById('weight-input').focus(), 500);
                 } else {
-                    // Add directly as 1 unit
                     addToCart(customProduct, 1);
                     bootstrap.Modal.getInstance(document.getElementById('customProductModal')).hide();
                 }
+                
+                tempBarcode = null; // Reset it after adding
             }
 
             // Ensure the listener is intact
@@ -1047,9 +1106,21 @@
 
             // Initialize on load
             (function initTheme() {
-                const savedTheme = localStorage.getItem('theme') || 'light';
-                applyTheme(savedTheme);
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme) {
+                    applyTheme(savedTheme);
+                } else {
+                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    applyTheme(prefersDark ? 'dark' : 'light');
+                }
             })();
+            
+            // Listen for OS theme changes in real-time
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                if (!localStorage.getItem('theme')) {
+                    applyTheme(e.matches ? 'dark' : 'light');
+                }
+            });
 
             loadCart();
         </script>
