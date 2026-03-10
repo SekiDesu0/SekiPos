@@ -1,0 +1,46 @@
+{% macro confirm_modal(id, title, button_class, button_text, onclick_fn) %}
+<div class="modal fade" id="{{ id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ title }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {{ caller() }}
+                <div class="d-grid gap-2 mt-3">
+                    <button class="btn {{ button_class }}" onclick="{{ onclick_fn }}">
+                        {{ button_text }}
+                    </button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro scanner_modal() %}
+<div class="modal fade" id="scannerModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Escanear Código</h5>
+                <button type="button" class="btn-close" onclick="stopScanner()" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3 d-flex align-items-end gap-2">
+                    <div class="flex-grow-1">
+                        <label class="form-label small text-muted">Seleccionar Cámara:</label>
+                        <select id="camera-select" class="form-select form-select-sm" onchange="switchCamera(this.value)">
+                            <option value="">Cargando cámaras...</option>
+                        </select>
+                    </div>
+                    <button id="torch-btn" class="btn btn-outline-secondary btn-sm" onclick="toggleTorch()" style="height: 31px; min-width: 40px; display: none;"></button>
+                </div>
+                <div id="reader" style="width: 100%; border-radius: 8px; overflow: hidden;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endmacro %}

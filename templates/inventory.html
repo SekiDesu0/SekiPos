@@ -1,0 +1,717 @@
+{% extends "macros/base.html" %}
+{% from 'macros/modals.html' import confirm_modal, scanner_modal %}
+
+{% block title %}Inventario{% endblock %}
+
+{% block head %}
+<script src="https://unpkg.com/html5-qrcode"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+
+    <!-- ── LEFT COLUMN ── -->
+    <div class="col-12 col-lg-5">
+
+        <!-- New product prompt -->
+        <div id="new-product-prompt"
+            class="new-product-prompt p-3 mb-3 d-none d-flex justify-content-between align-items-center">
+            <span>Nuevo: <b id="new-barcode-display"></b></span>
+            <button onclick="dismissPrompt()" class="btn btn-sm" style="background:rgba(0,0,0,0.25);color:#fff;">
+                Omitir
+            </button>
+        </div>
+
+        <!-- Last scanned card -->
+        <div class="discord-card p-3 mb-3 text-center">
+            <p class="mb-1 fw-semibold"
+                style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase; letter-spacing:.05em;">
+                Último Escaneado</p>
+            <img id="display-img" src="./static/placeholder.png" class="mb-2" alt="product">
+            <h5 id="display-name" class="mb-1">Esperando scan...</h5>
+            <div class="price-tag" id="display-price">$0</div>
+            <p id="display-barcode" class="mb-0 mt-1" style="font-family:monospace; opacity:.5; font-size:.8rem;">
+            </p>
+        </div>
+
+        <button class="btn btn-accent mb-3 w-100" onclick="startScanner()">
+            <i class="bi bi-qr-code-scan me-2"></i>Escanear con Cámara
+        </button>
+
+        <!-- Edit / Create card -->
+        <div class="discord-card p-3">
+            <h6 id="form-title" class="mb-3 fw-bold">Editar / Crear</h6>
+            <form action="/upsert" method="POST" id="product-form">
+                <input class="form-control mb-2" type="text" name="barcode" id="form-barcode" placeholder="Barcode"
+                    required>
+                <input class="form-control mb-2" type="text" name="name" id="form-name" placeholder="Nombre" required>
+
+                <div class="row g-2 mb-2">
+                    <div class="col-8">
+                        <input class="form-control" type="number" name="price" id="form-price"
+                            placeholder="Precio (CLP)" required>
+                    </div>
+                    <div class="col-4">
+                        <select class="form-select" name="unit_type" id="form-unit-type">
+                            <option value="unit">Unidad</option>
+                            <option value="kg">Kg</option>
+                        </select>
+                    </div>
+                </div>
+
+                <input class="form-control mb-2" type="number" step="1" name="stock" id="form-stock"
+                    placeholder="Stock Inicial">
+
+                <div class="input-group mb-3">
+                    <input class="form-control" type="text" name="image_url" id="form-image" placeholder="URL Imagen">
+                    <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;"
+                        onchange="handleFileUpload(this)">
+                    <button class="btn btn-outline-secondary" type="button"
+                        onclick="document.getElementById('camera-input').click()">
+                        <i class="bi bi-camera"></i>
+                    </button>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-accent flex-grow-1">
+                        <i class="bi bi-floppy me-1"></i>Guardar
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="clearForm()">
+                        <i class="bi bi-eraser"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── RIGHT COLUMN ── -->
+    <div class="col-12 col-lg-7">
+        <div class="discord-card p-3">
+
+            <!-- Bulk actions bar -->
+            <div id="bulk-bar" class="bulk-bar p-2 mb-3 d-flex justify-content-between align-items-center">
+                <span><b id="selected-count">0</b> seleccionados</span>
+                <div class="d-flex align-items-center gap-2">
+                    <input type="number" id="bulk-price-input" class="form-control form-control-sm"
+                        placeholder="Precio">
+                    <button onclick="applyBulkPrice()" class="btn btn-sm"
+                        style="background:#fff; color:var(--accent); font-weight:600;">OK</button>
+                    <button onclick="applyBulkDelete()" class="btn btn-sm btn-danger-discord">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                    <button onclick="clearSelection()" class="btn btn-sm"
+                        style="background: rgba(255,255,255,0.2); color:#fff;">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="position-relative mb-3">
+                <input type="text" id="searchInput" class="form-control pe-5" onkeyup="searchTable()"
+                    placeholder="Filtrar productos...">
+                <button class="btn btn-link position-absolute end-0 top-50 translate-middle-y text-muted"
+                    onclick="clearSearch()" id="clearSearchBtn" style="display: none; text-decoration: none;">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <!-- Table -->
+            <div class="table-responsive">
+                <table class="table table-borderless mb-0" id="inventoryTable">
+                    <thead>
+                        <tr>
+                            <th style="width:36px;"><input class="form-check-input" type="checkbox" id="select-all"
+                                    onclick="toggleAll(this)"></th>
+                            <th class="col-barcode" onclick="sortTable(1)">Código</th>
+                            <th onclick="sortTable(2)">Nombre</th>
+                            <th onclick="sortTable(3)">Stock</th>
+                            <th onclick="sortTable(4)">Precio</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in products %}
+                        <tr data-barcode="{{ p[0] }}">
+                            <td><input class="form-check-input product-checkbox" type="checkbox"
+                                    onclick="updateBulkBar()"></td>
+                            <td class="col-barcode">{{ p[0] }}</td>
+                            <td class="name-cell">{{ p[1] }}</td>
+                            <td>
+                                {% if p[5] == 'kg' %}
+                                <span class="text-muted d-inline-block text-center" style="width: 45px;">-</span>
+                                {% else %}
+                                {{ p[4] | int }} <small class="text-muted">Uni</small>
+                                {% endif %}
+                            </td>
+                            <td class="price-cell" data-value="{{ p[2] }}"></td>
+                            <td>
+                                <button class="btn btn-accent btn-sm"
+                                    onclick="editProduct('{{ p[0] }}', '{{ p[1] }}', '{{ p[2] }}', '{{ p[3] }}', '{{ p[4] }}', '{{ p[5] }}')"
+                                    data-bs-toggle="modal" data-bs-target="#editModal">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-danger-discord btn-sm btn-del-sm" data-bs-toggle="modal"
+                                    data-bs-target="#deleteModal" data-barcode="{{ p[0] }}" data-name="{{ p[1] }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% call confirm_modal('editModal', 'Editar Producto', 'btn-accent', 'Editar', 'confirmEdit()') %}
+<p>¿Quieres editar <strong id="editProductName"></strong>?</p>
+{% endcall %}
+
+{% call confirm_modal('deleteModal', 'Eliminar Producto', 'btn-danger-discord', 'Eliminar', 'confirmDelete()') %}
+<p>¿Seguro que quieres eliminar <strong id="deleteProductName"></strong>?</p>
+<p class="text-muted small">Esta acción no se puede deshacer.</p>
+{% endcall %}
+
+{% call confirm_modal('bulkConfirmModal', 'Confirmar Cambio Masivo', 'btn-accent', 'Confirmar Cambios',
+'executeBulkPrice()') %}
+<div class="text-center">
+    <i class="bi bi-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+    <p class="mt-3">Vas a actualizar <strong id="bulk-count-text">0</strong> productos al precio de <strong
+            id="bulk-price-text"></strong>.</p>
+</div>
+{% endcall %}
+
+{% call confirm_modal('bulkDeleteModal', 'Confirmar Eliminación Masiva', 'btn-danger-discord', 'Eliminar
+permanentemente', 'executeBulkDelete()') %}
+<div class="text-center">
+    <i class="bi bi-exclamation-octagon text-danger" style="font-size: 3rem;"></i>
+    <p class="mt-3">Vas a eliminar <strong id="bulk-delete-count">0</strong> productos permanentemente.</p>
+    <p class="text-muted small">Esta acción borrará los datos y las imágenes de la caché.</p>
+</div>
+{% endcall %}
+
+{{ scanner_modal() }}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    /* ── Socket.IO ── */
+    const socket = io();
+    const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 });
+
+    function formatAll() {
+        document.querySelectorAll('.price-cell').forEach(td => {
+            td.innerText = clp.format(td.getAttribute('data-value'));
+        });
+    }
+    formatAll();
+
+    // Inside socket.on('new_scan')
+    socket.on('new_scan', d => {
+        // Update the "Last Scanned" card
+        document.getElementById('display-name').innerText = d.name;
+        document.getElementById('display-price').innerText = clp.format(d.price);
+        document.getElementById('display-barcode').innerText = d.barcode;
+        document.getElementById('display-img').src = d.image || './static/placeholder.png';
+
+        let title = 'Editando: ' + d.name;
+        if (d.note) title += ` (${d.note})`;
+
+        // Update the actual form
+        updateForm(d.barcode, d.name, d.price, d.image, title, d.stock, d.unit_type);
+    });
+
+    socket.on('scan_error', d => {
+        const prompt = document.getElementById('new-product-prompt');
+        document.getElementById('new-barcode-display').innerText = d.barcode;
+        prompt.classList.remove('d-none');
+
+        // Update the "Last Scanned" card so it doesn't show old data
+        document.getElementById('display-name').innerText = d.name || "Producto Nuevo";
+        document.getElementById('display-price').innerText = clp.format(0);
+        document.getElementById('display-barcode').innerText = d.barcode;
+        document.getElementById('display-img').src = d.image || './static/placeholder.png';
+
+        // Clear the price and set the name in the form
+        updateForm(d.barcode, d.name || '', '', d.image || '', 'Crear: ' + d.barcode);
+    });
+
+    socket.on('scale_update', function (data) {
+        console.log("Current Weight:", data.grams + "g");
+        // If the unit type is 'kg', update the stock field automatically
+        const unitType = document.getElementById('form-unit-type').value;
+        if (unitType === 'kg') {
+            document.getElementById('form-stock').value = data.kilograms;
+        }
+    });
+
+    // Replace your existing updateForm function with this one
+    function updateForm(b, n, p, i, t, stock, unit) {
+        dismissPrompt();
+        document.getElementById('form-barcode').value = b;
+        document.getElementById('form-name').value = n;
+
+        // Force integers here to nuke the decimals once and for all
+        document.getElementById('form-price').value = p ? parseInt(p, 10) : '';
+        document.getElementById('form-stock').value = stock ? parseInt(stock, 10) : 0;
+
+        document.getElementById('form-unit-type').value = unit || 'unit';
+        document.getElementById('form-image').value = i || '';
+        document.getElementById('form-title').innerText = t;
+
+        // Add a timestamp to the URL if it's a local cache image
+        let displayImg = i || './static/placeholder.png';
+        if (displayImg.includes('/static/cache/')) {
+            displayImg += (displayImg.includes('?') ? '&' : '?') + 't=' + Date.now();
+        }
+
+        document.getElementById('form-image').value = i || '';
+        document.getElementById('form-title').innerText = t;
+        document.getElementById('display-img').src = displayImg;
+        document.getElementById('display-name').innerText = n || 'Producto Nuevo';
+        document.getElementById('display-price').innerText = clp.format(p || 0);
+        document.getElementById('display-barcode').innerText = b;
+
+        toggleStockInput(); // Show/hide stock input based on unit type
+    }
+
+    function dismissPrompt() {
+        document.getElementById('new-product-prompt').classList.add('d-none');
+    }
+
+    function editProduct(b, n, p, i, stock, unit) {
+        document.getElementById('editProductName').innerText = n;
+        const modal = document.getElementById('editModal');
+        modal.dataset.barcode = b;
+        modal.dataset.name = n;
+        modal.dataset.price = p;
+        modal.dataset.image = i;
+        modal.dataset.stock = stock;
+        modal.dataset.unit = unit;
+    }
+
+    function confirmEdit() {
+        const m = document.getElementById('editModal');
+        updateForm(m.dataset.barcode, m.dataset.name, m.dataset.price, m.dataset.image, 'Editando: ' + m.dataset.name, m.dataset.stock, m.dataset.unit);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        bootstrap.Modal.getInstance(m).hide();
+    }
+
+    function confirmDelete() {
+        const modal = document.getElementById('deleteModal');
+        const form = document.createElement('form');
+        form.action = `/delete/${modal.dataset.barcode}`;
+        form.method = 'POST';
+        form.style.display = 'none';
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    // Delete modal setup
+    document.getElementById('deleteModal').addEventListener('show.bs.modal', e => {
+        const button = e.relatedTarget;
+        document.getElementById('deleteProductName').innerText = button.dataset.name;
+        document.getElementById('deleteModal').dataset.barcode = button.dataset.barcode;
+    });
+
+    /* ── Bulk selection ── */
+    function toggleAll(src) {
+        const visibleRows = document.querySelectorAll('#inventoryTable tbody tr:not([style*="display: none"])');
+        visibleRows.forEach(row => {
+            const cb = row.querySelector('.product-checkbox');
+            if (cb) cb.checked = src.checked;
+        });
+        updateBulkBar();
+    }
+
+    function updateBulkBar() {
+        document.getElementById('selected-count').innerText =
+            document.querySelectorAll('.product-checkbox:checked').length;
+    }
+
+    function clearForm() {
+        document.getElementById('product-form').reset();
+        document.getElementById('form-title').innerText = 'Editar / Crear';
+        // Reset preview card
+        document.getElementById('display-img').src = './static/placeholder.png';
+        document.getElementById('display-name').innerText = 'Esperando scan...';
+        document.getElementById('display-price').innerText = '$0';
+        document.getElementById('display-barcode').innerText = '';
+
+        toggleStockInput(); // Show/hide stock input based on default unit type
+    }
+
+    async function handleFileUpload(input) {
+        const barcode = document.getElementById('form-barcode').value;
+        if (!barcode) {
+            alert("Primero escanea o ingresa un código de barras.");
+            input.value = '';
+            return;
+        }
+
+        const file = input.files[0];
+        if (!file) return;
+
+        // Show a "loading" state if you feel like being fancy
+        const originalBtnContent = document.querySelector('button[onclick*="camera-input"]').innerHTML;
+        document.querySelector('button[onclick*="camera-input"]').innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+        try {
+            const compressedBlob = await compressImage(file, 800, 0.7); // Max 800px, 70% quality
+
+            const formData = new FormData();
+            formData.append('image', compressedBlob, `photo_${barcode}.jpg`);
+            formData.append('barcode', barcode);
+
+            const res = await fetch('/upload_image', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                document.getElementById('form-image').value = data.image_url;
+                document.getElementById('display-img').src = data.image_url;
+            } else {
+                alert("Error al subir imagen: " + data.error);
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Error procesando imagen.");
+        } finally {
+            document.querySelector('button[onclick*="camera-input"]').innerHTML = originalBtnContent;
+        }
+    }
+
+    // The compression engine
+    function compressImage(file, maxWidth, quality) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = event => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob(blob => {
+                        resolve(blob);
+                    }, 'image/jpeg', quality);
+                };
+                img.onerror = err => reject(err);
+            };
+            reader.onerror = err => reject(err);
+        });
+    }
+
+    function applyBulkPrice() {
+        const price = document.getElementById('bulk-price-input').value;
+        const checked = document.querySelectorAll('.product-checkbox:checked');
+
+        if (!price || checked.length === 0) return;
+
+        // Set text in the pretty modal
+        document.getElementById('bulk-count-text').innerText = checked.length;
+        document.getElementById('bulk-price-text').innerText = clp.format(price);
+
+        // Show the modal
+        const bulkModal = new bootstrap.Modal(document.getElementById('bulkConfirmModal'));
+        bulkModal.show();
+    }
+
+    async function executeBulkPrice() {
+        const price = document.getElementById('bulk-price-input').value;
+        const checked = document.querySelectorAll('.product-checkbox:checked');
+        const barcodes = Array.from(checked).map(cb => cb.closest('tr').getAttribute('data-barcode'));
+
+        const res = await fetch('/bulk_price_update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ barcodes, new_price: price })
+        });
+
+        if (res.ok) {
+            checked.forEach(cb => {
+                const cell = cb.closest('tr').querySelector('.price-cell');
+                cell.setAttribute('data-value', price);
+                cell.innerText = clp.format(price);
+                cb.checked = false;
+            });
+            document.getElementById('bulk-price-input').value = '';
+            updateBulkBar();
+
+            // Hide modal
+            const modalEl = document.getElementById('bulkConfirmModal');
+            bootstrap.Modal.getInstance(modalEl).hide();
+        }
+    }
+
+    function applyBulkDelete() {
+        const checked = document.querySelectorAll('.product-checkbox:checked');
+        if (checked.length === 0) return;
+
+        document.getElementById('bulk-delete-count').innerText = checked.length;
+        const delModal = new bootstrap.Modal(document.getElementById('bulkDeleteModal'));
+        delModal.show();
+    }
+
+    async function executeBulkDelete() {
+        const checked = document.querySelectorAll('.product-checkbox:checked');
+        const barcodes = Array.from(checked).map(cb => cb.closest('tr').getAttribute('data-barcode'));
+
+        const res = await fetch('/bulk_delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ barcodes })
+        });
+
+        if (res.ok) {
+            checked.forEach(cb => {
+                cb.closest('tr').remove(); // Remove the row from the table immediately
+            });
+            updateBulkBar();
+
+            const modalEl = document.getElementById('bulkDeleteModal');
+            bootstrap.Modal.getInstance(modalEl).hide();
+        } else {
+            alert("Error al eliminar productos.");
+        }
+    }
+
+    /* ── Search ── */
+    function searchTable() {
+        const input = document.getElementById('searchInput');
+        const q = input.value.toUpperCase();
+        const clearBtn = document.getElementById('clearSearchBtn');
+
+        // Show/hide clear button based on input
+        clearBtn.style.display = q.length > 0 ? 'block' : 'none';
+
+        document.querySelectorAll('#inventoryTable tbody tr').forEach(tr => {
+            tr.style.display = tr.innerText.toUpperCase().includes(q) ? '' : 'none';
+        });
+
+        document.getElementById('select-all').checked = false;
+    }
+
+    function clearSearch() {
+        const input = document.getElementById('searchInput');
+        input.value = '';
+        searchTable(); // Re-run search to show all rows
+        input.focus();
+    }
+
+    let sortDirections = [true, true, true, true]; // Tracks asc/desc for each column
+
+    function sortTable(colIdx) {
+        const table = document.getElementById("inventoryTable");
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        const isAscending = sortDirections[colIdx];
+
+        const sortedRows = rows.sort((a, b) => {
+            let valA = a.cells[colIdx].innerText.trim();
+            let valB = b.cells[colIdx].innerText.trim();
+
+            // If sorting price, use the data-value attribute for pure numbers
+            if (colIdx === 3) {
+                valA = parseFloat(a.cells[colIdx].getAttribute('data-value')) || 0;
+                valB = parseFloat(b.cells[colIdx].getAttribute('data-value')) || 0;
+            } else {
+                valA = valA.toLowerCase();
+                valB = valB.toLowerCase();
+            }
+
+            if (valA < valB) return isAscending ? -1 : 1;
+            if (valA > valB) return isAscending ? 1 : -1;
+            return 0;
+        });
+
+        // Toggle direction for next click
+        sortDirections[colIdx] = !isAscending;
+
+        // Append sorted rows back to tbody
+        sortedRows.forEach(row => tbody.appendChild(row));
+
+        // Optional: Reset "select all" state since order changed
+        document.getElementById('select-all').checked = false;
+    }
+
+    let html5QrCode;
+    let currentCameraId;
+
+    async function startScanner() {
+        const modal = new bootstrap.Modal(document.getElementById('scannerModal'));
+        modal.show();
+
+        if (!html5QrCode) {
+            html5QrCode = new Html5Qrcode("reader");
+        }
+
+        try {
+            const devices = await Html5Qrcode.getCameras();
+            const select = document.getElementById('camera-select');
+            select.innerHTML = '';
+
+            if (devices && devices.length) {
+                devices.forEach((device, index) => {
+                    const option = document.createElement('option');
+                    option.value = device.id;
+                    // Store the index in a data attribute for easier retrieval later
+                    option.dataset.index = index;
+                    option.text = device.label || `Cámara ${index + 1}`;
+                    select.appendChild(option);
+                });
+
+                // Retrieve saved index or default to the last camera
+                const savedIndex = getCookie('cameraIndex');
+                const targetIndex = (savedIndex !== null && savedIndex < devices.length)
+                    ? savedIndex
+                    : devices.length - 1;
+
+                currentCameraId = devices[targetIndex].id;
+                select.value = currentCameraId;
+
+                launchCamera(currentCameraId);
+            } else {
+                alert("No se encontraron cámaras.");
+            }
+        } catch (err) {
+            console.error("Error obteniendo cámaras:", err);
+            alert("Error de permisos de cámara. Revisa la conexión HTTPS.");
+        }
+    }
+
+    let torchEnabled = false;
+
+    function isTorchSupported() {
+        if (!html5QrCode || !html5QrCode.isScanning) return false;
+        const settings = html5QrCode.getRunningTrackSettings();
+        return "torch" in settings;
+    }
+
+    async function toggleTorch() {
+        if (!isTorchSupported()) return;
+
+        torchEnabled = !torchEnabled;
+        try {
+            await html5QrCode.applyVideoConstraints({
+                advanced: [{ torch: torchEnabled }]
+            });
+
+            const btn = document.getElementById('torch-btn');
+            if (torchEnabled) {
+                btn.classList.replace('btn-outline-secondary', 'btn-accent');
+                btn.innerHTML = '<i class="bi bi-lightbulb-fill"></i>';
+            } else {
+                btn.classList.replace('btn-accent', 'btn-outline-secondary');
+                btn.innerHTML = '<i class="bi bi-lightbulb"></i>';
+            }
+        } catch (err) {
+            console.error("Torch error:", err);
+        }
+    }
+
+    async function launchCamera(cameraId) {
+        const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+
+        if (html5QrCode.isScanning) {
+            await html5QrCode.stop();
+        }
+
+        try {
+            await html5QrCode.start(
+                cameraId,
+                config,
+                (decodedText) => {
+                    stopScanner();
+                    bootstrap.Modal.getInstance(document.getElementById('scannerModal')).hide();
+                    fetch(`/scan?content=${decodedText}`)
+                        .then(res => {
+                            if (res.status === 404) console.log("Nuevo producto detectado");
+                        });
+                }
+            );
+
+            setTimeout(() => {
+                html5QrCode.applyVideoConstraints({
+                    focusMode: "continuous",
+                    advanced: [{ zoom: 2.0 }],
+                });
+                const torchBtn = document.getElementById('torch-btn');
+                if (isTorchSupported()) {
+                    torchBtn.style.setProperty('display', 'block', 'important'); // Use !important to override inline styles
+                    torchEnabled = false;
+                    torchBtn.classList.replace('btn-accent', 'btn-outline-secondary');
+                    torchBtn.innerHTML = '<i class="bi bi-lightbulb"></i>';
+                } else {
+                    torchBtn.style.display = 'none';
+                    console.log("Torch not supported on this device/browser.");
+                }
+            }, 500); // 500ms delay to let the camera stream stabilize
+
+        } catch (err) {
+            console.error("Camera start error:", err);
+        }
+    }
+
+    function stopScanner() {
+        if (html5QrCode && html5QrCode.isScanning) {
+            // Hide the button when the camera stops
+            document.getElementById('torch-btn').style.display = 'none';
+            html5QrCode.stop().then(() => {
+                html5QrCode.clear();
+            }).catch(err => console.error("Stop error", err));
+        }
+    }
+
+    function switchCamera(cameraId) {
+        if (cameraId) {
+            const select = document.getElementById('camera-select');
+            const selectedOption = select.options[select.selectedIndex];
+
+            // Save the index of the selected camera to a cookie
+            if (selectedOption && selectedOption.dataset.index !== undefined) {
+                setCookie('cameraIndex', selectedOption.dataset.index, 365);
+            }
+
+            currentCameraId = cameraId;
+            launchCamera(cameraId);
+        }
+    }
+
+    // Function to toggle stock state
+    function toggleStockInput() {
+        const unitSelect = document.getElementById('form-unit-type');
+        const stockInput = document.getElementById('form-stock');
+
+        if (unitSelect.value === 'kg') {
+            stockInput.classList.add('d-none'); // Poof.
+            stockInput.disabled = true;         // Prevent form submission errors
+            stockInput.value = '';
+        } else {
+            stockInput.classList.remove('d-none'); // Bring it back for units
+            stockInput.disabled = false;
+        }
+    }
+
+    // Listen for manual dropdown changes
+    document.getElementById('form-unit-type').addEventListener('change', toggleStockInput);
+
+</script>
+{% endblock %}
