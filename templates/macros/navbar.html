@@ -1,19 +1,11 @@
 <nav class="navbar navbar-expand-md sticky-top px-3 mb-3">
     <span class="navbar-brand">
         SekiPOS
-        {% if active_page == 'checkout' %}
         <small class="text-muted fw-normal" style="font-size:0.65rem;">v1.6</small>
-        {% elif active_page == 'sales' %}
-        <small class="text-muted fw-normal" style="font-size:0.65rem;">v1.6</small>
-        {% elif active_page == 'dicom' %}
-        <small class="text-muted fw-normal" style="font-size:0.65rem;">v1.6</small>
-        {% else %}
-        <small class="text-muted fw-normal" style="font-size:0.65rem;">v1.6</small>
-        {% endif %}
     </span>
 
     <div class="ms-3 gap-2 d-flex">
-        <a href="/" class="btn btn-sm {{ 'btn-primary' if active_page == 'inventory' else 'btn-outline-primary' }}">
+        <a href="/inventory" class="btn btn-sm {{ 'btn-primary' if active_page == 'inventory' else 'btn-outline-primary' }}">
             <i class="bi bi-box-seam me-1"></i>Inventario
         </a>
         <a href="/checkout"
@@ -30,8 +22,7 @@
 
     <div class="ms-auto">
         <div class="dropdown">
-            <button class="btn btn-accent dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                aria-expanded="false">
+            <button class="btn btn-accent dropdown-toggle" type="button" data-bs-toggle="dropdown">
                 <i class="bi bi-person-circle me-1"></i>
                 <span class="d-none d-sm-inline">{{ user.username }}</span>
             </button>

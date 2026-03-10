@@ -30,7 +30,6 @@
         transition: background 0.2s, color 0.2s;
     }
 
-    /* ── Navbar ── */
     .navbar {
         background: var(--navbar-bg) !important;
         border-bottom: 1px solid var(--border);
@@ -107,16 +106,12 @@
         color: #fff;
     }
 
-    /* ── Price tag ── */
     .price-tag {
         font-size: 2.8rem;
-        /* Slightly larger for the wider card */
         font-weight: 800;
         color: var(--accent);
-        /* Optional: uses your accent color for better visibility */
     }
 
-    /* ── Table ── */
     .table {
         color: var(--text-main);
         --bs-table-color: var(--text-main);
@@ -124,7 +119,6 @@
         --bs-table-border-color: var(--border);
     }
 
-    /* -- Checkbox Size Fix -- */
     #select-all {
         transform: scale(1.3);
         margin-top: 2px;
@@ -166,31 +160,24 @@
         color: rgba(255, 255, 255, 0.6);
     }
 
-    /* ── New-product prompt ── */
     .new-product-prompt {
         background: var(--accent);
         color: #fff;
         border-radius: 8px;
     }
 
-    /* ── Product image ── */
     #display-img {
         width: 100%;
-        /* Allows it to fill the new width */
         max-width: 250px;
-        /* Increased from 160px */
         height: auto;
         max-height: 250px;
-        /* Increased from 160px */
         object-fit: contain;
     }
 
-    /* ── Checkbox ── */
     input[type="checkbox"] {
         cursor: pointer;
     }
 
-    /* ── Mobile: hide barcode column ── */
     @media (max-width: 576px) {
         .col-barcode {
             display: none;
@@ -215,7 +202,6 @@
     }
 
     .btn-close {
-        /* Makes the X button visible in dark mode */
         filter: var(--bs-theme-placeholder, invert(0.7) grayscale(100%) brightness(200%));
     }
 

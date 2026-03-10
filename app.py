@@ -143,7 +143,7 @@ def login():
             user = conn.execute('SELECT * FROM users WHERE username = ?', (user_in,)).fetchone()
         if user and check_password_hash(user[2], pass_in):
             login_user(User(user[0], user[1]))
-            return redirect(url_for('index'))
+            return redirect(url_for('inventory'))
         flash('Invalid credentials.')
     return render_template('login.html')
 
@@ -155,10 +155,15 @@ def logout():
 
 @app.route('/')
 @login_required
-def index():
+def defaultRoute():
+    return redirect(url_for('inventory'))
+
+@app.route('/inventory')
+@login_required
+def inventory():
     with sqlite3.connect(DB_FILE) as conn:
         products = conn.execute('SELECT * FROM products').fetchall()
-    return render_template('index.html', products=products, user=current_user)
+    return render_template('inventory.html', active_page='inventory', products=products, user=current_user)
 
 @app.route("/checkout")
 @login_required
@@ -166,7 +171,39 @@ def checkout():
     with sqlite3.connect(DB_FILE) as conn:
         # Fetching the same columns the scanner expects
         products = conn.execute('SELECT barcode, name, price, image_url, stock, unit_type FROM products').fetchall()
-    return render_template("checkout.html", user=current_user, products=products)
+    return render_template("checkout.html", active_page='checkout', user=current_user, products=products)
+
+@app.route('/dicom')
+@login_required
+def dicom():
+    with sqlite3.connect(DB_FILE) as conn:
+        debtors = conn.execute('SELECT id, name, amount, notes, datetime(last_updated, "localtime") FROM dicom ORDER BY amount DESC').fetchall()
+    return render_template('dicom.html', active_page='dicom', user=current_user, debtors=debtors)
+
+@app.route('/sales')
+@login_required
+def sales():
+    selected_date = request.args.get('date')
+    with sqlite3.connect(DB_FILE) as conn:
+        cur = conn.cursor()
+        
+        # Determine the target date for the "Daily" stat
+        target_date = selected_date if selected_date else cur.execute("SELECT date('now', 'localtime')").fetchone()[0]
+        
+        stats = {
+            "daily": cur.execute("SELECT SUM(total) FROM sales WHERE date(date, 'localtime') = ?", (target_date,)).fetchone()[0] or 0,
+            "week": cur.execute("SELECT SUM(total) FROM sales WHERE date(date, 'localtime') >= date('now', 'localtime', '-7 days')").fetchone()[0] or 0,
+            "month": cur.execute("SELECT SUM(total) FROM sales WHERE strftime('%Y-%m', date, 'localtime') = strftime('%Y-%m', 'now', 'localtime')").fetchone()[0] or 0
+        }
+        
+        if selected_date:
+            sales_data = cur.execute('''SELECT id, date, total, payment_method FROM sales 
+                                        WHERE date(date, 'localtime') = ? 
+                                        ORDER BY date DESC''', (selected_date,)).fetchall()
+        else:
+            sales_data = cur.execute('SELECT id, date, total, payment_method FROM sales ORDER BY date DESC LIMIT 100').fetchall()
+        
+    return render_template('sales.html', active_page='sales', user=current_user, sales=sales_data, stats=stats, selected_date=selected_date)
 
 
 @app.route("/upsert", methods=["POST"])
@@ -197,7 +234,7 @@ def upsert():
                         unit_type=excluded.unit_type''',
                      (barcode, d['name'], price, final_image_path, stock, unit_type))
         conn.commit()
-    return redirect(url_for('index'))
+    return redirect(url_for('inventory'))
 
 @app.route('/delete/<barcode>', methods=['POST'])
 @login_required
@@ -209,7 +246,7 @@ def delete(barcode):
     img_p = os.path.join(CACHE_DIR, f"{barcode}.jpg")
     if os.path.exists(img_p): os.remove(img_p)
     socketio.emit('product_deleted', {"barcode": barcode})
-    return redirect(url_for('index'))
+    return redirect(url_for('inventory'))
 
 @app.route('/scan', methods=['GET'])
 def scan():
@@ -390,31 +427,6 @@ def process_checkout():
         print(f"Checkout Error: {e}")
         return jsonify({"error": str(e)}), 500
     
-@app.route('/sales')
-@login_required
-def sales():
-    selected_date = request.args.get('date')
-    with sqlite3.connect(DB_FILE) as conn:
-        cur = conn.cursor()
-        
-        # Determine the target date for the "Daily" stat
-        target_date = selected_date if selected_date else cur.execute("SELECT date('now', 'localtime')").fetchone()[0]
-        
-        stats = {
-            "daily": cur.execute("SELECT SUM(total) FROM sales WHERE date(date, 'localtime') = ?", (target_date,)).fetchone()[0] or 0,
-            "week": cur.execute("SELECT SUM(total) FROM sales WHERE date(date, 'localtime') >= date('now', 'localtime', '-7 days')").fetchone()[0] or 0,
-            "month": cur.execute("SELECT SUM(total) FROM sales WHERE strftime('%Y-%m', date, 'localtime') = strftime('%Y-%m', 'now', 'localtime')").fetchone()[0] or 0
-        }
-        
-        if selected_date:
-            sales_data = cur.execute('''SELECT id, date, total, payment_method FROM sales 
-                                        WHERE date(date, 'localtime') = ? 
-                                        ORDER BY date DESC''', (selected_date,)).fetchall()
-        else:
-            sales_data = cur.execute('SELECT id, date, total, payment_method FROM sales ORDER BY date DESC LIMIT 100').fetchall()
-        
-    return render_template('sales.html', user=current_user, sales=sales_data, stats=stats, selected_date=selected_date)
-
 @app.route('/api/sale/<int:sale_id>')
 @login_required
 def get_sale_details(sale_id):
@@ -452,12 +464,7 @@ def reverse_sale(sale_id):
         print(f"Reverse Sale Error: {e}")
         return jsonify({"error": str(e)}), 500
     
-@app.route('/dicom')
-@login_required
-def dicom():
-    with sqlite3.connect(DB_FILE) as conn:
-        debtors = conn.execute('SELECT id, name, amount, notes, datetime(last_updated, "localtime") FROM dicom ORDER BY amount DESC').fetchall()
-    return render_template('dicom.html', user=current_user, debtors=debtors)
+
 
 @app.route('/api/dicom/update', methods=['POST'])
 @login_required
