@@ -10,312 +10,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <style>
-        :root {
-            --bg: #ebedef;
-            --card-bg: #ffffff;
-            --text-main: #2e3338;
-            --text-muted: #4f5660;
-            --border: #e3e5e8;
-            --navbar-bg: #ffffff;
-            --input-bg: #e3e5e8;
-            --table-head: #f2f3f5;
-            --accent: #5865f2;
-            --accent-hover: #4752c4;
-            --danger: #ed4245;
-        }
-
-        [data-theme="dark"] {
-            --bg: #36393f;
-            --card-bg: #2f3136;
-            --text-main: #dcddde;
-            --text-muted: #b9bbbe;
-            --border: #202225;
-            --navbar-bg: #202225;
-            --input-bg: #202225;
-            --table-head: #292b2f;
-        }
-
-        body {
-            background: var(--bg);
-            color: var(--text-main);
-            font-family: "gg sans", "Segoe UI", sans-serif;
-            transition: background 0.2s, color 0.2s;
-        }
-
-        /* ── Navbar ── */
-        .navbar {
-            background: var(--navbar-bg) !important;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .navbar-brand {
-            color: var(--text-main) !important;
-            font-weight: 700;
-        }
-
-        .nav-link,
-        .dropdown-item {
-            color: var(--text-main) !important;
-        }
-
-        .dropdown-menu {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-        }
-
-        .dropdown-item:hover {
-            background: var(--input-bg);
-        }
-
-        .dropdown-item.text-danger {
-            color: var(--danger) !important;
-        }
-
-        /* ── Cards ── */
-        .discord-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        /* ── Inputs ── */
-        .form-control,
-        .form-control:focus {
-            background: var(--input-bg);
-            color: var(--text-main);
-            border: none;
-            box-shadow: none;
-        }
-
-        .form-control:focus {
-            outline: 2px solid var(--accent);
-        }
-
-        .form-control::placeholder {
-            color: var(--text-muted);
-        }
-
-        /* ── Buttons ── */
-        .btn-accent {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-        }
-
-        .btn-accent:hover {
-            background: var(--accent-hover);
-            color: #fff;
-        }
-
-        .btn-danger-discord {
-            background: var(--danger);
-            color: #fff;
-            border: none;
-        }
-
-        .btn-danger-discord:hover {
-            background: #c23235;
-            color: #fff;
-        }
-
-        /* ── Price tag ── */
-        .price-tag {
-            font-size: 2.8rem;
-            /* Slightly larger for the wider card */
-            font-weight: 800;
-            color: var(--accent);
-            /* Optional: uses your accent color for better visibility */
-        }
-
-        /* ── Table ── */
-        .table {
-            color: var(--text-main);
-            --bs-table-color: var(--text-main);
-            --bs-table-bg: transparent;
-            --bs-table-border-color: var(--border);
-        }
-
-        /* -- Checkbox Size Fix -- */
-        #select-all {
-            transform: scale(1.3);
-            margin-top: 2px;
-        }
-
-        [data-theme="dark"] .table {
-            --bs-table-color: var(--text-main);
-            color: var(--text-main);
-        }
-
-        .table thead th {
-            background: var(--table-head);
-            color: var(--text-muted);
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .table tbody td {
-            border-bottom: 1px solid var(--border);
-            vertical-align: middle;
-        }
-
-        /* ── Bulk bar ── */
-        .bulk-bar {
-            background: var(--accent);
-            color: #fff;
-            border-radius: 8px;
-        }
-
-        .bulk-bar .form-control {
-            width: 110px;
-            background: rgba(0, 0, 0, 0.2) !important;
-            color: #fff !important;
-            border: 1px solid rgba(255, 255, 255, 0.25) !important;
-        }
-
-        .bulk-bar .form-control::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-        }
-
-        /* ── New-product prompt ── */
-        .new-product-prompt {
-            background: var(--accent);
-            color: #fff;
-            border-radius: 8px;
-        }
-
-        /* ── Product image ── */
-        #display-img {
-            width: 100%;
-            /* Allows it to fill the new width */
-            max-width: 250px;
-            /* Increased from 160px */
-            height: auto;
-            max-height: 250px;
-            /* Increased from 160px */
-            object-fit: contain;
-        }
-
-        /* ── Checkbox ── */
-        input[type="checkbox"] {
-            cursor: pointer;
-        }
-
-        /* ── Mobile: hide barcode column ── */
-        @media (max-width: 576px) {
-            .col-barcode {
-                display: none;
-            }
-
-            .btn-edit-sm,
-            .btn-del-sm {
-                padding: 4px 7px;
-                font-size: 0.75rem;
-            }
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            color: var(--text-main);
-            border: 1px solid var(--border);
-        }
-
-        .modal-header,
-        .modal-footer {
-            border-color: var(--border);
-        }
-
-        .btn-close {
-            /* Makes the X button visible in dark mode */
-            filter: var(--bs-theme-placeholder, invert(0.7) grayscale(100%) brightness(200%));
-        }
-
-        [data-theme="dark"] .btn-close {
-            filter: invert(1) grayscale(100%) brightness(200%);
-        }
-
-        /* Add this inside your <style> tag */
-        [data-theme="dark"] .text-muted {
-            color: var(--text-muted) !important;
-        }
-
-        [data-theme="dark"] .modal-body .text-muted {
-            color: #f6f6f7 !important;
-        }
-
-        .btn-close {
-            filter: none;
-        }
-
-        [data-theme="dark"] .btn-close {
-            filter: invert(1) grayscale(100%) brightness(200%);
-        }
-
-        /* Fix for the missing dropdown arrow */
-        .form-select {
-            background-color: var(--input-bg) !important;
-            color: var(--text-main) !important;
-            border: none !important;
-            /* This ensures the arrow icon is still rendered over the custom background */
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23adb5bd' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
-            background-repeat: no-repeat !important;
-            background-position: right 0.75rem center !important;
-            background-size: 16px 12px !important;
-        }
-
-        [data-theme="dark"] .form-select {
-            /* Lighter arrow for dark mode */
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23dcddde' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
-        }
-    </style>
+    <link rel="stylesheet" href="./static/style.css">
 </head>
 
 <body>
-
-    <!-- ════════════════════════ NAVBAR ════════════════════════ -->
-    <nav class="navbar navbar-expand-md sticky-top px-3 mb-3">
-        <span class="navbar-brand">SekiPOS <small class="text-muted fw-normal"
-                style="font-size:0.65rem;">v1.6</small></span>
-        <div class="ms-3 gap-2 d-flex">
-            <a href="/checkout" class="btn btn-outline-primary btn-sm">
-                <i class="bi bi-cart-fill me-1"></i>Caja
-            </a>
-            <a href="/sales" class="btn btn-outline-primary btn-sm">
-                <i class="bi bi-receipt me-1"></i>Ventas
-            </a>
-            <a href="/dicom" class="btn btn-outline-danger btn-sm">
-                <i class="bi bi-journal-x me-1"></i>Dicom
-            </a>
-        </div>
-        <!-- Always-visible dropdown on the right -->
-        <div class="ms-auto">
-            <div class="dropdown">
-                <button class="btn btn-accent dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                    <i class="bi bi-person-circle me-1"></i>
-                    <span class="d-none d-sm-inline">{{ user.username }}</span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                        <button class="dropdown-item" onclick="toggleTheme()">
-                            <i class="bi bi-moon-stars me-2" id="theme-icon"></i>
-                            <span id="theme-label">Modo Oscuro</span>
-                        </button>
-                    </li>
-                    <li>
-                        <hr class="dropdown-divider" style="border-color: var(--border);">
-                    </li>
-                    <li>
-                        <a class="dropdown-item text-danger" href="/logout">
-                            <i class="bi bi-box-arrow-right me-2"></i>Salir
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    {% with active_page='inventory' %}{% include 'navbar.html' %}{% endwith %}
 
     <!-- ════════════════════════ MAIN ════════════════════════ -->
     <div class="container-fluid px-3">
@@ -453,9 +152,10 @@
                                     <td class="name-cell">{{ p[1] }}</td>
                                     <td>
                                         {% if p[5] == 'kg' %}
-                                            <span class="text-muted d-inline-block text-center" style="width: 45px;">-</span>
+                                        <span class="text-muted d-inline-block text-center"
+                                            style="width: 45px;">-</span>
                                         {% else %}
-                                            {{ p[4] | int }} <small class="text-muted">Uni</small>
+                                        {{ p[4] | int }} <small class="text-muted">Uni</small>
                                         {% endif %}
                                     </td>
                                     <td class="price-cell" data-value="{{ p[2] }}"></td>
@@ -597,20 +297,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        /* ── Theme ── */
-        function applyTheme(t) {
-            document.documentElement.setAttribute('data-theme', t);
-            const isDark = t === 'dark';
-            document.getElementById('theme-icon').className = isDark ? 'bi bi-sun me-2' : 'bi bi-moon-stars me-2';
-            document.getElementById('theme-label').innerText = isDark ? 'Modo Claro' : 'Modo Oscuro';
-        }
-        function toggleTheme() {
-            const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            localStorage.setItem('theme', next);
-            applyTheme(next);
-        }
-        applyTheme(localStorage.getItem('theme') || 'light');
-
         /* ── Socket.IO ── */
         const socket = io();
         const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 });
@@ -1109,73 +795,11 @@
             }
         }
 
-        /* ── Theme Management ── */
-
-        // Helper to set a cookie
-        function setCookie(name, value, days = 365) {
-            const d = new Date();
-            d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-            let expires = "expires=" + d.toUTCString();
-            document.cookie = name + "=" + value + ";" + expires + ";path=/;SameSite=Lax";
-        }
-
-        // Helper to get a cookie
-        function getCookie(name) {
-            let nameEQ = name + "=";
-            let ca = document.cookie.split(';');
-            for (let i = 0; i < ca.length; i++) {
-                let c = ca[i];
-                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
-            }
-            return null;
-        }
-
-        // A single, clean theme manager
-        function applyTheme(t) {
-            document.documentElement.setAttribute('data-theme', t);
-            const isDark = t === 'dark';
-
-            // Update UI elements if they exist
-            const themeIcon = document.getElementById('theme-icon');
-            const themeLabel = document.getElementById('theme-label');
-            if (themeIcon) themeIcon.className = isDark ? 'bi bi-sun me-2' : 'bi bi-moon-stars me-2';
-            if (themeLabel) themeLabel.innerText = isDark ? 'Modo Claro' : 'Modo Oscuro';
-
-            // Save to localStorage (much more reliable than cookies for this)
-            localStorage.setItem('theme', t);
-        }
-
-        function toggleTheme() {
-            const current = document.documentElement.getAttribute('data-theme');
-            const next = current === 'dark' ? 'light' : 'dark';
-            applyTheme(next);
-        }
-
-        // Run this immediately on load
-        (function initTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme) {
-                applyTheme(savedTheme);
-            } else {
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                applyTheme(prefersDark ? 'dark' : 'light');
-            }
-        })();
-
-        // Listen for OS theme changes in real-time if no cookie is set
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-            if (!getCookie('theme')) {
-                applyTheme(e.matches ? 'dark' : 'light');
-            }
-        });
-
-
         // Function to toggle stock state
         function toggleStockInput() {
             const unitSelect = document.getElementById('form-unit-type');
             const stockInput = document.getElementById('form-stock');
-            
+
             if (unitSelect.value === 'kg') {
                 stockInput.classList.add('d-none'); // Poof.
                 stockInput.disabled = true;         // Prevent form submission errors
@@ -1189,8 +813,9 @@
         // Listen for manual dropdown changes
         document.getElementById('form-unit-type').addEventListener('change', toggleStockInput);
 
-        initTheme();
     </script>
+    <script src="./static/cookieStuff.js"></script>
+    <script src="./static/themeStuff.js"></script>
 </body>
 
 </html>

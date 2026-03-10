@@ -121,7 +121,8 @@
 
         .form-control::placeholder {
             color: var(--text-muted) !important;
-            opacity: 1; /* Forces Firefox to respect the color */
+            opacity: 1;
+            /* Forces Firefox to respect the color */
         }
 
         #grand-total {
@@ -191,24 +192,32 @@
 
         /* ── Thermal Printer Styles (80mm) ── */
         @media print {
+
             /* Kill all animations instantly so the printer doesn't photograph a mid-fade background */
-            *, *::before, *::after {
+            *,
+            *::before,
+            *::after {
                 transition: none !important;
                 animation: none !important;
             }
 
             /* Force true white background */
-            html, body { 
-                background: #ffffff !important; 
+            html,
+            body {
+                background: #ffffff !important;
                 color: #000000 !important;
-                margin: 0 !important; 
-                padding: 0 !important; 
+                margin: 0 !important;
+                padding: 0 !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-            
-            .navbar, .container-fluid, .modal { display: none !important; } 
-            
+
+            .navbar,
+            .container-fluid,
+            .modal {
+                display: none !important;
+            }
+
             #receipt-print-zone {
                 display: block !important;
                 width: 80mm;
@@ -224,18 +233,41 @@
                 background: transparent !important;
                 color: #000000 !important;
                 opacity: 1 !important;
-                font-weight: 800 !important; 
+                font-weight: 800 !important;
                 text-shadow: none !important;
                 box-shadow: none !important;
             }
-            
-            @page { margin: 0; } 
-            
-            .receipt-header { text-align: center; margin-bottom: 10px; }
-            .receipt-table { width: 100%; margin-bottom: 10px; }
-            .receipt-table th { text-align: left; border-bottom: 1px dashed #000 !important; padding-bottom: 3px; }
-            .receipt-table td { padding: 3px 0; vertical-align: top; }
-            .receipt-total-row { border-top: 1px dashed #000 !important; font-weight: 800 !important; font-size: 14px; }
+
+            @page {
+                margin: 0;
+            }
+
+            .receipt-header {
+                text-align: center;
+                margin-bottom: 10px;
+            }
+
+            .receipt-table {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .receipt-table th {
+                text-align: left;
+                border-bottom: 1px dashed #000 !important;
+                padding-bottom: 3px;
+            }
+
+            .receipt-table td {
+                padding: 3px 0;
+                vertical-align: top;
+            }
+
+            .receipt-total-row {
+                border-top: 1px dashed #000 !important;
+                font-weight: 800 !important;
+                font-size: 14px;
+            }
         }
 
         /* ── Dropdown Select Fix ── */
@@ -259,7 +291,9 @@
 </head>
 
 <body>
-<div class="modal fade" id="customProductModal" tabindex="-1" data-bs-backdrop="static">
+    {% with active_page='checkout' %}{% include 'navbar.html' %}{% endwith %}
+
+    <div class="modal fade" id="customProductModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -269,13 +303,13 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label text-muted small mb-1">Descripción</label>
-                        <input type="text" id="custom-name" class="form-control" placeholder="Ej: Varios, Bolsa, etc." 
+                        <input type="text" id="custom-name" class="form-control" placeholder="Ej: Varios, Bolsa, etc."
                             onkeydown="if(event.key === 'Enter') document.getElementById('custom-price').focus()">
                     </div>
                     <div class="row g-2">
                         <div class="col-8">
                             <label class="form-label text-muted small mb-1">Precio Unitario</label>
-                            <input type="number" id="custom-price" class="form-control" placeholder="Ej: 1500" 
+                            <input type="number" id="custom-price" class="form-control" placeholder="Ej: 1500"
                                 onkeydown="if(event.key === 'Enter') addCustomProduct()">
                         </div>
                         <div class="col-4">
@@ -301,7 +335,7 @@
             <div style="font-size: 11px; font-weight: bold;">Ticket Nº <span id="receipt-ticket-id"></span></div>
             <div id="receipt-date" style="font-size: 11px;"></div>
         </div>
-        
+
         <table class="receipt-table">
             <thead>
                 <tr>
@@ -311,14 +345,14 @@
                 </tr>
             </thead>
             <tbody id="receipt-items-print">
-                </tbody>
+            </tbody>
         </table>
-        
+
         <div class="receipt-total-row d-flex justify-content-between pt-2">
             <span>TOTAL:</span>
             <span id="receipt-total-print"></span>
         </div>
-        
+
         <div style="text-align: center; margin-top: 20px; font-size: 10px;">
             ¡Gracias por su compra!
         </div>
@@ -375,18 +409,23 @@
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content">
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem;">Total a Pagar</h5>
-                    <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem;">Total
+                        a Pagar</h5>
+                    <button type="button" class="btn-close position-absolute end-0 top-0 m-3"
+                        data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-center pt-1 pb-4">
-                    <h1 id="payment-modal-total" class="mb-4" style="color: var(--accent); font-weight: 800; font-size: 3rem;">$0</h1>
-                    
+                    <h1 id="payment-modal-total" class="mb-4"
+                        style="color: var(--accent); font-weight: 800; font-size: 3rem;">$0</h1>
+
                     <div class="d-grid gap-3 px-3">
                         <button class="btn btn-lg btn-success py-3" onclick="openVueltoModal()">
-                            <i class="bi bi-cash-coin me-2" style="font-size: 1.5rem; vertical-align: middle;"></i> Efectivo
+                            <i class="bi bi-cash-coin me-2" style="font-size: 1.5rem; vertical-align: middle;"></i>
+                            Efectivo
                         </button>
                         <button class="btn btn-lg btn-secondary py-3" onclick="executeCheckout('tarjeta')">
-                            <i class="bi bi-credit-card me-2" style="font-size: 1.5rem; vertical-align: middle;"></i> Tarjeta (Pronto)
+                            <i class="bi bi-credit-card me-2" style="font-size: 1.5rem; vertical-align: middle;"></i>
+                            Tarjeta (Pronto)
                         </button>
                     </div>
                 </div>
@@ -397,30 +436,34 @@
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content">
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem;">Pago en Efectivo</h5>
-                    <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem;">Pago
+                        en Efectivo</h5>
+                    <button type="button" class="btn-close position-absolute end-0 top-0 m-3"
+                        data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-center pt-1 pb-4">
                     <div class="mb-3">
                         <span class="text-muted small">Total a Pagar:</span><br>
                         <span id="vuelto-total-display" class="fs-4 fw-bold" style="color: var(--text-main);">$0</span>
                     </div>
-                    
+
                     <div class="mb-3 text-start">
                         <label class="text-muted small mb-1">Monto Recibido</label>
-                        <input type="number" id="monto-recibido" class="form-control form-control-lg text-center fw-bold fs-4" 
-                            placeholder="$0" onkeyup="calculateVuelto()" onchange="calculateVuelto()"
+                        <input type="number" id="monto-recibido"
+                            class="form-control form-control-lg text-center fw-bold fs-4" placeholder="$0"
+                            onkeyup="calculateVuelto()" onchange="calculateVuelto()"
                             onkeydown="if(event.key === 'Enter' && !document.getElementById('btn-confirm-vuelto').disabled) executeCheckout('efectivo')">
                     </div>
-                    
+
                     <div class="d-flex justify-content-center gap-2 mb-3" id="vuelto-quick-buttons"></div>
-                    
+
                     <div class="p-3 mb-3" style="background: var(--input-bg); border-radius: 8px;">
                         <span class="text-muted small text-uppercase fw-bold">Vuelto a Entregar</span><br>
                         <span id="vuelto-amount" class="fs-1 fw-bold text-muted">$0</span>
                     </div>
-                    
-                    <button id="btn-confirm-vuelto" class="btn btn-success w-100 py-3 fw-bold" onclick="executeCheckout('efectivo')" disabled>
+
+                    <button id="btn-confirm-vuelto" class="btn btn-success w-100 py-3 fw-bold"
+                        onclick="executeCheckout('efectivo')" disabled>
                         Confirmar Venta
                     </button>
                 </div>
@@ -436,8 +479,9 @@
                 <div class="modal-body text-center pt-0 pb-4">
                     <i class="bi bi-question-circle text-warning mb-3" style="font-size: 3rem;"></i>
                     <h4 class="mb-2">Producto No Registrado</h4>
-                    <p class="text-muted px-3 small">El código <strong id="not-found-barcode" style="color: var(--text-main);"></strong> no existe en la base de datos.</p>
-                    
+                    <p class="text-muted px-3 small">El código <strong id="not-found-barcode"
+                            style="color: var(--text-main);"></strong> no existe en la base de datos.</p>
+
                     <div class="d-flex flex-column gap-2 px-3 mt-4">
                         <button class="btn btn-accent w-100 py-2" onclick="goToInventory()">
                             <i class="bi bi-database-add me-2"></i>Registrar en Inventario
@@ -450,48 +494,6 @@
             </div>
         </div>
     </div>
-    <nav class="navbar navbar-expand-md sticky-top px-3 mb-3">
-        <span class="navbar-brand">SekiPOS <small class="text-muted fw-normal"
-                style="font-size:0.65rem;">Caja</small></span>
-
-        <div class="ms-3 gap-2 d-flex">
-            <a href="/" class="btn btn-outline-primary btn-sm">
-                <i class="bi bi-box-seam me-1"></i>Inventario
-            </a>
-            <a href="/sales" class="btn btn-outline-primary btn-sm">
-                <i class="bi bi-receipt me-1"></i>Ventas
-            </a>
-            <a href="/dicom" class="btn btn-outline-danger btn-sm">
-                <i class="bi bi-journal-x me-1"></i>Dicom
-            </a>
-        </div>
-
-        <div class="ms-auto">
-            <div class="dropdown">
-                <button class="btn btn-accent dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                    <i class="bi bi-person-circle me-1"></i>
-                    <span class="d-none d-sm-inline">{{ user.username }}</span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow">
-                    <li>
-                        <button class="dropdown-item" onclick="toggleTheme()">
-                            <i class="bi bi-moon-stars me-2" id="theme-icon"></i>
-                            <span id="theme-label">Modo Oscuro</span>
-                        </button>
-                    </li>
-                    <li>
-                        <hr class="dropdown-divider" style="border-color: var(--border);">
-                    </li>
-                    <li>
-                        <a class="dropdown-item text-danger" href="/logout">
-                            <i class="bi bi-box-arrow-right me-2"></i>Salir
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
 
     <div class="container-fluid">
         <div class="row g-3">
@@ -500,17 +502,20 @@
                     <h4><i class="bi bi-cart3"></i> Carrito</h4>
                     <div class="position-relative mb-4">
                         <div class="input-group">
-                            <span class="input-group-text border-0 position-absolute" style="background: transparent; z-index: 10;">
+                            <span class="input-group-text border-0 position-absolute"
+                                style="background: transparent; z-index: 10;">
                                 <i class="bi bi-search text-muted"></i>
                             </span>
-                            <input type="text" id="manual-search" class="form-control ps-5 py-2 rounded" 
-                                placeholder="Buscar producto por nombre o código..." autocomplete="off" onkeyup="filterSearch()">
-                            <button class="btn btn-accent px-3" type="button" onclick="openCustomProductModal()" title="Agregar manual">
+                            <input type="text" id="manual-search" class="form-control ps-5 py-2 rounded"
+                                placeholder="Buscar producto por nombre o código..." autocomplete="off"
+                                onkeyup="filterSearch()">
+                            <button class="btn btn-accent px-3" type="button" onclick="openCustomProductModal()"
+                                title="Agregar manual">
                                 <i class="bi bi-plus-lg"></i> <span class="d-none d-sm-inline ms-1">Manual</span>
                             </button>
                         </div>
-                        <div id="search-results" class="dropdown-menu w-100 shadow-sm mt-1" 
-                             style="display: none; position: absolute; top: 100%; left: 0; z-index: 1000; max-height: 300px; overflow-y: auto;">
+                        <div id="search-results" class="dropdown-menu w-100 shadow-sm mt-1"
+                            style="display: none; position: absolute; top: 100%; left: 0; z-index: 1000; max-height: 300px; overflow-y: auto;">
                         </div>
                     </div>
                     <table class="table mt-3" id="cart-table">
@@ -585,7 +590,7 @@
             socket.on('scan_error', (data) => {
                 missingProductData = data;
                 document.getElementById('not-found-barcode').innerText = data.barcode;
-                
+
                 const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('notFoundModal'));
                 modal.show();
             });
@@ -598,18 +603,18 @@
 
             function openTempProduct() {
                 bootstrap.Modal.getInstance(document.getElementById('notFoundModal')).hide();
-                
+
                 // Save the actual scanned barcode so it prints on the receipt instead of "MANUAL-XXX"
                 tempBarcode = missingProductData.barcode;
-                
+
                 // Pre-fill the name if the OpenFoodFacts API managed to find it
                 document.getElementById('custom-name').value = missingProductData.name || '';
                 document.getElementById('custom-price').value = '';
                 document.getElementById('custom-unit').value = 'unit';
-                
+
                 const customModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('customProductModal'));
                 customModal.show();
-                
+
                 // Auto-focus the price if we already have a name, otherwise focus the name
                 setTimeout(() => {
                     if (missingProductData.name) document.getElementById('custom-price').focus();
@@ -659,11 +664,11 @@
                     `;
                     tbody.appendChild(row);
                 });
-                
+
                 document.getElementById('grand-total').innerText = clp.format(total);
-                
+
                 // This will actually run now
-                saveCart(); 
+                saveCart();
             }
 
             function clearCart() {
@@ -680,11 +685,11 @@
 
             function processSale() {
                 if (cart.length === 0) return;
-                
+
                 // Calculate total and show the payment modal
                 const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
                 document.getElementById('payment-modal-total').innerText = clp.format(total);
-                
+
                 const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModal'));
                 modal.show();
             }
@@ -706,25 +711,25 @@
                         // Safely hide whichever modal was open
                         const pModal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'));
                         if (pModal) pModal.hide();
-                        
+
                         const vModal = bootstrap.Modal.getInstance(document.getElementById('vueltoModal'));
                         if (vModal) vModal.hide();
 
                         // Pass the new sale_id from the result to the printer
                         const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
                         printReceipt(total, result.sale_id);
-                        
+
                         // Show the success checkmark
                         const successModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('successModal'));
                         successModal.show();
-                        
+
                         // Nuke the cart and auto-save the empty state
                         cart = [];
                         renderCart();
-                        
+
                         // Auto-hide the success modal after 2 seconds so you don't have to click it
                         setTimeout(() => successModal.hide(), 2000);
-                        
+
                     } else {
                         alert("Error en la venta: " + (result.error || "Error desconocido"));
                     }
@@ -737,10 +742,10 @@
             function confirmWeight() {
                 const weightInput = document.getElementById('weight-input');
                 const weightGrams = parseInt(weightInput.value, 10);
-                
+
                 if (weightGrams > 0) {
-                    const weightKg = weightGrams / 1000; 
-                    
+                    const weightKg = weightGrams / 1000;
+
                     if (editingCartIndex !== null) {
                         // We are editing an existing row
                         cart[editingCartIndex].qty = weightKg;
@@ -750,7 +755,7 @@
                         // We are adding a new scan/search
                         addToCart(pendingProduct, weightKg);
                     }
-                    
+
                     bootstrap.Modal.getInstance(document.getElementById('weightModal')).hide();
                     weightInput.value = '';
                     editingCartIndex = null; // Clear the tracker
@@ -797,51 +802,32 @@
                 editingCartIndex = index;
                 const item = cart[index];
                 const weightInput = document.getElementById('weight-input');
-                
+
                 // Convert current kg back to grams for the input
-                weightInput.value = Math.round(item.qty * 1000); 
-                
+                weightInput.value = Math.round(item.qty * 1000);
+
                 const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('weightModal'));
                 modal.show();
-                
+
                 // Auto-focus and highlight the existing number so you can just type over it
-                setTimeout(() => { 
-                    weightInput.focus(); 
-                    weightInput.select(); 
+                setTimeout(() => {
+                    weightInput.focus();
+                    weightInput.select();
                 }, 500);
             }
-
-            function applyTheme(t) {
-                document.documentElement.setAttribute('data-theme', t);
-                const isDark = t === 'dark';
-                const themeIcon = document.getElementById('theme-icon');
-                const themeLabel = document.getElementById('theme-label');
-
-                if (themeIcon) themeIcon.className = isDark ? 'bi bi-sun me-2' : 'bi bi-moon-stars me-2';
-                if (themeLabel) themeLabel.innerText = isDark ? 'Modo Claro' : 'Modo Oscuro';
-
-                localStorage.setItem('theme', t);
-            }
-
-            function toggleTheme() {
-                const current = document.documentElement.getAttribute('data-theme');
-                const next = current === 'dark' ? 'light' : 'dark';
-                applyTheme(next);
-            }
-
 
             // 1. Load all products from Python into a JavaScript array safely
             const allProducts = [
                 {% for p in products %}
-                {
-                    barcode: {{ p[0] | tojson }},
-                    name: {{ p[1] | tojson }},
-                    price: {{ p[2] | int }},
-                    image: {{ p[3] | tojson }},
-                    stock: {{ p[4] | int }},
-                    unit: {{ p[5] | tojson }}
-                },
-                {% endfor %}
+            {
+                barcode: { { p[0] | tojson } },
+                name: { { p[1] | tojson } },
+                price: { { p[2] | int } },
+                image: { { p[3] | tojson } },
+                stock: { { p[4] | int } },
+                unit: { { p[5] | tojson } }
+            },
+            {% endfor %}
             ];
 
             // 2. Extracted this into a helper so both Scanner and Search can use it
@@ -856,13 +842,13 @@
                 if (actualUnit === 'kg') {
                     pendingProduct = product;
                     pendingProduct.unit = 'kg'; // Force it to match the cart's expected format
-                    
+
                     const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('weightModal'));
                     modal.show();
                     setTimeout(() => document.getElementById('weight-input').focus(), 500);
                 } else {
                     // Ensure unit products also get the standardized key
-                    product.unit = 'unit'; 
+                    product.unit = 'unit';
                     addToCart(product, 1);
                 }
             }
@@ -876,14 +862,14 @@
             function filterSearch() {
                 const query = document.getElementById('manual-search').value.toLowerCase().trim();
                 const resultsBox = document.getElementById('search-results');
-                
+
                 if (query.length < 2) {
                     resultsBox.style.display = 'none';
                     return;
                 }
 
                 // Find matches by name or barcode
-                const matches = allProducts.filter(p => 
+                const matches = allProducts.filter(p =>
                     p.name.toLowerCase().includes(query) || p.barcode.includes(query)
                 ).slice(0, 10); // Limit to 10 results so it doesn't lag out
 
@@ -904,7 +890,7 @@
                         </a>
                     `).join('');
                 }
-                
+
                 resultsBox.style.display = 'block';
             }
 
@@ -913,7 +899,7 @@
                 if (product) {
                     handleProductScan(product);
                 }
-                
+
                 // Clean up UI after selection
                 const searchInput = document.getElementById('manual-search');
                 searchInput.value = '';
@@ -922,7 +908,7 @@
             }
 
             // Close the search dropdown if user clicks outside of it
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', function (e) {
                 const searchArea = document.getElementById('manual-search');
                 const resultsBox = document.getElementById('search-results');
                 if (e.target !== searchArea && !resultsBox.contains(e.target)) {
@@ -934,7 +920,7 @@
             document.getElementById('weightModal').addEventListener('hidden.bs.modal', function () {
                 document.getElementById('weight-input').value = '';
                 pendingProduct = null;
-                editingCartIndex = null; 
+                editingCartIndex = null;
             });
 
             function calculateSubtotal(price, qty) {
@@ -953,7 +939,7 @@
                     try {
                         cart = JSON.parse(saved);
                         renderCart();
-                    } catch(e) {
+                    } catch (e) {
                         console.error("Error cargando el carrito", e);
                         cart = [];
                     }
@@ -963,17 +949,17 @@
             function removeItem(idx) {
                 itemIndexToRemove = idx;
                 // Look up the name safely from the array
-                document.getElementById('removeItemName').innerText = cart[idx].name; 
-                
+                document.getElementById('removeItemName').innerText = cart[idx].name;
+
                 // getOrCreateInstance prevents UI-breaking ghost backdrops
                 const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('removeConfirmModal'));
                 modal.show();
             }
 
-        function printReceipt(total, saleId) {
+            function printReceipt(total, saleId) {
                 const tbody = document.getElementById('receipt-items-print');
                 tbody.innerHTML = '';
-                
+
                 cart.forEach(item => {
                     const qtyStr = item.unit === 'kg' ? item.qty.toFixed(3) : item.qty;
                     tbody.innerHTML += `
@@ -984,11 +970,11 @@
                         </tr>
                     `;
                 });
-                
+
                 document.getElementById('receipt-ticket-id').innerText = saleId || "N/A";
                 document.getElementById('receipt-total-print').innerText = clp.format(total);
                 document.getElementById('receipt-date').innerText = new Date().toLocaleString('es-CL');
-                
+
                 // No hacks, just print
                 window.print();
             }
@@ -1001,7 +987,7 @@
                 document.getElementById('custom-name').value = '';
                 document.getElementById('custom-price').value = '';
                 document.getElementById('custom-unit').value = 'unit';
-                
+
                 const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('customProductModal'));
                 modal.show();
                 setTimeout(() => document.getElementById('custom-name').focus(), 500);
@@ -1011,28 +997,28 @@
                 const nameInput = document.getElementById('custom-name').value.trim();
                 const priceInput = parseInt(document.getElementById('custom-price').value, 10);
                 const unitInput = document.getElementById('custom-unit').value;
-                
+
                 if (!nameInput || isNaN(priceInput) || priceInput <= 0) {
                     alert("Por favor ingresa un nombre y un precio válido.");
                     return;
                 }
-                
+
                 // Use the scanned barcode if it exists, otherwise generate a fake one
                 const finalBarcode = tempBarcode ? tempBarcode : `MANUAL-${Date.now().toString().slice(-6)}`;
-                
+
                 const customProduct = {
                     barcode: finalBarcode,
-                    name: `* ${nameInput}`, 
+                    name: `* ${nameInput}`,
                     price: priceInput,
                     image: '',
-                    stock: 0, 
+                    stock: 0,
                     unit: unitInput
                 };
-                
+
                 if (unitInput === 'kg') {
                     pendingProduct = customProduct;
                     bootstrap.Modal.getInstance(document.getElementById('customProductModal')).hide();
-                    
+
                     const weightModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('weightModal'));
                     weightModal.show();
                     setTimeout(() => document.getElementById('weight-input').focus(), 500);
@@ -1040,7 +1026,7 @@
                     addToCart(customProduct, 1);
                     bootstrap.Modal.getInstance(document.getElementById('customProductModal')).hide();
                 }
-                
+
                 tempBarcode = null; // Reset it after adding
             }
 
@@ -1057,10 +1043,10 @@
             function openVueltoModal() {
                 // Hide the main payment selection modal
                 bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
-                
+
                 const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
                 document.getElementById('vuelto-total-display').innerText = clp.format(total);
-                
+
                 const input = document.getElementById('monto-recibido');
                 input.value = '';
                 document.getElementById('vuelto-amount').innerText = '$0';
@@ -1070,7 +1056,7 @@
                 // Generate smart quick-buttons (Exacto, 5k, 10k, 20k)
                 const quickBox = document.getElementById('vuelto-quick-buttons');
                 quickBox.innerHTML = `<button class="btn btn-sm btn-outline-secondary fw-bold" onclick="setMonto(${total})">Exacto</button>`;
-                
+
                 [5000, 10000, 20000].forEach(bill => {
                     if (bill > total && (bill - total) <= 20000) {
                         quickBox.innerHTML += `<button class="btn btn-sm btn-outline-secondary fw-bold" onclick="setMonto(${bill})">${clp.format(bill)}</button>`;
@@ -1079,7 +1065,7 @@
 
                 const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('vueltoModal'));
                 modal.show();
-                
+
                 // Auto-focus input so you can start typing immediately
                 setTimeout(() => input.focus(), 500);
             }
@@ -1107,27 +1093,12 @@
                 }
             }
 
-            // Initialize on load
-            (function initTheme() {
-                const savedTheme = localStorage.getItem('theme');
-                if (savedTheme) {
-                    applyTheme(savedTheme);
-                } else {
-                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                    applyTheme(prefersDark ? 'dark' : 'light');
-                }
-            })();
-            
-            // Listen for OS theme changes in real-time
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-                if (!localStorage.getItem('theme')) {
-                    applyTheme(e.matches ? 'dark' : 'light');
-                }
-            });
-
             loadCart();
         </script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="./static/cookieStuff.js"></script>
+        <script src="./static/themeStuff.js"></script>
+
 </body>
 
 </html>
