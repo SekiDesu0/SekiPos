@@ -1,0 +1,255 @@
+    :root {
+        --bg: #ebedef;
+        --card-bg: #ffffff;
+        --text-main: #2e3338;
+        --text-muted: #4f5660;
+        --border: #e3e5e8;
+        --navbar-bg: #ffffff;
+        --input-bg: #e3e5e8;
+        --table-head: #f2f3f5;
+        --accent: #5865f2;
+        --accent-hover: #4752c4;
+        --danger: #ed4245;
+    }
+
+    [data-theme="dark"] {
+        --bg: #36393f;
+        --card-bg: #2f3136;
+        --text-main: #dcddde;
+        --text-muted: #b9bbbe;
+        --border: #202225;
+        --navbar-bg: #202225;
+        --input-bg: #202225;
+        --table-head: #292b2f;
+    }
+
+    body {
+        background: var(--bg);
+        color: var(--text-main);
+        font-family: "gg sans", "Segoe UI", sans-serif;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    /* ── Navbar ── */
+    .navbar {
+        background: var(--navbar-bg) !important;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .navbar-brand {
+        color: var(--text-main) !important;
+        font-weight: 700;
+    }
+
+    .nav-link,
+    .dropdown-item {
+        color: var(--text-main) !important;
+    }
+
+    .dropdown-menu {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+    }
+
+    .dropdown-item:hover {
+        background: var(--input-bg);
+    }
+
+    .dropdown-item.text-danger {
+        color: var(--danger) !important;
+    }
+
+    /* ── Cards ── */
+    .discord-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ── Inputs ── */
+    .form-control,
+    .form-control:focus {
+        background: var(--input-bg);
+        color: var(--text-main);
+        border: none;
+        box-shadow: none;
+    }
+
+    .form-control:focus {
+        outline: 2px solid var(--accent);
+    }
+
+    .form-control::placeholder {
+        color: var(--text-muted);
+    }
+
+    /* ── Buttons ── */
+    .btn-accent {
+        background: var(--accent);
+        color: #fff;
+        border: none;
+    }
+
+    .btn-accent:hover {
+        background: var(--accent-hover);
+        color: #fff;
+    }
+
+    .btn-danger-discord {
+        background: var(--danger);
+        color: #fff;
+        border: none;
+    }
+
+    .btn-danger-discord:hover {
+        background: #c23235;
+        color: #fff;
+    }
+
+    /* ── Price tag ── */
+    .price-tag {
+        font-size: 2.8rem;
+        /* Slightly larger for the wider card */
+        font-weight: 800;
+        color: var(--accent);
+        /* Optional: uses your accent color for better visibility */
+    }
+
+    /* ── Table ── */
+    .table {
+        color: var(--text-main);
+        --bs-table-color: var(--text-main);
+        --bs-table-bg: transparent;
+        --bs-table-border-color: var(--border);
+    }
+
+    /* -- Checkbox Size Fix -- */
+    #select-all {
+        transform: scale(1.3);
+        margin-top: 2px;
+    }
+
+    [data-theme="dark"] .table {
+        --bs-table-color: var(--text-main);
+        color: var(--text-main);
+    }
+
+    .table thead th {
+        background: var(--table-head);
+        color: var(--text-muted);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .table tbody td {
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+    }
+
+    /* ── Bulk bar ── */
+    .bulk-bar {
+        background: var(--accent);
+        color: #fff;
+        border-radius: 8px;
+    }
+
+    .bulk-bar .form-control {
+        width: 110px;
+        background: rgba(0, 0, 0, 0.2) !important;
+        color: #fff !important;
+        border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    }
+
+    .bulk-bar .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* ── New-product prompt ── */
+    .new-product-prompt {
+        background: var(--accent);
+        color: #fff;
+        border-radius: 8px;
+    }
+
+    /* ── Product image ── */
+    #display-img {
+        width: 100%;
+        /* Allows it to fill the new width */
+        max-width: 250px;
+        /* Increased from 160px */
+        height: auto;
+        max-height: 250px;
+        /* Increased from 160px */
+        object-fit: contain;
+    }
+
+    /* ── Checkbox ── */
+    input[type="checkbox"] {
+        cursor: pointer;
+    }
+
+    /* ── Mobile: hide barcode column ── */
+    @media (max-width: 576px) {
+        .col-barcode {
+            display: none;
+        }
+
+        .btn-edit-sm,
+        .btn-del-sm {
+            padding: 4px 7px;
+            font-size: 0.75rem;
+        }
+    }
+
+    .modal-content {
+        background: var(--card-bg);
+        color: var(--text-main);
+        border: 1px solid var(--border);
+    }
+
+    .modal-header,
+    .modal-footer {
+        border-color: var(--border);
+    }
+
+    .btn-close {
+        /* Makes the X button visible in dark mode */
+        filter: var(--bs-theme-placeholder, invert(0.7) grayscale(100%) brightness(200%));
+    }
+
+    [data-theme="dark"] .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%);
+    }
+
+    /* Add this inside your <style> tag */
+    [data-theme="dark"] .text-muted {
+        color: var(--text-muted) !important;
+    }
+
+    [data-theme="dark"] .modal-body .text-muted {
+        color: #f6f6f7 !important;
+    }
+
+    .btn-close {
+        filter: none;
+    }
+
+    [data-theme="dark"] .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%);
+    }
+
+    .form-select {
+        background-color: var(--input-bg) !important;
+        color: var(--text-main) !important;
+        border: none !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23adb5bd' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 0.75rem center !important;
+        background-size: 16px 12px !important;
+    }
+
+    [data-theme="dark"] .form-select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23dcddde' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+    }

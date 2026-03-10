@@ -1,0 +1,11 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Build SekiPOS (F5)",
+            "type": "node",
+            "request": "launch",
+            "preLaunchTask": "build-sekipos"
+        }
+    ]
+}

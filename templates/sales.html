@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="es" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,21 +11,60 @@
     <style>
         /* Reusing your standard theme colors */
         :root {
-            --bg: #ebedef; --card-bg: #ffffff; --text-main: #2e3338;
-            --text-muted: #4f5660; --border: #e3e5e8; --navbar-bg: #ffffff;
-            --accent: #5865f2; --accent-hover: #4752c4; --input-bg: #e3e5e8;
+            --bg: #ebedef;
+            --card-bg: #ffffff;
+            --text-main: #2e3338;
+            --text-muted: #4f5660;
+            --border: #e3e5e8;
+            --navbar-bg: #ffffff;
+            --accent: #5865f2;
+            --accent-hover: #4752c4;
+            --input-bg: #e3e5e8;
         }
+
         [data-theme="dark"] {
-            --bg: #36393f; --card-bg: #2f3136; --text-main: #dcddde;
-            --text-muted: #b9bbbe; --border: #202225; --navbar-bg: #202225;
+            --bg: #36393f;
+            --card-bg: #2f3136;
+            --text-main: #dcddde;
+            --text-muted: #b9bbbe;
+            --border: #202225;
+            --navbar-bg: #202225;
             --input-bg: #202225;
         }
-        body { background: var(--bg); color: var(--text-main); font-family: "gg sans", sans-serif; min-height: 100vh; }
-        .navbar { background: var(--navbar-bg) !important; border-bottom: 1px solid var(--border); }
-        .navbar-brand, .nav-link, .dropdown-item { color: var(--text-main) !important; }
-        .dropdown-menu { background: var(--card-bg); border: 1px solid var(--border); }
-        .dropdown-item:hover { background: var(--input-bg); }
-        .discord-card, .modal-content { background: var(--card-bg) !important; border: 1px solid var(--border); border-radius: 8px; }
+
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: "gg sans", sans-serif;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: var(--navbar-bg) !important;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .navbar-brand,
+        .nav-link,
+        .dropdown-item {
+            color: var(--text-main) !important;
+        }
+
+        .dropdown-menu {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+        }
+
+        .dropdown-item:hover {
+            background: var(--input-bg);
+        }
+
+        .discord-card,
+        .modal-content {
+            background: var(--card-bg) !important;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
 
         .navbar-brand {
             color: var(--text-main) !important;
@@ -33,63 +72,70 @@
         }
 
         /* --- Tables --- */
-        .table { 
-            --bs-table-bg: transparent; 
-            --bs-table-color: var(--text-main); /* This forces Bootstrap to obey */
-            --bs-table-border-color: var(--border); 
+        .table {
+            --bs-table-bg: transparent;
+            --bs-table-color: var(--text-main);
+            /* This forces Bootstrap to obey */
+            --bs-table-border-color: var(--border);
             --bs-table-hover-color: var(--text-main);
             --bs-table-hover-bg: var(--input-bg);
-            color: var(--text-main) !important; 
+            color: var(--text-main) !important;
         }
-        .table thead th { 
-            background: var(--bg); 
-            color: var(--text-muted); 
-            font-size: 0.75rem; 
-            text-transform: uppercase; 
-            border-bottom: 1px solid var(--border); 
+
+        .table thead th {
+            background: var(--bg);
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
         }
-        .table td, .table th { 
-            border-bottom: 1px solid var(--border); 
-            vertical-align: middle; 
-            color: var(--text-main); 
+
+        .table td,
+        .table th {
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+            color: var(--text-main);
         }
-        
+
         /* --- Buttons --- */
-        .btn-accent { background: var(--accent); color: #fff; border: none; }
-        .btn-accent:hover { background: var(--accent-hover); color: #fff; }
-        
+        .btn-accent {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+        }
+
+        .btn-accent:hover {
+            background: var(--accent-hover);
+            color: #fff;
+        }
+
         /* --- Dark Mode Overrides --- */
-        [data-theme="dark"] .modal-content, 
-        [data-theme="dark"] .modal-body { color: var(--text-main); }
-        [data-theme="dark"] .table { --bs-table-hover-bg: rgba(255, 255, 255, 0.05); }
-        [data-theme="dark"] .table thead th { background: #292b2f; color: var(--text-muted); }
-        [data-theme="dark"] .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
-        [data-theme="dark"] .text-muted { color: var(--text-muted) !important; }
+        [data-theme="dark"] .modal-content,
+        [data-theme="dark"] .modal-body {
+            color: var(--text-main);
+        }
+
+        [data-theme="dark"] .table {
+            --bs-table-hover-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        [data-theme="dark"] .table thead th {
+            background: #292b2f;
+            color: var(--text-muted);
+        }
+
+        [data-theme="dark"] .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+
+        [data-theme="dark"] .text-muted {
+            color: var(--text-muted) !important;
+        }
     </style>
 </head>
+
 <body>
-    <nav class="navbar navbar-expand-md sticky-top px-3 mb-3">
-        <span class="navbar-brand">SekiPOS <small class="text-muted fw-normal" style="font-size:0.65rem;">Ventas</small></span>
-        <div class="ms-3 gap-2 d-flex">
-            <a href="/" class="btn btn-outline-primary btn-sm"><i class="bi bi-box-seam me-1"></i>Inventario</a>
-            <a href="/checkout" class="btn btn-outline-primary btn-sm"><i class="bi bi-cart-fill me-1"></i>Caja</a>
-            <a href="/dicom" class="btn btn-outline-danger btn-sm">
-                <i class="bi bi-journal-x me-1"></i>Dicom
-            </a>
-        </div>
-        <div class="ms-auto">
-            <div class="dropdown">
-                <button class="btn btn-accent dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                    <i class="bi bi-person-circle me-1"></i> <span class="d-none d-sm-inline">{{ user.username }}</span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow">
-                    <li><button class="dropdown-item" onclick="toggleTheme()"><i class="bi bi-moon-stars me-2" id="theme-icon"></i><span id="theme-label">Modo Oscuro</span></button></li>
-                    <li><hr class="dropdown-divider" style="border-color: var(--border);"></li>
-                    <li><a class="dropdown-item text-danger" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Salir</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    {% with active_page='sales' %}{% include 'navbar.html' %}{% endwith %}
 
     <div class="container-fluid px-3">
 
@@ -99,19 +145,24 @@
                     <h6 class="text-muted text-uppercase mb-1" style="font-size: 0.75rem; font-weight: 700;">
                         {% if selected_date %}Día Seleccionado{% else %}Ventas de Hoy{% endif %}
                     </h6>
-                    <h2 class="price-cell mb-0" style="color: var(--accent); font-weight: 800;" data-value="{{ stats.daily }}"></h2>
+                    <h2 class="price-cell mb-0" style="color: var(--accent); font-weight: 800;"
+                        data-value="{{ stats.daily }}"></h2>
                 </div>
             </div>
             <div class="col-12 col-md-4">
                 <div class="discord-card p-3 shadow-sm text-center">
-                    <h6 class="text-muted text-uppercase mb-1" style="font-size: 0.75rem; font-weight: 700;">Últimos 7 Días</h6>
-                    <h2 class="price-cell mb-0" style="color: var(--accent); font-weight: 800;" data-value="{{ stats.week }}"></h2>
+                    <h6 class="text-muted text-uppercase mb-1" style="font-size: 0.75rem; font-weight: 700;">Últimos 7
+                        Días</h6>
+                    <h2 class="price-cell mb-0" style="color: var(--accent); font-weight: 800;"
+                        data-value="{{ stats.week }}"></h2>
                 </div>
             </div>
             <div class="col-12 col-md-4">
                 <div class="discord-card p-3 shadow-sm text-center">
-                    <h6 class="text-muted text-uppercase mb-1" style="font-size: 0.75rem; font-weight: 700;">Este Mes</h6>
-                    <h2 class="price-cell mb-0" style="color: var(--accent); font-weight: 800;" data-value="{{ stats.month }}"></h2>
+                    <h6 class="text-muted text-uppercase mb-1" style="font-size: 0.75rem; font-weight: 700;">Este Mes
+                    </h6>
+                    <h2 class="price-cell mb-0" style="color: var(--accent); font-weight: 800;"
+                        data-value="{{ stats.month }}"></h2>
                 </div>
             </div>
         </div>
@@ -120,12 +171,14 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="mb-0"><i class="bi bi-receipt-cutoff me-2"></i>Historial</h4>
                 <div class="d-flex align-items-center gap-2">
-                    <label for="date-filter" class="form-label mb-0 text-muted small d-none d-sm-block">Filtrar Día:</label>
-                    <input type="date" id="date-filter" class="form-control form-control-sm" 
-                           style="background: var(--input-bg); color: var(--text-main); border-color: var(--border);"
-                           value="{{ selected_date or '' }}" onchange="filterByDate(this.value)">
+                    <label for="date-filter" class="form-label mb-0 text-muted small d-none d-sm-block">Filtrar
+                        Día:</label>
+                    <input type="date" id="date-filter" class="form-control form-control-sm"
+                        style="background: var(--input-bg); color: var(--text-main); border-color: var(--border);"
+                        value="{{ selected_date or '' }}" onchange="filterByDate(this.value)">
                     {% if selected_date %}
-                    <a href="/sales" class="btn btn-sm btn-outline-secondary" title="Limpiar filtro"><i class="bi bi-x-lg"></i></a>
+                    <a href="/sales" class="btn btn-sm btn-outline-secondary" title="Limpiar filtro"><i
+                            class="bi bi-x-lg"></i></a>
                     {% endif %}
                 </div>
             </div>
@@ -148,7 +201,8 @@
                             <td class="text-capitalize">{{ s[3] }}</td>
                             <td class="price-cell fw-bold" data-value="{{ s[2] }}"></td>
                             <td>
-                                <button class="btn btn-sm btn-outline-secondary" onclick="viewSale({{ s[0] }}, '{{ s[1] }}', {{ s[2] }})">
+                                <button class="btn btn-sm btn-outline-secondary"
+                                    onclick="viewSale({{ s[0] }}, '{{ s[1] }}', {{ s[2] }})">
                                     <i class="bi bi-eye"></i> Ver Detalle
                                 </button>
                             </td>
@@ -164,7 +218,8 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Detalle de Venta <span id="modal-ticket-id" class="text-muted small"></span></h5>
+                    <h5 class="modal-title">Detalle de Venta <span id="modal-ticket-id" class="text-muted small"></span>
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -178,7 +233,7 @@
                             </tr>
                         </thead>
                         <tbody id="receipt-items">
-                            </tbody>
+                        </tbody>
                         <tfoot>
                             <tr>
                                 <th colspan="2" class="text-end">TOTAL:</th>
@@ -188,7 +243,7 @@
                     </table>
                 </div>
                 <div class="modal-body">
-                    </div>
+                </div>
                 <div class="modal-footer d-flex justify-content-between border-0 pt-0">
                     <button class="btn btn-outline-danger btn-sm" id="btn-reverse-sale">
                         <i class="bi bi-arrow-counterclockwise me-1"></i>Anular Venta
@@ -208,8 +263,9 @@
                 <div class="modal-body text-center pt-0 pb-4">
                     <i class="bi bi-exclamation-triangle-fill text-danger mb-3" style="font-size: 3rem;"></i>
                     <h4 class="mb-3">¿Anular Venta #<span id="reverse-modal-id"></span>?</h4>
-                    <p class="text-muted small px-3">Los productos regresarán automáticamente al inventario y el ticket será eliminado permanentemente.</p>
-                    
+                    <p class="text-muted small px-3">Los productos regresarán automáticamente al inventario y el ticket
+                        será eliminado permanentemente.</p>
+
                     <div class="d-flex gap-2 justify-content-center mt-4 px-3">
                         <button class="btn btn-secondary w-50" data-bs-dismiss="modal">Cancelar</button>
                         <button class="btn btn-danger w-50" onclick="executeReverseSale()">Sí, Anular</button>
@@ -228,9 +284,9 @@
         document.querySelectorAll('.utc-date').forEach(el => {
             const date = new Date(el.innerText + " UTC");
             if (!isNaN(date)) {
-                el.innerText = date.toLocaleString('es-CL', { 
-                    year: 'numeric', month: '2-digit', day: '2-digit', 
-                    hour: '2-digit', minute:'2-digit' 
+                el.innerText = date.toLocaleString('es-CL', {
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit'
                 });
             }
         });
@@ -243,13 +299,13 @@
         async function viewSale(id, rawDate, total) {
             document.getElementById('modal-ticket-id').innerText = `#${id}`;
             document.getElementById('modal-total').innerText = clp.format(total);
-            
+
             const localDate = new Date(rawDate + " UTC").toLocaleString('es-CL');
             document.getElementById('modal-date').innerText = localDate !== "Invalid Date" ? localDate : rawDate;
 
             const tbody = document.getElementById('receipt-items');
             tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Cargando...</td></tr>';
-            
+
             // Attach the ID to the delete button
             document.getElementById('btn-reverse-sale').setAttribute('onclick', `reverseSale(${id})`);
 
@@ -259,7 +315,7 @@
             try {
                 const res = await fetch(`/api/sale/${id}`);
                 const items = await res.json();
-                
+
                 tbody.innerHTML = items.map(item => `
                     <tr>
                         <td>
@@ -286,10 +342,10 @@
         function reverseSale(id) {
             saleToReverse = id;
             document.getElementById('reverse-modal-id').innerText = id;
-            
+
             // Hide the receipt modal so we don't have overlapping popups
             bootstrap.Modal.getInstance(document.getElementById('receiptModal')).hide();
-            
+
             // Show the new confirmation modal
             const confirmModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('reverseConfirmModal'));
             confirmModal.show();
@@ -297,10 +353,10 @@
 
         async function executeReverseSale() {
             if (!saleToReverse) return;
-            
+
             try {
                 const res = await fetch(`/api/sale/${saleToReverse}`, { method: 'DELETE' });
-                
+
                 if (res.ok) {
                     window.location.reload(); // Refresh the dashboard
                 } else {
@@ -311,26 +367,10 @@
                 console.error(err);
                 alert("Error de conexión con el servidor.");
             }
-        }       
-
-        /* Theme Management */
-        function applyTheme(t) {
-            document.documentElement.setAttribute('data-theme', t);
-            const isDark = t === 'dark';
-            const icon = document.getElementById('theme-icon');
-            const label = document.getElementById('theme-label');
-            if (icon) icon.className = isDark ? 'bi bi-sun me-2' : 'bi bi-moon-stars me-2';
-            if (label) label.innerText = isDark ? 'Modo Claro' : 'Modo Oscuro';
-            localStorage.setItem('theme', t);
         }
-
-        function toggleTheme() {
-            applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-        }
-
-        (function initTheme() {
-            applyTheme(localStorage.getItem('theme') || 'light');
-        })();
     </script>
+    <script src="./static/cookieStuff.js"></script>
+    <script src="./static/themeStuff.js"></script>
 </body>
+
 </html>
