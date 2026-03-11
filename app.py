@@ -10,6 +10,9 @@ import mimetypes
 import time
 import uuid
 from datetime import datetime
+import zipfile
+import io
+
 # from dotenv import load_dotenv
 
 # load_dotenv()
@@ -531,6 +534,31 @@ def export_db():
     if os.path.exists(DB_FILE):
         return send_file(DB_FILE, as_attachment=True, download_name=f"SekiPOS_Backup_{datetime.now().strftime('%Y%m%d')}.db", mimetype='application/x-sqlite3')
     return "Error: Database file not found", 404
+
+@app.route('/export/images')
+@login_required
+def export_images():
+    if not os.path.exists(CACHE_DIR) or not os.listdir(CACHE_DIR):
+        return "No images found to export", 404
+
+    # Create an in-memory byte stream to hold the zip data
+    memory_file = io.BytesIO()
+    
+    with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for root, dirs, files in os.walk(CACHE_DIR):
+            for file in files:
+                file_path = os.path.join(root, file)
+                # Store files using their names only to avoid nesting inside the zip
+                zf.write(file_path, arcname=file)
+    
+    memory_file.seek(0)
+    
+    return send_file(
+        memory_file,
+        mimetype='application/zip',
+        as_attachment=True,
+        download_name=f"SekiPOS_Images_{datetime.now().strftime('%Y%m%d')}.zip"
+    )
 
 # @app.route('/process_payment', methods=['POST'])
 # @login_required
