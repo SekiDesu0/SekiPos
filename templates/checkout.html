@@ -1,5 +1,5 @@
 {% extends "macros/base.html" %}
-{% from 'macros/modals.html' import confirm_modal, scanner_modal %}
+{% from 'macros/modals.html' import confirm_modal, scanner_modal, render_receipt %}
 
 {% block title %}Caja{% endblock %}
 
@@ -16,54 +16,11 @@
         -moz-appearance: textfield;
         appearance: textfield;
     }
-
-    @media print {
-        body * {
-            visibility: hidden;
-        }
-
-        #receipt-print-zone, #receipt-print-zone * {
-            visibility: visible;
-        }
-
-        #receipt-print-zone {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 58mm;
-            padding: 0;
-            margin: 0;
-            display: block !important;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 10px;
-            color: #000;
-        }
-
-        .container-fluid, .main, body {
-            margin: 0 !important;
-            padding: 0 !important;
-            background: #fff !important;
-        }
-    }
-
-    .receipt-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-family: monospace;
-        font-size: 12px;
-    }
-
-    .receipt-header {
-        text-align: center;
-        margin-bottom: 10px;
-        border-bottom: 1px dashed #000;
-        padding-bottom: 5px;
-    }
-
 </style>
 {% endblock %}
 
 {% block content %}
+    {{ render_receipt() }}
     {% call confirm_modal('removeConfirmModal', 'Quitar Producto', 'btn-danger-discord', 'Quitar', 'executeRemoveItem()') %}
         ¿Estás seguro de que quieres quitar <strong id="removeItemName"></strong> del carrito?
     {% endcall %}
@@ -117,41 +74,7 @@
             </div>
         </div>
     </div>
-    <div id="receipt-print-zone" class="d-none d-print-block">
-        <div class="receipt-header">
-            <h3 style="margin: 0; font-weight: 800;">SekiPOS</h3>
-            <div style="font-size: 10px; margin-bottom: 5px;">Comprobante de Venta</div>
-            <div style="font-size: 11px; font-weight: bold;">
-                Ticket Nº <span id="receipt-ticket-id"></span>
-            </div>
-            <div id="receipt-date" style="font-size: 11px;"></div>
-        </div>
-        <table class="receipt-table">
-            <thead>
-                <tr>
-                    <th style="width: 15%;">Cant</th>
-                    <th style="width: 60%; padding-left: 5px;">Desc</th>
-                    <th style="width: 25%; text-align: right;">Total</th>
-                </tr>
-            </thead>
-            <tbody id="receipt-items-print">
-            </tbody>
-        </table>
-        <div class="receipt-total-row d-flex justify-content-between pt-2">
-            <span>TOTAL:</span>
-            <span id="receipt-total-print"></span>
-        </div>
 
-        <div class="d-flex justify-content-between">
-            <span>RECIBIDO:</span>
-            <span id="receipt-paid-print"></span>
-        </div>
-        <div class="d-flex justify-content-between">
-            <span>VUELTO:</span>
-            <span id="receipt-change-print"></span>
-        </div>
-        <div style="text-align: center; margin-top: 20px; font-size: 10px;">¡Gracias por su compra!</div>
-    </div>
     <div class="modal fade" id="successModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-success">
@@ -488,7 +411,6 @@
 
         document.getElementById('grand-total').innerText = clp.format(total);
 
-        // This will actually run now
         saveCart();
     }
 

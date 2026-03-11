@@ -178,7 +178,7 @@ def checkout():
 @login_required
 def dicom():
     with sqlite3.connect(DB_FILE) as conn:
-        debtors = conn.execute('SELECT id, name, amount, notes, datetime(last_updated, "localtime") FROM dicom ORDER BY amount DESC').fetchall()
+        debtors = conn.execute('SELECT id, name, amount, notes, datetime(last_updated, "localtime"), image_url FROM dicom ORDER BY amount DESC').fetchall()
     return render_template('dicom.html', active_page='dicom', user=current_user, debtors=debtors)
 
 @app.route('/sales')
@@ -474,29 +474,26 @@ def update_dicom():
     name = data.get('name', '').strip()
     amount = float(data.get('amount', 0))
     notes = data.get('notes', '')
-    action = data.get('action') # 'add' or 'pay'
+    image_url = data.get('image_url', '')
+    action = data.get('action')
     
     if not name or amount <= 0:
         return jsonify({"error": "Nombre y monto válidos son requeridos"}), 400
         
-    # If we are giving them credit (Fiar), their balance drops into the negative
     if action == 'add':
         amount = -amount
 
-    try:
-        with sqlite3.connect(DB_FILE) as conn:
-            cur = conn.cursor()
-            # Upsert logic: if they exist, modify debt. If they don't, create them.
-            cur.execute('''INSERT INTO dicom (name, amount, notes, last_updated) 
-                           VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+    with sqlite3.connect(DB_FILE) as conn:
+        cur = conn.cursor()
+        cur.execute('''INSERT INTO dicom (name, amount, notes, image_url, last_updated) 
+                           VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
                            ON CONFLICT(name) DO UPDATE SET 
                            amount = amount + excluded.amount,
                            notes = excluded.notes,
-                           last_updated = CURRENT_TIMESTAMP''', (name, amount, notes))
-            conn.commit()
-        return jsonify({"status": "success"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+                           image_url = CASE WHEN excluded.image_url != "" THEN excluded.image_url ELSE dicom.image_url END,
+                           last_updated = CURRENT_TIMESTAMP''', (name, amount, notes, image_url))
+        conn.commit()
+    return jsonify({"status": "success"}), 200
 
 @app.route('/api/dicom/<int:debtor_id>', methods=['DELETE'])
 @login_required
