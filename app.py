@@ -71,6 +71,7 @@ def init_db():
                          name TEXT UNIQUE, 
                          amount REAL DEFAULT 0, 
                          notes TEXT,
+                         image_url TEXT,
                          last_updated TEXT DEFAULT CURRENT_TIMESTAMP)''')
         
         # Default user logic remains same...
