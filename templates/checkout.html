@@ -141,6 +141,15 @@
             <span>TOTAL:</span>
             <span id="receipt-total-print"></span>
         </div>
+
+        <div class="d-flex justify-content-between">
+            <span>RECIBIDO:</span>
+            <span id="receipt-paid-print"></span>
+        </div>
+        <div class="d-flex justify-content-between">
+            <span>VUELTO:</span>
+            <span id="receipt-change-print"></span>
+        </div>
         <div style="text-align: center; margin-top: 20px; font-size: 10px;">¡Gracias por su compra!</div>
     </div>
     <div class="modal fade" id="successModal" tabindex="-1">
@@ -519,6 +528,17 @@
     async function executeCheckout(method) {
         if (cart.length === 0) return;
 
+        const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+        let paidAmount = total; 
+        
+        if (method === 'efectivo') {
+            const inputVal = parseInt(document.getElementById('monto-recibido').value, 10);
+            // If the user left it blank or typed 0, paidAmount stays as 'total'
+            if (!isNaN(inputVal) && inputVal > 0) {
+                paidAmount = inputVal;
+            }
+        }
+
         try {
             const response = await fetch('/api/checkout', {
                 method: 'POST',
@@ -529,35 +549,26 @@
             const result = await response.json();
 
             if (response.ok) {
-
-                // Safely hide whichever modal was open
                 const pModal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'));
                 if (pModal) pModal.hide();
 
                 const vModal = bootstrap.Modal.getInstance(document.getElementById('vueltoModal'));
                 if (vModal) vModal.hide();
 
-                // Pass the new sale_id from the result to the printer
-                const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
-                printReceipt(total, result.sale_id);
+                printReceipt(total, result.sale_id, paidAmount);
 
-                // Show the success checkmark
                 const successModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('successModal'));
                 successModal.show();
 
-                // Nuke the cart and auto-save the empty state
                 cart = [];
                 renderCart();
-
-                // Auto-hide the success modal after 2 seconds so you don't have to click it
                 setTimeout(() => successModal.hide(), 2000);
-
             } else {
-                alert("Error en la venta: " + (result.error || "Error desconocido"));
+                alert("Error: " + (result.error || "Error desconocido"));
             }
         } catch (err) {
             console.error(err);
-            alert("Error de conexión con el servidor.");
+            alert("Error de conexión.");
         }
     }
 
@@ -771,7 +782,7 @@
         modal.show();
     }
 
-    function printReceipt(total, saleId) {
+    function printReceipt(total, saleId, paidAmount = 0) {
         const tbody = document.getElementById('receipt-items-print');
         tbody.innerHTML = '';
 
@@ -786,8 +797,17 @@
             `;
         });
 
+        // Final fallback: if somehow paidAmount is still 0, use total
+        const finalPaid = paidAmount > 0 ? paidAmount : total;
+        const change = finalPaid - total;
+
         document.getElementById('receipt-ticket-id').innerText = saleId || "N/A";
         document.getElementById('receipt-total-print').innerText = clp.format(total);
+        
+        // Update the HTML elements created in the previous step
+        document.getElementById('receipt-paid-print').innerText = clp.format(finalPaid);
+        document.getElementById('receipt-change-print').innerText = clp.format(change);
+        
         document.getElementById('receipt-date').innerText = new Date().toLocaleString('es-CL');
 
         setTimeout(() => {
@@ -847,7 +867,6 @@
     }
 
     function openVueltoModal() {
-        // Hide the main payment selection modal
         bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
 
         const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
@@ -855,11 +874,11 @@
 
         const input = document.getElementById('monto-recibido');
         input.value = '';
-        document.getElementById('vuelto-amount').innerText = '$0';
-        document.getElementById('vuelto-amount').className = "fs-1 fw-bold text-muted";
-        document.getElementById('btn-confirm-vuelto').disabled = true;
+        document.getElementById('vuelto-amount').innerText = clp.format(0);
+        document.getElementById('vuelto-amount').className = "fs-1 fw-bold text-success";
+        
+        document.getElementById('btn-confirm-vuelto').disabled = false;
 
-        // Generate smart quick-buttons (Exacto, 5k, 10k, 20k)
         const quickBox = document.getElementById('vuelto-quick-buttons');
         quickBox.innerHTML = `<button class="btn btn-sm btn-outline-secondary fw-bold" onclick="setMonto(${total})">Exacto</button>`;
 
@@ -883,9 +902,17 @@
 
     function calculateVuelto() {
         const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
-        const recibido = parseInt(document.getElementById('monto-recibido').value, 10);
+        const inputElement = document.getElementById('monto-recibido');
+        const recibido = parseInt(inputElement.value, 10);
         const vueltoDisplay = document.getElementById('vuelto-amount');
         const confirmBtn = document.getElementById('btn-confirm-vuelto');
+
+        if (!inputElement.value || recibido === 0) {
+            vueltoDisplay.innerText = clp.format(0);
+            vueltoDisplay.className = "fs-1 fw-bold text-success";
+            confirmBtn.disabled = false;
+            return;
+        }
 
         if (isNaN(recibido) || recibido < total) {
             vueltoDisplay.innerText = "Falta Dinero";
