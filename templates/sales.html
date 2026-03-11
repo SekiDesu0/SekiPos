@@ -4,10 +4,51 @@
 {% block title %}Ventas{% endblock %}
 
 {% block head %}
-<!--HEAD-->
+<style>
+    @media print {
+        body * { visibility: hidden; }
+        #receipt-print-zone, #receipt-print-zone * { visibility: visible; }
+        #receipt-print-zone {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 58mm;
+            margin: 0;
+            padding: 5mm;
+            display: block !important;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
+
+<div id="receipt-print-zone" class="d-none d-print-block">
+    <div class="receipt-header" style="text-align: center; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 5px;">
+        <h3 style="margin: 0; font-weight: 800;">SekiPOS</h3>
+        <div style="font-size: 10px; margin-bottom: 5px;">Re-impresión de Comprobante</div>
+        <div style="font-size: 11px; font-weight: bold;">
+            Ticket Nº <span id="receipt-ticket-id"></span>
+        </div>
+        <div id="receipt-date" style="font-size: 11px;"></div>
+    </div>
+    <table class="receipt-table" style="width: 100%; border-collapse: collapse; font-family: monospace; font-size: 12px;">
+        <thead>
+            <tr>
+                <th style="width: 15%; text-align: left;">Cant</th>
+                <th style="width: 60%; padding-left: 5px; text-align: left;">Desc</th>
+                <th style="width: 25%; text-align: right;">Total</th>
+            </tr>
+        </thead>
+        <tbody id="receipt-items-print">
+        </tbody>
+    </table>
+    <div class="receipt-total-row d-flex justify-content-between pt-2" style="display: flex; justify-content: space-between; font-weight: bold; border-top: 1px dashed #000; margin-top: 5px;">
+        <span>TOTAL:</span>
+        <span id="receipt-total-print"></span>
+    </div>
+    <div style="text-align: center; margin-top: 20px; font-size: 10px;">¡Gracias por su compra!</div>
+</div>
 
 <div class="row g-3 mb-3">
     <div class="col-12 col-md-4">
@@ -115,9 +156,15 @@
             <div class="modal-body">
             </div>
             <div class="modal-footer d-flex justify-content-between border-0 pt-0">
-                <button class="btn btn-outline-danger btn-sm" id="btn-reverse-sale">
-                    <i class="bi bi-arrow-counterclockwise me-1"></i>Anular Venta
-                </button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-danger btn-sm" id="btn-reverse-sale">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Anular Venta
+                    </button>
+                    <button class="btn btn-primary btn-sm" id="btn-print-modal">
+                        <i class="bi bi-printer me-1"></i>Re-imprimir
+                    </button>
+                </div>
+                
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
@@ -173,11 +220,14 @@
         const localDate = new Date(rawDate + " UTC").toLocaleString('es-CL');
         document.getElementById('modal-date').innerText = localDate !== "Invalid Date" ? localDate : rawDate;
 
+        // Configure the Anular button
+        document.getElementById('btn-reverse-sale').setAttribute('onclick', `reverseSale(${id})`);
+        
+        // Configure the Print button
+        document.getElementById('btn-print-modal').setAttribute('onclick', `reprintSale(${id}, ${total}, '${rawDate}')`);
+
         const tbody = document.getElementById('receipt-items');
         tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Cargando...</td></tr>';
-
-        // Attach the ID to the delete button
-        document.getElementById('btn-reverse-sale').setAttribute('onclick', `reverseSale(${id})`);
 
         const modal = new bootstrap.Modal(document.getElementById('receiptModal'));
         modal.show();
@@ -187,17 +237,43 @@
             const items = await res.json();
 
             tbody.innerHTML = items.map(item => `
-                    <tr>
-                        <td>
-                            ${item.name}<br>
-                            <small class="text-muted font-monospace" style="font-size: 0.7rem;">${item.barcode}</small>
-                        </td>
-                        <td>${item.qty}</td>
-                        <td class="text-end">${clp.format(item.subtotal)}</td>
-                    </tr>
-                `).join('');
+                <tr>
+                    <td>
+                        ${item.name}<br>
+                        <small class="text-muted font-monospace" style="font-size: 0.7rem;">${item.barcode}</small>
+                    </td>
+                    <td>${item.qty}</td>
+                    <td class="text-end">${clp.format(item.subtotal)}</td>
+                </tr>
+            `).join('');
         } catch (err) {
             tbody.innerHTML = '<tr><td colspan="3" class="text-center text-danger">Error cargando productos</td></tr>';
+        }
+    }
+
+    async function reprintSale(id, total, rawDate) {
+        const tbody = document.getElementById('receipt-items-print');
+        
+        try {
+            const res = await fetch(`/api/sale/${id}`);
+            const items = await res.json();
+
+            tbody.innerHTML = items.map(item => `
+                <tr>
+                    <td>${item.qty}</td>
+                    <td style="padding-left: 5px;">${item.name}</td>
+                    <td style="text-align: right;">${clp.format(item.subtotal)}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('receipt-ticket-id').innerText = id;
+            document.getElementById('receipt-total-print').innerText = clp.format(total);
+            document.getElementById('receipt-date').innerText = new Date(rawDate + " UTC").toLocaleString('es-CL');
+
+            window.print();
+        } catch (err) {
+            console.error(err);
+            alert("Error al preparar la impresión.");
         }
     }
 
