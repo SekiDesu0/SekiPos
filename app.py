@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import requests
+from flask import send_file
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_from_directory
 from flask_socketio import SocketIO, emit
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -508,7 +509,31 @@ def delete_dicom(debtor_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
+@app.route('/settings/update', methods=['POST'])
+@login_required
+def update_settings():
+    new_password = request.form.get('password')
+    profile_pic = request.form.get('profile_pic')
     
+    with sqlite3.connect(DB_FILE) as conn:
+        if new_password and len(new_password) > 0:
+            hashed_pw = generate_password_hash(new_password)
+            conn.execute('UPDATE users SET password = ? WHERE id = ?', (hashed_pw, current_user.id))
+        
+        if profile_pic:
+            conn.execute('UPDATE users SET profile_pic = ? WHERE id = ?', (profile_pic, current_user.id))
+        conn.commit()
+    
+    flash('Configuración actualizada')
+    return redirect(request.referrer)
+
+@app.route('/export/db')
+@login_required
+def export_db():
+    if os.path.exists(DB_FILE):
+        return send_file(DB_FILE, as_attachment=True, download_name=f"SekiPOS_Backup_{datetime.now().strftime('%Y%m%d')}.db", mimetype='application/x-sqlite3')
+    return "Error: Database file not found", 404
+
 # @app.route('/process_payment', methods=['POST'])
 # @login_required
 # def process_payment():
