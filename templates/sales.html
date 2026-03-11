@@ -1,71 +1,14 @@
 {% extends "macros/base.html" %}
-{% from 'macros/modals.html' import confirm_modal, scanner_modal %}
+{% from 'macros/modals.html' import confirm_modal, scanner_modal, render_receipt %}
 
 {% block title %}Ventas{% endblock %}
 
 {% block head %}
-<style>
-    @media print {
-        body * { visibility: hidden; }
-        #receipt-print-zone, #receipt-print-zone * { visibility: visible; }
-        #receipt-print-zone {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 58mm;
-            margin: 0;
-            padding: 5mm;
-            display: block !important;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .table td, .table th {
-            padding: 0.5rem 0.25rem;
-            font-size: 0.85rem;
-        }
-        
-        .btn-sm span {
-            display: none;
-        }
-    }
-
-    .table th:last-child, 
-    .table td:last-child {
-        width: 1%;
-        white-space: nowrap;
-    }
-</style>
+<!--HEAD-->
 {% endblock %}
 
 {% block content %}
-
-<div id="receipt-print-zone" class="d-none d-print-block">
-    <div class="receipt-header" style="text-align: center; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 5px;">
-        <h3 style="margin: 0; font-weight: 800;">SekiPOS</h3>
-        <div style="font-size: 10px; margin-bottom: 5px;">Re-impresión de Comprobante</div>
-        <div style="font-size: 11px; font-weight: bold;">
-            Ticket Nº <span id="receipt-ticket-id"></span>
-        </div>
-        <div id="receipt-date" style="font-size: 11px;"></div>
-    </div>
-    <table class="receipt-table" style="width: 100%; border-collapse: collapse; font-family: monospace; font-size: 12px;">
-        <thead>
-            <tr>
-                <th style="width: 15%; text-align: left;">Cant</th>
-                <th style="width: 60%; padding-left: 5px; text-align: left;">Desc</th>
-                <th style="width: 25%; text-align: right;">Total</th>
-            </tr>
-        </thead>
-        <tbody id="receipt-items-print">
-        </tbody>
-    </table>
-    <div class="receipt-total-row d-flex justify-content-between pt-2" style="display: flex; justify-content: space-between; font-weight: bold; border-top: 1px dashed #000; margin-top: 5px;">
-        <span>TOTAL:</span>
-        <span id="receipt-total-print"></span>
-    </div>
-    <div style="text-align: center; margin-top: 20px; font-size: 10px;">¡Gracias por su compra!</div>
-</div>
+{{ render_receipt() }}
 
 <div class="row g-3 mb-3">
     <div class="col-12 col-md-4">
@@ -286,6 +229,7 @@
             document.getElementById('receipt-ticket-id').innerText = id;
             document.getElementById('receipt-total-print').innerText = clp.format(total);
             document.getElementById('receipt-date').innerText = new Date(rawDate + " UTC").toLocaleString('es-CL');
+            document.getElementById('receipt-payment-info').style.display = 'none';
 
             window.print();
         } catch (err) {

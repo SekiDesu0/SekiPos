@@ -44,3 +44,60 @@
     </div>
 </div>
 {% endmacro %}
+
+{% macro render_receipt(id_suffix="") %}
+<div id="receipt-print-zone{{ id_suffix }}" class="d-none d-print-block">
+    <style>
+        @media print {
+            body * { visibility: hidden; }
+            #receipt-print-zone{{ id_suffix }}, #receipt-print-zone{{ id_suffix }} * { visibility: visible; }
+            #receipt-print-zone{{ id_suffix }} {
+                position: absolute; left: 0; top: 0; width: 80mm;
+                padding: 5mm; margin: 0; display: block !important;
+                font-family: 'Courier New', Courier, monospace; font-size: 10px; color: #000;
+            }
+        }
+        .receipt-table { width: 100%; border-collapse: collapse; font-family: monospace; font-size: 12px; }
+        .receipt-header { text-align: center; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 5px; }
+        .receipt-total-row { border-top: 1px dashed #000; margin-top: 5px; padding-top: 5px; font-weight: bold; }
+    </style>
+
+    <div class="receipt-header">
+        <h3 style="margin: 0; font-weight: 800;">SekiPOS</h3>
+        <div style="font-size: 10px; margin-bottom: 5px;" id="receipt-type{{ id_suffix }}">Comprobante de Venta</div>
+        <div style="font-size: 11px; font-weight: bold;">
+            Ticket Nº <span id="receipt-ticket-id{{ id_suffix }}"></span>
+        </div>
+        <div id="receipt-date{{ id_suffix }}" style="font-size: 11px;"></div>
+    </div>
+
+    <table class="receipt-table">
+        <thead>
+            <tr>
+                <th style="width: 15%; text-align: left;">Cant</th>
+                <th style="width: 60%; padding-left: 5px; text-align: left;">Desc</th>
+                <th style="width: 25%; text-align: right;">Total</th>
+            </tr>
+        </thead>
+        <tbody id="receipt-items-print{{ id_suffix }}"></tbody>
+    </table>
+
+    <div class="receipt-total-row d-flex justify-content-between">
+        <span>TOTAL:</span>
+        <span id="receipt-total-print{{ id_suffix }}"></span>
+    </div>
+
+    <div id="receipt-payment-info{{ id_suffix }}">
+        <div class="d-flex justify-content-between">
+            <span>RECIBIDO:</span>
+            <span id="receipt-paid-print{{ id_suffix }}"></span>
+        </div>
+        <div class="d-flex justify-content-between">
+            <span>VUELTO:</span>
+            <span id="receipt-change-print{{ id_suffix }}"></span>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px; font-size: 10px;">¡Gracias por su compra!</div>
+</div>
+{% endmacro %}
