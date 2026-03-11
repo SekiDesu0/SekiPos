@@ -16,6 +16,50 @@
         -moz-appearance: textfield;
         appearance: textfield;
     }
+
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+
+        #receipt-print-zone, #receipt-print-zone * {
+            visibility: visible;
+        }
+
+        #receipt-print-zone {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 58mm;
+            padding: 0;
+            margin: 0;
+            display: block !important;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 10px;
+            color: #000;
+        }
+
+        .container-fluid, .main, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+        }
+    }
+
+    .receipt-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: monospace;
+        font-size: 12px;
+    }
+
+    .receipt-header {
+        text-align: center;
+        margin-bottom: 10px;
+        border-bottom: 1px dashed #000;
+        padding-bottom: 5px;
+    }
+
 </style>
 {% endblock %}
 
@@ -734,20 +778,21 @@
         cart.forEach(item => {
             const qtyStr = item.unit === 'kg' ? item.qty.toFixed(3) : item.qty;
             tbody.innerHTML += `
-                        <tr>
-                            <td>${qtyStr}</td>
-                            <td style="padding-left: 5px; padding-right: 5px; word-break: break-word;">${item.name}</td>
-                            <td style="text-align: right;">${clp.format(item.subtotal)}</td>
-                        </tr>
-                    `;
+                <tr>
+                    <td>${qtyStr}</td>
+                    <td style="padding-left: 5px; padding-right: 5px; word-break: break-word;">${item.name}</td>
+                    <td style="text-align: right;">${clp.format(item.subtotal)}</td>
+                </tr>
+            `;
         });
 
         document.getElementById('receipt-ticket-id').innerText = saleId || "N/A";
         document.getElementById('receipt-total-print').innerText = clp.format(total);
         document.getElementById('receipt-date').innerText = new Date().toLocaleString('es-CL');
 
-        // No hacks, just print
-        window.print();
+        setTimeout(() => {
+            window.print();
+        }, 250);
     }
 
     function openCustomProductModal() {
