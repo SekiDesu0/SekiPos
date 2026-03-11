@@ -5,276 +5,339 @@
 
 {% block head %}
 <!--HEAD-->
+<style>
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type="number"] {
+        -moz-appearance: textfield;
+        appearance: textfield;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-
-{% call confirm_modal('removeConfirmModal', 'Quitar Producto', 'btn-danger-discord', 'Quitar', 'executeRemoveItem()') %}
-¿Estás seguro de que quieres quitar <strong id="removeItemName"></strong> del carrito?
-{% endcall %}
-
-{% call confirm_modal('clearCartModal', 'Vaciar Carrito', 'btn-danger-discord', 'Sí, vaciar', 'executeClearCart()') %}
-<div class="text-center">
-    <i class="bi bi-cart-x text-danger" style="font-size: 3rem;"></i>
-    <p class="mt-3">¿Seguro que quieres eliminar todos los productos del carrito?</p>
-</div>
-{% endcall %}
-
-<div class="modal fade" id="customProductModal" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Agregar Producto Manual</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label text-muted small mb-1">Descripción</label>
-                    <input type="text" id="custom-name" class="form-control" placeholder="Ej: Varios, Bolsa, etc."
-                        onkeydown="if(event.key === 'Enter') document.getElementById('custom-price').focus()">
-                </div>
-                <div class="row g-2">
-                    <div class="col-8">
-                        <label class="form-label text-muted small mb-1">Precio Unitario</label>
-                        <input type="number" id="custom-price" class="form-control" placeholder="Ej: 1500"
-                            onkeydown="if(event.key === 'Enter') addCustomProduct()">
-                    </div>
-                    <div class="col-4">
-                        <label class="form-label text-muted small mb-1">Tipo</label>
-                        <select id="custom-unit" class="form-select">
-                            <option value="unit">Unidad</option>
-                            <option value="kg">Kg</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer d-flex">
-                <button class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal">Cancelar</button>
-                <button class="btn btn-accent flex-grow-1" onclick="addCustomProduct()">Agregar</button>
-            </div>
+    {% call confirm_modal('removeConfirmModal', 'Quitar Producto', 'btn-danger-discord', 'Quitar', 'executeRemoveItem()') %}
+        ¿Estás seguro de que quieres quitar <strong id="removeItemName"></strong> del carrito?
+    {% endcall %}
+    {% call confirm_modal('clearCartModal', 'Vaciar Carrito', 'btn-danger-discord', 'Sí, vaciar', 'executeClearCart()') %}
+        <div class="text-center">
+            <i class="bi bi-cart-x text-danger" style="font-size: 3rem;"></i>
+            <p class="mt-3">¿Seguro que quieres eliminar todos los productos del carrito?</p>
         </div>
-    </div>
-</div>
-<div id="receipt-print-zone" class="d-none d-print-block">
-    <div class="receipt-header">
-        <h3 style="margin: 0; font-weight: 800;">SekiPOS</h3>
-        <div style="font-size: 10px; margin-bottom: 5px;">Comprobante de Venta</div>
-        <div style="font-size: 11px; font-weight: bold;">Ticket Nº <span id="receipt-ticket-id"></span></div>
-        <div id="receipt-date" style="font-size: 11px;"></div>
-    </div>
-
-    <table class="receipt-table">
-        <thead>
-            <tr>
-                <th style="width: 15%;">Cant</th>
-                <th style="width: 60%; padding-left: 5px;">Desc</th>
-                <th style="width: 25%; text-align: right;">Total</th>
-            </tr>
-        </thead>
-        <tbody id="receipt-items-print">
-        </tbody>
-    </table>
-
-    <div class="receipt-total-row d-flex justify-content-between pt-2">
-        <span>TOTAL:</span>
-        <span id="receipt-total-print"></span>
-    </div>
-
-    <div style="text-align: center; margin-top: 20px; font-size: 10px;">
-        ¡Gracias por su compra!
-    </div>
-</div>
-<div class="modal fade" id="successModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-success">
-            <div class="modal-body text-center py-4">
-                <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
-                <h4 class="mt-3">¡Venta Exitosa!</h4>
-                <p class="text-muted">El carrito se ha procesado correctamente.</p>
-                <button class="btn btn-accent px-5" data-bs-dismiss="modal">Listo</button>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="paymentModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem;">Total
-                    a Pagar</h5>
-                <button type="button" class="btn-close position-absolute end-0 top-0 m-3"
-                    data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center pt-1 pb-4">
-                <h1 id="payment-modal-total" class="mb-4"
-                    style="color: var(--accent); font-weight: 800; font-size: 3rem;">$0</h1>
-
-                <div class="d-grid gap-3 px-3">
-                    <button class="btn btn-lg btn-success py-3" onclick="openVueltoModal()">
-                        <i class="bi bi-cash-coin me-2" style="font-size: 1.5rem; vertical-align: middle;"></i>
-                        Efectivo
-                    </button>
-                    <button class="btn btn-lg btn-secondary py-3" onclick="executeCheckout('tarjeta')">
-                        <i class="bi bi-credit-card me-2" style="font-size: 1.5rem; vertical-align: middle;"></i>
-                        Tarjeta (Pronto)
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="vueltoModal" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem;">Pago
-                    en Efectivo</h5>
-                <button type="button" class="btn-close position-absolute end-0 top-0 m-3"
-                    data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center pt-1 pb-4">
-                <div class="mb-3">
-                    <span class="text-muted small">Total a Pagar:</span><br>
-                    <span id="vuelto-total-display" class="fs-4 fw-bold" style="color: var(--text-main);">$0</span>
-                </div>
-
-                <div class="mb-3 text-start">
-                    <label class="text-muted small mb-1">Monto Recibido</label>
-                    <input type="number" id="monto-recibido"
-                        class="form-control form-control-lg text-center fw-bold fs-4" placeholder="$0"
-                        onkeyup="calculateVuelto()" onchange="calculateVuelto()"
-                        onkeydown="if(event.key === 'Enter' && !document.getElementById('btn-confirm-vuelto').disabled) executeCheckout('efectivo')">
-                </div>
-
-                <div class="d-flex justify-content-center gap-2 mb-3" id="vuelto-quick-buttons"></div>
-
-                <div class="p-3 mb-3" style="background: var(--input-bg); border-radius: 8px;">
-                    <span class="text-muted small text-uppercase fw-bold">Vuelto a Entregar</span><br>
-                    <span id="vuelto-amount" class="fs-1 fw-bold text-muted">$0</span>
-                </div>
-
-                <button id="btn-confirm-vuelto" class="btn btn-success w-100 py-3 fw-bold"
-                    onclick="executeCheckout('efectivo')" disabled>
-                    Confirmar Venta
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="notFoundModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-warning">
-            <div class="modal-header border-0 pb-0">
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center pt-0 pb-4">
-                <i class="bi bi-question-circle text-warning mb-3" style="font-size: 3rem;"></i>
-                <h4 class="mb-2">Producto No Registrado</h4>
-                <p class="text-muted px-3 small">El código <strong id="not-found-barcode"
-                        style="color: var(--text-main);"></strong> no existe en la base de datos.</p>
-
-                <div class="d-flex flex-column gap-2 px-3 mt-4">
-                    <button class="btn btn-accent w-100 py-2" onclick="goToInventory()">
-                        <i class="bi bi-database-add me-2"></i>Registrar en Inventario
-                    </button>
-                    <button class="btn btn-outline-secondary w-100 py-2" onclick="openTempProduct()">
-                        <i class="bi bi-cart-plus me-2"></i>Venta Temporal (Solo por esta vez)
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="container-fluid">
-    <div class="row g-3">
-        <div class="col-md-8">
-            <div class="discord-card p-3">
-                <h4><i class="bi bi-cart3"></i> Carrito</h4>
-                <div class="position-relative mb-4">
-                    <div class="input-group">
-                        <span class="input-group-text border-0 position-absolute"
-                            style="background: transparent; z-index: 10;">
-                            <i class="bi bi-search text-muted"></i>
-                        </span>
-                        <input type="text" id="manual-search" class="form-control ps-5 py-2 rounded"
-                            placeholder="Buscar producto por nombre o código..." autocomplete="off"
-                            onkeyup="filterSearch()">
-                        <button class="btn btn-accent px-3" type="button" onclick="openCustomProductModal()"
-                            title="Agregar manual">
-                            <i class="bi bi-plus-lg"></i> <span class="d-none d-sm-inline ms-1">Manual</span>
-                        </button>
-                    </div>
-                    <div id="search-results" class="dropdown-menu w-100 shadow-sm mt-1"
-                        style="display: none; position: absolute; top: 100%; left: 0; z-index: 1000; max-height: 300px; overflow-y: auto;">
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table mt-3" id="cart-table">
-                        <thead>
-                            <tr>
-                                <th>Código</th>
-                                <th>Producto</th>
-                                <th>Precio/U</th>
-                                <th>Cant/Peso</th>
-                                <th>Subtotal</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="cart-items">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="discord-card p-3 mb-3 text-center shadow-sm">
-                <p class="mb-1 fw-semibold text-uppercase" style="color:var(--text-muted); font-size:0.7rem;">Último
-                    Escaneado</p>
-                <img id="display-img" src="./static/placeholder.png" class="mb-2" alt="product">
-                <h6 id="display-name" class="mb-0 text-truncate">Esperando scan...</h6>
-                <small id="display-barcode" class="text-muted font-monospace" style="font-size: 0.7rem;"></small>
-
-
-                <div class="total-banner text-center mb-3">
-                    <div class="total-banner text-center mb-3">
-                        <h2 class="mb-0">TOTAL</h2>
-                        <h1 id="grand-total" style="font-size: 3.5rem; font-weight: 800;">$0</h1>
-                    </div>
-                    <button class="btn btn-success w-100 btn-lg mb-2" onclick="processSale()">
-                        <i class="bi bi-cash-coin"></i> COBRAR
-                    </button>
-                    <button class="btn btn-danger w-100" onclick="clearCart()">Vaciar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="weightModal" tabindex="-1" data-bs-backdrop="static">
+    {% endcall %}
+    <div class="modal fade"
+         id="customProductModal"
+         tabindex="-1"
+         data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5>Ingresar Peso (Gramos)</h5>
+                    <h5 class="modal-title">Agregar Producto Manual</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="number" id="weight-input" class="form-control form-control-lg" step="1"
-                        placeholder="Ej: 500" onkeydown="if(event.key === 'Enter') confirmWeight()">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small mb-1">Descripción</label>
+                        <input type="text"
+                               id="custom-name"
+                               class="form-control"
+                               placeholder="Ej: Varios, Bolsa, etc."
+                               onkeydown="if(event.key === 'Enter') document.getElementById('custom-price').focus()">
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-8">
+                            <label class="form-label text-muted small mb-1">Precio Unitario</label>
+                            <input type="number"
+                                   id="custom-price"
+                                   class="form-control"
+                                   placeholder="Ej: 1500"
+                                   onkeydown="if(event.key === 'Enter') addCustomProduct()">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label text-muted small mb-1">Tipo</label>
+                            <select id="custom-unit" class="form-select">
+                                <option value="unit">Unidad</option>
+                                <option value="kg">Kg</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer d-flex">
                     <button class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal">Cancelar</button>
-                    <button class="btn btn-accent flex-grow-1" onclick="confirmWeight()">Agregar</button>
+                    <button class="btn btn-accent flex-grow-1" onclick="addCustomProduct()">Agregar</button>
                 </div>
             </div>
         </div>
     </div>
-
-</div>
-
+    <div id="receipt-print-zone" class="d-none d-print-block">
+        <div class="receipt-header">
+            <h3 style="margin: 0; font-weight: 800;">SekiPOS</h3>
+            <div style="font-size: 10px; margin-bottom: 5px;">Comprobante de Venta</div>
+            <div style="font-size: 11px; font-weight: bold;">
+                Ticket Nº <span id="receipt-ticket-id"></span>
+            </div>
+            <div id="receipt-date" style="font-size: 11px;"></div>
+        </div>
+        <table class="receipt-table">
+            <thead>
+                <tr>
+                    <th style="width: 15%;">Cant</th>
+                    <th style="width: 60%; padding-left: 5px;">Desc</th>
+                    <th style="width: 25%; text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody id="receipt-items-print">
+            </tbody>
+        </table>
+        <div class="receipt-total-row d-flex justify-content-between pt-2">
+            <span>TOTAL:</span>
+            <span id="receipt-total-print"></span>
+        </div>
+        <div style="text-align: center; margin-top: 20px; font-size: 10px;">¡Gracias por su compra!</div>
+    </div>
+    <div class="modal fade" id="successModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-success">
+                <div class="modal-body text-center py-4">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                    <h4 class="mt-3">¡Venta Exitosa!</h4>
+                    <p class="text-muted">El carrito se ha procesado correctamente.</p>
+                    <button class="btn btn-accent px-5" data-bs-dismiss="modal">Listo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title w-100 text-center text-muted text-uppercase"
+                        style="font-size: 0.8rem">
+                        Total
+                        a Pagar
+                    </h5>
+                    <button type="button"
+                            class="btn-close position-absolute end-0 top-0 m-3"
+                            data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center pt-1 pb-4">
+                    <h1 id="payment-modal-total"
+                        class="mb-4"
+                        style="color: var(--accent);
+                               font-weight: 800;
+                               font-size: 3rem">$0</h1>
+                    <div class="d-grid gap-3 px-3">
+                        <button class="btn btn-lg btn-success py-3" onclick="openVueltoModal()">
+                            <i class="bi bi-cash-coin me-2"
+                               style="font-size: 1.5rem;
+                                      vertical-align: middle"></i>
+                            Efectivo
+                        </button>
+                        <button class="btn btn-lg btn-secondary py-3"
+                                onclick="executeCheckout('tarjeta')">
+                            <i class="bi bi-credit-card me-2"
+                               style="font-size: 1.5rem;
+                                      vertical-align: middle"></i>
+                            Tarjeta (Pronto)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade"
+         id="vueltoModal"
+         tabindex="-1"
+         data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title w-100 text-center text-muted text-uppercase"
+                        style="font-size: 0.8rem">
+                        Pago
+                        en Efectivo
+                    </h5>
+                    <button type="button"
+                            class="btn-close position-absolute end-0 top-0 m-3"
+                            data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center pt-1 pb-4">
+                    <div class="mb-3">
+                        <span class="text-muted small">Total a Pagar:</span>
+                        <br>
+                        <span id="vuelto-total-display"
+                              class="fs-4 fw-bold"
+                              style="color: var(--text-main)">$0</span>
+                    </div>
+                    <div class="mb-3 text-start">
+                        <label class="text-muted small mb-1">Monto Recibido</label>
+                        <input type="number"
+                               id="monto-recibido"
+                               class="form-control form-control-lg text-center fw-bold fs-4"
+                               placeholder="$0"
+                               onkeyup="calculateVuelto()"
+                               onchange="calculateVuelto()"
+                               onkeydown="if(event.key === 'Enter' && !document.getElementById('btn-confirm-vuelto').disabled) executeCheckout('efectivo')">
+                    </div>
+                    <div class="d-flex justify-content-center gap-2 mb-3"
+                         id="vuelto-quick-buttons"></div>
+                    <div class="p-3 mb-3"
+                         style="background: var(--input-bg);
+                                border-radius: 8px">
+                        <span class="text-muted small text-uppercase fw-bold">Vuelto a Entregar</span>
+                        <br>
+                        <span id="vuelto-amount" class="fs-1 fw-bold text-muted">$0</span>
+                    </div>
+                    <button id="btn-confirm-vuelto"
+                            class="btn btn-success w-100 py-3 fw-bold"
+                            onclick="executeCheckout('efectivo')"
+                            disabled>Confirmar Venta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="notFoundModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-warning">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center pt-0 pb-4">
+                    <i class="bi bi-question-circle text-warning mb-3"
+                       style="font-size: 3rem"></i>
+                    <h4 class="mb-2">Producto No Registrado</h4>
+                    <p class="text-muted px-3 small">
+                        El código <strong id="not-found-barcode" style="color: var(--text-main);"></strong> no existe en la base de datos.
+                    </p>
+                    <div class="d-flex flex-column gap-2 px-3 mt-4">
+                        <button class="btn btn-accent w-100 py-2" onclick="goToInventory()">
+                            <i class="bi bi-database-add me-2"></i>Registrar en Inventario
+                        </button>
+                        <button class="btn btn-outline-secondary w-100 py-2"
+                                onclick="openTempProduct()">
+                            <i class="bi bi-cart-plus me-2"></i>Venta Temporal (Solo por esta vez)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="row g-3">
+            <div class="col-md-8">
+                <div class="discord-card p-3">
+                    <h4>
+                        <i class="bi bi-cart3"></i> Carrito
+                    </h4>
+                    <div class="position-relative mb-4">
+                        <div class="input-group">
+                            <span class="input-group-text border-0 position-absolute"
+                                  style="background: transparent;
+                                         z-index: 10">
+                                <i class="bi bi-search text-muted"></i>
+                            </span>
+                            <input type="text"
+                                   id="manual-search"
+                                   class="form-control ps-5 py-2 rounded"
+                                   placeholder="Buscar producto por nombre o código..."
+                                   autocomplete="off"
+                                   onkeyup="filterSearch()">
+                            <button class="btn btn-accent px-3"
+                                    type="button"
+                                    onclick="openCustomProductModal()"
+                                    title="Agregar manual">
+                                <i class="bi bi-plus-lg"></i> <span class="d-none d-sm-inline ms-1">Manual</span>
+                            </button>
+                        </div>
+                        <div id="search-results"
+                             class="dropdown-menu w-100 shadow-sm mt-1"
+                             style="display: none;
+                                    position: absolute;
+                                    top: 100%;
+                                    left: 0;
+                                    z-index: 1000;
+                                    max-height: 300px;
+                                    overflow-y: auto"></div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table mt-3" id="cart-table">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Producto</th>
+                                    <th>Precio/U</th>
+                                    <th>Cant/Peso</th>
+                                    <th>Subtotal</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="cart-items">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="discord-card p-3 mb-3 text-center shadow-sm">
+                    <p class="mb-1 fw-semibold text-uppercase"
+                       style="color:var(--text-muted);
+                              font-size:0.7rem">
+                        Último
+                        Escaneado
+                    </p>
+                    <img id="display-img"
+                         src="./static/placeholder.png"
+                         class="mb-2"
+                         alt="product">
+                    <h6 id="display-name" class="mb-0 text-truncate">Esperando scan...</h6>
+                    <small id="display-barcode"
+                           class="text-muted font-monospace"
+                           style="font-size: 0.7rem"></small>
+                    <div class="total-banner text-center mb-3">
+                        <div class="total-banner text-center mb-3">
+                            <h2 class="mb-0">TOTAL</h2>
+                            <h1 id="grand-total" style="font-size: 3.5rem; font-weight: 800;">$0</h1>
+                        </div>
+                        <button class="btn btn-success w-100 btn-lg mb-2" onclick="processSale()">
+                            <i class="bi bi-cash-coin"></i> COBRAR
+                        </button>
+                        <button class="btn btn-danger w-100" onclick="clearCart()">Vaciar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade"
+             id="weightModal"
+             tabindex="-1"
+             data-bs-backdrop="static">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5>Ingresar Peso (Gramos)</h5>
+                    </div>
+                    <div class="modal-body">
+                        <input type="number"
+                               id="weight-input"
+                               class="form-control form-control-lg"
+                               step="1"
+                               placeholder="Ej: 500"
+                               onkeydown="if(event.key === 'Enter') confirmWeight()">
+                    </div>
+                    <div class="modal-footer d-flex">
+                        <button class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal">Cancelar</button>
+                        <button class="btn btn-accent flex-grow-1" onclick="confirmWeight()">Agregar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
-
 {% block scripts %}
-<script>
+    <script>
     let editingCartIndex = null;
     let itemIndexToRemove = null;
     let missingProductData = null;
@@ -349,9 +412,7 @@
                 qtyControls = `
                             <div class="d-flex align-items-center gap-1">
                                 <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="updateQty(${index}, -1)">-</button>
-                                <input type="number" class="form-control form-control-sm text-center p-0" 
-                                    style="width: 50px;" value="${item.qty}" 
-                                    onchange="manualQty(${index}, this.value)">
+                                <input type="number" class="form-control form-control-sm text-center p-0" style="width: 50px;" value="${item.qty}" onchange="manualQty(${index}, this.value)">
                                 <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="updateQty(${index}, 1)">+</button>
                             </div>
                         `;
@@ -532,20 +593,20 @@
             weightInput.select();
         }, 500);
     }
-
-    // 1. Load all products from Python into a JavaScript array safely
-    const allProducts = {{ products | map('list') | list | tojson | safe }};
-
-    // Map the array to objects so your existing code works (barcode, name, price, image, stock, unit)
-    const formattedProducts = allProducts.map(p => ({
-        barcode: p[0],
-        name: p[1],
-        price: parseInt(p[2]),
-        image: p[3] || '',
-        stock: p[4] || 0,
-        unit: p[5] || 'unit'
-    }));
-
+    
+    const allProducts = [
+        {% for p in products %}
+    {
+        barcode: {{ p[0] | tojson }},
+        name: {{ p[1] | tojson }},
+        price: {{ p[2] | int }},
+        image: {{ p[3] | tojson }},
+        stock: {{ p[4] | int }},
+        unit: {{ p[5] | tojson }}
+    },
+    {% endfor %}
+    ];
+    
     // 2. Extracted this into a helper so both Scanner and Search can use it
     function handleProductScan(product) {
         document.getElementById('display-name').innerText = product.name;
@@ -588,8 +649,7 @@
             resultsBox.innerHTML = '<div class="p-3 text-muted text-center">No se encontraron productos</div>';
         } else {
             resultsBox.innerHTML = matches.map(p => `
-                        <a href="#" class="dropdown-item d-flex justify-content-between align-items-center py-2" 
-                        onclick="selectSearchResult('${p.barcode}')">
+                        <a href="#" class="dropdown-item d-flex justify-content-between align-items-center py-2" onclick="selectSearchResult('${p.barcode}')">
                             <div>
                                 <strong>${p.name}</strong><br>
                                 <small class="text-muted font-monospace">${p.barcode}</small>
@@ -795,5 +855,5 @@
     }
 
     loadCart();
-</script>
+    </script>
 {% endblock %}

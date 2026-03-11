@@ -5,6 +5,46 @@
 
 {% block head %}
 <script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+    .table th:last-child, 
+    .table td:last-child {
+        width: 1%;
+        white-space: nowrap;
+        text-align: right;
+    }
+
+    .name-cell {
+        max-width: 200px; /* Adjust based on preference */
+        word-wrap: break-word;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    @media (min-width: 992px) {
+        .name-cell {
+            max-width: 400px;
+        }
+    }
+
+    .sort-asc::after {
+        content: " ↓";
+        font-size: 0.8rem;
+    }
+
+    .sort-desc::after {
+        content: " ↑";
+        font-size: 0.8rem;
+    }
+
+    th[onclick] {
+        cursor: pointer;
+        user-select: none;
+    }
+
+    th[onclick]:hover {
+        background-color: var(--input-bg) !important;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -145,7 +185,7 @@
                                 {% endif %}
                             </td>
                             <td class="price-cell" data-value="{{ p[2] }}"></td>
-                            <td>
+                            <td class="text-nowrap">
                                 <button class="btn btn-accent btn-sm"
                                     onclick="editProduct('{{ p[0] }}', '{{ p[1] }}', '{{ p[2] }}', '{{ p[3] }}', '{{ p[4] }}', '{{ p[5] }}')"
                                     data-bs-toggle="modal" data-bs-target="#editModal">
@@ -512,15 +552,16 @@ permanentemente', 'executeBulkDelete()') %}
     function clearSearch() {
         const input = document.getElementById('searchInput');
         input.value = '';
-        searchTable(); // Re-run search to show all rows
+        searchTable();
         input.focus();
     }
 
-    let sortDirections = [true, true, true, true]; // Tracks asc/desc for each column
+   let sortDirections = [true, true, true, true, true]; 
 
     function sortTable(colIdx) {
         const table = document.getElementById("inventoryTable");
         const tbody = table.querySelector("tbody");
+        const ths = table.querySelectorAll("thead th");
         const rows = Array.from(tbody.querySelectorAll("tr"));
         const isAscending = sortDirections[colIdx];
 
@@ -528,10 +569,12 @@ permanentemente', 'executeBulkDelete()') %}
             let valA = a.cells[colIdx].innerText.trim();
             let valB = b.cells[colIdx].innerText.trim();
 
-            // If sorting price, use the data-value attribute for pure numbers
-            if (colIdx === 3) {
-                valA = parseFloat(a.cells[colIdx].getAttribute('data-value')) || 0;
-                valB = parseFloat(b.cells[colIdx].getAttribute('data-value')) || 0;
+            // Specific logic for numeric columns
+            if (colIdx === 3 || colIdx === 4) {
+                // If it's Stock (3) or Price (4), strip everything but numbers
+                // This handles the "Uni" text and the currency symbols
+                valA = parseFloat(valA.replace(/[^\d.-]/g, '')) || 0;
+                valB = parseFloat(valB.replace(/[^\d.-]/g, '')) || 0;
             } else {
                 valA = valA.toLowerCase();
                 valB = valB.toLowerCase();
@@ -542,13 +585,12 @@ permanentemente', 'executeBulkDelete()') %}
             return 0;
         });
 
-        // Toggle direction for next click
+        ths.forEach(th => th.classList.remove('sort-asc', 'sort-desc'));
+        
+        ths[colIdx].classList.add(isAscending ? 'sort-asc' : 'sort-desc');
+
         sortDirections[colIdx] = !isAscending;
-
-        // Append sorted rows back to tbody
         sortedRows.forEach(row => tbody.appendChild(row));
-
-        // Optional: Reset "select all" state since order changed
         document.getElementById('select-all').checked = false;
     }
 
@@ -572,17 +614,13 @@ permanentemente', 'executeBulkDelete()') %}
                 devices.forEach((device, index) => {
                     const option = document.createElement('option');
                     option.value = device.id;
-                    // Store the index in a data attribute for easier retrieval later
                     option.dataset.index = index;
                     option.text = device.label || `Cámara ${index + 1}`;
                     select.appendChild(option);
                 });
 
-                // Retrieve saved index or default to the last camera
                 const savedIndex = getCookie('cameraIndex');
-                const targetIndex = (savedIndex !== null && savedIndex < devices.length)
-                    ? savedIndex
-                    : devices.length - 1;
+                const targetIndex = (savedIndex !== null && savedIndex < devices.length) ? savedIndex : devices.length - 1;
 
                 currentCameraId = devices[targetIndex].id;
                 select.value = currentCameraId;
@@ -663,7 +701,7 @@ permanentemente', 'executeBulkDelete()') %}
                     torchBtn.style.display = 'none';
                     console.log("Torch not supported on this device/browser.");
                 }
-            }, 500); // 500ms delay to let the camera stream stabilize
+            }, 250);
 
         } catch (err) {
             console.error("Camera start error:", err);
@@ -672,7 +710,6 @@ permanentemente', 'executeBulkDelete()') %}
 
     function stopScanner() {
         if (html5QrCode && html5QrCode.isScanning) {
-            // Hide the button when the camera stops
             document.getElementById('torch-btn').style.display = 'none';
             html5QrCode.stop().then(() => {
                 html5QrCode.clear();
@@ -685,7 +722,6 @@ permanentemente', 'executeBulkDelete()') %}
             const select = document.getElementById('camera-select');
             const selectedOption = select.options[select.selectedIndex];
 
-            // Save the index of the selected camera to a cookie
             if (selectedOption && selectedOption.dataset.index !== undefined) {
                 setCookie('cameraIndex', selectedOption.dataset.index, 365);
             }
@@ -695,23 +731,20 @@ permanentemente', 'executeBulkDelete()') %}
         }
     }
 
-    // Function to toggle stock state
     function toggleStockInput() {
         const unitSelect = document.getElementById('form-unit-type');
         const stockInput = document.getElementById('form-stock');
 
         if (unitSelect.value === 'kg') {
-            stockInput.classList.add('d-none'); // Poof.
-            stockInput.disabled = true;         // Prevent form submission errors
+            stockInput.classList.add('d-none');
+            stockInput.disabled = true;
             stockInput.value = '';
         } else {
-            stockInput.classList.remove('d-none'); // Bring it back for units
+            stockInput.classList.remove('d-none');
             stockInput.disabled = false;
         }
     }
 
-    // Listen for manual dropdown changes
     document.getElementById('form-unit-type').addEventListener('change', toggleStockInput);
-
 </script>
 {% endblock %}
