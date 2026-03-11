@@ -18,6 +18,23 @@
             display: block !important;
         }
     }
+
+    @media (max-width: 768px) {
+        .table td, .table th {
+            padding: 0.5rem 0.25rem;
+            font-size: 0.85rem;
+        }
+        
+        .btn-sm span {
+            display: none;
+        }
+    }
+
+    .table th:last-child, 
+    .table td:last-child {
+        width: 1%;
+        white-space: nowrap;
+    }
 </style>
 {% endblock %}
 
@@ -101,7 +118,7 @@
                     <th>Fecha y Hora</th>
                     <th>Método</th>
                     <th>Total</th>
-                    <th>Acciones</th>
+                    <th class="text-nowrap" style="width: 1%;">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -111,10 +128,10 @@
                     <td class="utc-date">{{ s[1] }}</td>
                     <td class="text-capitalize">{{ s[3] }}</td>
                     <td class="price-cell fw-bold" data-value="{{ s[2] }}"></td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-secondary"
-                            onclick="viewSale({{ s[0] }}, '{{ s[1] }}', {{ s[2] }})">
-                            <i class="bi bi-eye"></i> Ver Detalle
+                    <td class="text-nowrap">
+                        <button class="btn btn-sm btn-outline-secondary py-0 px-2"
+                                onclick="viewSale({{ s[0] }}, '{{ s[1] }}', {{ s[2] }})">
+                            <i class="bi bi-eye"></i> <span class="d-none d-lg-inline">Ver Detalle</span>
                         </button>
                     </td>
                 </tr>
