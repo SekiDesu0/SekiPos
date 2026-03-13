@@ -5,6 +5,16 @@ DB_FILE = 'db/pos_database.db'
 def upgrade_db():
     try:
         with sqlite3.connect(DB_FILE) as conn:
+<<<<<<< HEAD
+=======
+            # Add stock column
+            # conn.execute("ALTER TABLE products ADD COLUMN stock REAL DEFAULT 0")
+            # print("Successfully added 'stock' column.")
+            
+            # # App.py also expects unit_type, adding it to prevent future headaches
+            # conn.execute("ALTER TABLE products ADD COLUMN unit_type TEXT DEFAULT 'unit'")
+            # print("Successfully added 'unit_type' column.")
+>>>>>>> 1a048a0e074ee26bd45dda9731c78c2ecef42fba
 
             conn.execute("ALTER TABLE dicom ADD COLUMN image_url TEXT;")
             print("Successfully added 'image_url' column.")
