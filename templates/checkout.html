@@ -75,6 +75,30 @@
         </div>
     </div>
 
+    <div class="modal fade" id="variosModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem;">
+                        Producto Varios
+                    </h5>
+                    <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center pt-1 pb-4">
+                    <div class="mb-3 text-start">
+                        <label class="text-muted small mb-1">Precio (CLP)</label>
+                        <input type="number" id="varios-price-input" class="form-control form-control-lg text-center fw-bold fs-4"
+                            placeholder="$0"
+                            onkeydown="if(event.key === 'Enter') addVariosToCart()">
+                    </div>
+                    <button class="btn btn-warning w-100 py-3 fw-bold" onclick="addVariosToCart()">
+                        <i class="bi bi-cart-plus me-1"></i> Agregar al Carrito
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="successModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-success">
@@ -212,8 +236,7 @@
                     <div class="position-relative mb-4">
                         <div class="input-group">
                             <span class="input-group-text border-0 position-absolute"
-                                  style="background: transparent;
-                                         z-index: 10">
+                                  style="background: transparent; z-index: 10">
                                 <i class="bi bi-search text-muted"></i>
                             </span>
                             <input type="text"
@@ -222,10 +245,15 @@
                                    placeholder="Buscar producto por nombre o código..."
                                    autocomplete="off"
                                    onkeyup="filterSearch()">
+                                   
+                            <button class="btn btn-warning px-3 fw-bold" type="button" onclick="openVariosModal()" title="Agregar Varios rápido">
+                                <i class="bi bi-asterisk"></i> <span class="d-none d-sm-inline ms-1">Varios</span>
+                            </button>
+                            
                             <button class="btn btn-accent px-3"
                                     type="button"
                                     onclick="openCustomProductModal()"
-                                    title="Agregar manual">
+                                    title="Agregar manual detallado">
                                 <i class="bi bi-plus-lg"></i> <span class="d-none d-sm-inline ms-1">Manual</span>
                             </button>
                         </div>
@@ -278,10 +306,15 @@
                             <h2 class="mb-0">TOTAL</h2>
                             <h1 id="grand-total" style="font-size: 3.5rem; font-weight: 800;">$0</h1>
                         </div>
+                        <button class="btn btn-primary w-100 btn-lg mb-2" onclick="openQuickSaleModal()">
+                            <i class="bi bi-lightning-charge"></i> VENTA RÁPIDA
+                        </button>
                         <button class="btn btn-success w-100 btn-lg mb-2" onclick="processSale()">
                             <i class="bi bi-cash-coin"></i> COBRAR
                         </button>
-                        <button class="btn btn-danger w-100" onclick="clearCart()">Vaciar</button>
+                        <button class="btn btn-danger w-100 btn-lg" onclick="clearCart()">
+                            <i class="bi bi-trash3"></i> VACIAR
+                        </button>
                     </div>
                 </div>
             </div>
@@ -307,6 +340,29 @@
                         <button class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal">Cancelar</button>
                         <button class="btn btn-accent flex-grow-1" onclick="confirmWeight()">Agregar</button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="quickSaleModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem;">
+                        Venta Rápida
+                    </h5>
+                    <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center pt-1 pb-4">
+                    <div class="mb-3 text-start">
+                        <label class="text-muted small mb-1">Monto (CLP)</label>
+                        <input type="number" id="quick-sale-amount" class="form-control form-control-lg text-center fw-bold fs-4"
+                            placeholder="$0"
+                            onkeydown="if(event.key === 'Enter') processQuickSale()">
+                    </div>
+                    <button class="btn btn-primary w-100 py-3 fw-bold" onclick="processQuickSale()">
+                        <i class="bi bi-lightning-charge me-1"></i> Finalizar Venta
+                    </button>
                 </div>
             </div>
         </div>
@@ -433,6 +489,7 @@
     function executeClearCart() {
         cart = [];
         renderCart();
+        clearLastScanned();
         bootstrap.Modal.getInstance(document.getElementById('clearCartModal')).hide();
     }
 
@@ -484,6 +541,7 @@
 
                 cart = [];
                 renderCart();
+                clearLastScanned();
                 setTimeout(() => successModal.hide(), 2000);
             } else {
                 alert("Error: " + (result.error || "Error desconocido"));
@@ -848,6 +906,119 @@
         }
     }
 
+    function openQuickSaleModal() {
+        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('quickSaleModal'));
+        document.getElementById('quick-sale-amount').value = '';
+        modal.show();
+        // Give the modal a tiny fraction of a second to render before stealing focus
+        setTimeout(() => document.getElementById('quick-sale-amount').focus(), 500);
+    }
+
+    async function processQuickSale() {
+        const amountInput = document.getElementById('quick-sale-amount').value;
+        const amount = parseInt(amountInput, 10);
+
+        if (isNaN(amount) || amount <= 0) {
+            alert("Ingresa un monto válido.");
+            return;
+        }
+
+        // Create a fake cart containing just this one generic item
+        const quickCart = [{
+            barcode: `RAPIDA-${Date.now().toString().slice(-6)}`,
+            name: '* Varios',
+            price: amount,
+            qty: 1,
+            subtotal: amount,
+            unit: 'unit'
+        }];
+
+        try {
+            const response = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cart: quickCart, payment_method: 'efectivo' })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('quickSaleModal')).hide();
+
+                // Temporarily swap the global cart variable so printReceipt reads the quick sale, then swap it back
+                const originalCart = [...cart];
+                cart = quickCart;
+                printReceipt(amount, result.sale_id, amount);
+                cart = originalCart; 
+
+                const successModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('successModal'));
+                successModal.show();
+                setTimeout(() => successModal.hide(), 2000);
+            } else {
+                alert("Error: " + (result.error || "Error desconocido"));
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Error de conexión con el servidor.");
+        }
+    }
+
+    function clearLastScanned() {
+        document.getElementById('display-img').src = './static/placeholder.png';
+        document.getElementById('display-name').innerText = 'Esperando scan...';
+        document.getElementById('display-barcode').innerText = '';
+    }
+
+    function openVariosModal() {
+        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('variosModal'));
+        document.getElementById('varios-price-input').value = '';
+        modal.show();
+        setTimeout(() => document.getElementById('varios-price-input').focus(), 500);
+    }
+
+    function addVariosToCart() {
+        const priceInput = document.getElementById('varios-price-input').value;
+        const price = parseInt(priceInput, 10);
+
+        if (isNaN(price) || price <= 0) {
+            alert("Ingresa un precio válido.");
+            return;
+        }
+
+        const variosProduct = {
+            barcode: `VARIOS-${Date.now().toString().slice(-6)}`,
+            name: '* Varios',
+            price: price,
+            qty: 1,
+            subtotal: price,
+            image: '',
+            stock: 0,
+            unit: 'unit'
+        };
+
+        addToCart(variosProduct, 1);
+        bootstrap.Modal.getInstance(document.getElementById('variosModal')).hide();
+    }
+
+    // Global listener to capture the Enter key for confirmation modals
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                const removeModal = document.getElementById('removeConfirmModal');
+                const clearModal = document.getElementById('clearCartModal');
+                
+                // If the "Quitar Producto" modal is open
+                if (removeModal && removeModal.classList.contains('show')) {
+                    event.preventDefault(); // Stop it from clicking anything else in the background
+                    executeRemoveItem();
+                } 
+                // If the "Vaciar Carrito" modal is open
+                else if (clearModal && clearModal.classList.contains('show')) {
+                    event.preventDefault();
+                    executeClearCart();
+                }
+            }
+        });
+        
     loadCart();
     </script>
 {% endblock %}
