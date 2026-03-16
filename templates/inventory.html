@@ -287,6 +287,13 @@ permanentemente', 'executeBulkDelete()') %}
         }
     });
 
+    socket.on('scale_update', function (data) {
+        const unitType = document.getElementById('form-unit-type').value;
+        if (unitType === 'kg') {
+            document.getElementById('form-stock').value = data.kilograms;
+        }
+    });
+
     // Replace your existing updateForm function with this one
     function updateForm(b, n, p, i, t, stock, unit) {
         dismissPrompt();
