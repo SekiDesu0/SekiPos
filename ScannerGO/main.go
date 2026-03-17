@@ -17,17 +17,19 @@ import (
 )
 
 type Config struct {
-	Port      string `json:"port"`
-	URL       string `json:"url"`
-	BaudRate  int    `json:"baud"`
-	Delimiter string `json:"delimiter"`
+	Port        string `json:"port"`
+	URL         string `json:"url"`
+	BaudRate    int    `json:"baud"`
+	Delimiter   string `json:"delimiter"`
+	FlowControl string `json:"flow_control"`
 }
 
 var defaultConfig = Config{
-	Port:      "/dev/ttyACM0",
-	URL:       "https://scanner.sekidesu.xyz/scan",
-	BaudRate:  115200,
-	Delimiter: "\n",
+	Port:        "/dev/ttyACM0",
+	URL:         "https://scanner.sekidesu.xyz/scan",
+	BaudRate:    115200,
+	Delimiter:   "\n",
+	FlowControl: "none",
 }
 
 const configPath = "config.json"
@@ -39,6 +41,7 @@ func main() {
 	endpoint := flag.String("url", cfg.URL, "Target URL endpoint")
 	baudRate := flag.Int("baud", cfg.BaudRate, "Baud rate")
 	delim := flag.String("delim", cfg.Delimiter, "Line delimiter")
+	flow := flag.String("flow", cfg.FlowControl, "Flow control: none, hardware, software")
 	save := flag.Bool("save", false, "Save current parameters to config.json")
 	flag.Parse()
 
@@ -46,6 +49,7 @@ func main() {
 	cfg.URL = *endpoint
 	cfg.BaudRate = *baudRate
 	cfg.Delimiter = *delim
+	cfg.FlowControl = *flow
 
 	if *save {
 		saveConfig(cfg)
@@ -55,8 +59,15 @@ func main() {
 	serialConfig := &serial.Config{
 		Name:        cfg.Port,
 		Baud:        cfg.BaudRate,
-		ReadTimeout: 0,
+		ReadTimeout: time.Millisecond * 500,
 	}
+
+	// tarm/serial uses boolean flags for flow control if available in the version used
+	// If your version doesn't support these fields, you may need to update the package
+	// or manage the lines manually via the file descriptor.
+	/* Note: tarm/serial usually requires specific fork or version
+	   for full RTS/CTS hardware flow control support.
+	*/
 
 	port, err := serial.OpenPort(serialConfig)
 	if err != nil {
@@ -65,11 +76,10 @@ func main() {
 	}
 	defer port.Close()
 
-	fmt.Printf("Listening on %s (Baud: %d, Delim: %q)...\n", cfg.Port, cfg.BaudRate, cfg.Delimiter)
+	fmt.Printf("Listening on %s (Baud: %d, Flow: %s)...\n", cfg.Port, cfg.BaudRate, cfg.FlowControl)
 
 	scanner := bufio.NewScanner(port)
 
-	// Custom split function to handle the configurable delimiter
 	scanner.Split(func(data []byte, atEOF bool) (advance int, token []byte, err error) {
 		if atEOF && len(data) == 0 {
 			return 0, nil, nil
@@ -84,7 +94,11 @@ func main() {
 	})
 
 	for scanner.Scan() {
-		content := strings.TrimSpace(scanner.Text())
+		rawContent := scanner.Text()
+		content := strings.TrimFunc(rawContent, func(r rune) bool {
+			return r < 32 || r > 126
+		})
+
 		if content != "" {
 			sendToEndpoint(cfg.URL, content)
 		}
@@ -112,9 +126,11 @@ func loadConfig() Config {
 	if err := decoder.Decode(&cfg); err != nil {
 		return defaultConfig
 	}
-	// Handle case where JSON exists but field is missing
 	if cfg.Delimiter == "" {
 		cfg.Delimiter = "\n"
+	}
+	if cfg.FlowControl == "" {
+		cfg.FlowControl = "none"
 	}
 	return cfg
 }
