@@ -397,6 +397,15 @@
         handleProductScan(product);
     });
 
+    socket.on('scale_update', function (data) {
+        const weightInput = document.getElementById('weight-input');
+        const weightModal = document.getElementById('weightModal');
+
+        if (weightModal.classList.contains('show')) {
+            weightInput.value = data.grams; 
+        }
+    });
+
     function goToInventory() {
         if (missingProductData) {
             window.location.href = `/?barcode=${missingProductData.barcode}`;
