@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
+	"flag"
 	"fmt"
 	"image/color"
 	"net/http"
+	"os"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -14,10 +17,11 @@ import (
 	"github.com/google/gousb"
 )
 
-const (
-	VendorID  = 0xFFFF
-	ProductID = 0x0035
-)
+type Config struct {
+	TargetURL string `json:"target_url"`
+	VendorID  uint16 `json:"vendor_id"`
+	ProductID uint16 `json:"product_id"`
+}
 
 var hidMap = map[byte]string{
 	4: "a", 5: "b", 6: "c", 7: "d", 8: "e", 9: "f", 10: "g", 11: "h", 12: "i",
@@ -33,27 +37,56 @@ type BridgeApp struct {
 	logList  *widget.List
 	logs     []string
 	window   fyne.Window
+	config   Config
+	isCLI    bool
+}
+
+func loadConfig() Config {
+	conf := Config{
+		TargetURL: "https://scanner.sekidesu.xyz/scan",
+		VendorID:  0xFFFF,
+		ProductID: 0x0035,
+	}
+	file, err := os.ReadFile("config.json")
+	if err == nil {
+		json.Unmarshal(file, &conf)
+	} else {
+		// Create default config if missing
+		data, _ := json.MarshalIndent(conf, "", "  ")
+		os.WriteFile("config.json", data, 0644)
+	}
+	return conf
 }
 
 func main() {
-	a := app.New()
-	w := a.NewWindow("POS Hardware Bridge (Go)")
+	cliMode := flag.Bool("cli", false, "Run in CLI mode without GUI")
+	flag.Parse()
 
+	conf := loadConfig()
 	bridge := &BridgeApp{
-		urlEntry: widget.NewEntry(),
-		status:   canvas.NewText("Status: Booting...", color.Black),
-		window:   w,
+		config: conf,
+		isCLI:  *cliMode,
 	}
 
-	bridge.status.TextSize = 14
-	bridge.urlEntry.SetText("https://scanner.sekidesu.xyz/scan")
+	if *cliMode {
+		fmt.Println("Running in CLI mode...")
+		bridge.usbListenLoop()
+		return
+	}
 
-	// UI Layout
+	a := app.New()
+	w := a.NewWindow("POS Hardware Bridge (Go)")
+	bridge.window = w
+	bridge.urlEntry = widget.NewEntry()
+	bridge.urlEntry.SetText(conf.TargetURL)
+	bridge.status = canvas.NewText("Status: Booting...", color.Black)
+	bridge.status.TextSize = 14
+
 	bridge.logList = widget.NewList(
 		func() int { return len(bridge.logs) },
 		func() fyne.CanvasObject { return widget.NewLabel("template") },
 		func(i widget.ListItemID, o fyne.CanvasObject) {
-			o.(*widget.Label).SetText(bridge.logs[len(bridge.logs)-1-i])
+			o.(*widget.Label).SetText(bridge.logs[i])
 		},
 	)
 
@@ -72,14 +105,20 @@ func main() {
 	w.Resize(fyne.NewSize(500, 400))
 
 	go bridge.usbListenLoop()
-
 	w.ShowAndRun()
 }
 
 func (b *BridgeApp) addLog(msg string) {
+	ts := time.Now().Format("15:04:05")
+	formatted := fmt.Sprintf("[%s] %s", ts, msg)
+
+	if b.isCLI {
+		fmt.Println(formatted)
+		return
+	}
+
 	fyne.DoAndWait(func() {
-		ts := time.Now().Format("15:04:05")
-		b.logs = append([]string{fmt.Sprintf("[%s] %s", ts, msg)}, b.logs...)
+		b.logs = append([]string{formatted}, b.logs...)
 		if len(b.logs) > 15 {
 			b.logs = b.logs[:15]
 		}
@@ -87,10 +126,27 @@ func (b *BridgeApp) addLog(msg string) {
 	})
 }
 
+func (b *BridgeApp) updateStatus(msg string, col color.Color) {
+	if b.isCLI {
+		fmt.Printf("STATUS: %s\n", msg)
+		return
+	}
+	fyne.DoAndWait(func() {
+		b.status.Text = msg
+		b.status.Color = col
+		b.status.Refresh()
+	})
+}
+
 func (b *BridgeApp) sendToPos(barcode string) {
-	b.addLog(fmt.Sprintf("Captured: %s. Sending...", barcode))
+	url := b.config.TargetURL
+	if !b.isCLI {
+		url = b.urlEntry.Text
+	}
+
+	b.addLog(fmt.Sprintf("Captured: %s. Sending to %s", barcode, url))
 	client := http.Client{Timeout: 3 * time.Second}
-	resp, err := client.Get(b.urlEntry.Text + "?content=" + barcode)
+	resp, err := client.Get(url + "?content=" + barcode)
 	if err != nil {
 		b.addLog("HTTP Error: Backend unreachable")
 		return
@@ -104,23 +160,15 @@ func (b *BridgeApp) usbListenLoop() {
 	defer ctx.Close()
 
 	for {
-		dev, err := ctx.OpenDeviceWithVIDPID(gousb.ID(VendorID), gousb.ID(ProductID))
+		dev, err := ctx.OpenDeviceWithVIDPID(gousb.ID(b.config.VendorID), gousb.ID(b.config.ProductID))
 
 		if err != nil || dev == nil {
-			fyne.DoAndWait(func() {
-				b.status.Text = "Status: Scanner unplugged. Waiting..."
-				b.status.Color = color.NRGBA{R: 200, G: 0, B: 0, A: 255}
-				b.status.Refresh()
-			})
+			b.updateStatus("Scanner unplugged. Waiting...", color.NRGBA{200, 0, 0, 255})
 			time.Sleep(2 * time.Second)
 			continue
 		}
 
-		fyne.DoAndWait(func() {
-			b.status.Text = "Status: Scanner Locked & Ready"
-			b.status.Color = color.NRGBA{R: 0, G: 180, B: 0, A: 255}
-			b.status.Refresh()
-		})
+		b.updateStatus("Scanner Locked & Ready", color.NRGBA{0, 180, 0, 255})
 
 		intf, done, err := dev.DefaultInterface()
 		if err != nil {
@@ -151,10 +199,9 @@ func (b *BridgeApp) usbListenLoop() {
 		for {
 			n, err := inEp.Read(buf)
 			if err != nil {
-				// This usually happens when the device is unplugged
 				break
 			}
-			if n < 3 {
+			if n < 3 || buf[2] == 0 {
 				continue
 			}
 
@@ -162,15 +209,9 @@ func (b *BridgeApp) usbListenLoop() {
 			keycode := buf[2]
 			isShift := (modifier == 2 || modifier == 32)
 
-			if keycode == 0 {
-				continue
-			}
-
-			if keycode == 40 { // Enter
+			if keycode == 40 {
 				if currentBarcode != "" {
-					// Capture the barcode to avoid race conditions
-					code := currentBarcode
-					go b.sendToPos(code)
+					go b.sendToPos(currentBarcode)
 					currentBarcode = ""
 				}
 			} else if val, ok := hidMap[keycode]; ok {
