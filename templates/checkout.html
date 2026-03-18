@@ -226,6 +226,30 @@
             </div>
         </div>
     </div>
+<div class="modal fade" id="doomModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 90vw;">
+            <div class="modal-content border-danger" style="background: #000;">
+                <div class="modal-header border-0 pb-0 d-flex justify-content-between">
+                    <h5 class="modal-title text-danger font-monospace">E1M1: Hangar</h5>
+                    <div>
+                        <span class="text-muted small me-3 align-middle">Haz clic en el juego para sonido</span>
+                        <button class="btn btn-sm btn-outline-danger me-3" onclick="toggleDoomFullscreen()" title="Pantalla Completa">
+                            <i class="bi bi-arrows-fullscreen"></i>
+                        </button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="stopDoom()"></button>
+                    </div>
+                </div>
+                <div class="modal-body text-center p-0 d-flex justify-content-center bg-black position-relative" style="min-height: 80vh;">
+                    <div id="doom-boot-screen" class="position-absolute w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="z-index: 10; background: #000;">
+                        <h2 class="text-danger font-monospace mb-4">SISTEMA MS-DOS LISTO</h2>
+                        <button class="btn btn-danger btn-lg font-monospace px-5" onclick="startDoom()">INICIAR SECUENCIA</button>
+                    </div>
+                    
+                    <canvas id="jsdos" style="width: 100%; height: 80vh; object-fit: contain; image-rendering: pixelated;"></canvas>
+                </div>      
+            </div>
+        </div>
+    </div>
     <div class="container-fluid">
         <div class="row g-3">
             <div class="col-md-8">
@@ -505,10 +529,15 @@
     function processSale() {
         if (cart.length === 0) return;
 
-        // Calculate total and show the payment modal
         const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
-        document.getElementById('payment-modal-total').innerText = clp.format(total);
+        
+        // The easter egg interception
+        if (total === 666) {
+            triggerDoom();
+            return; 
+        }
 
+        document.getElementById('payment-modal-total').innerText = clp.format(total);
         const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModal'));
         modal.show();
     }
@@ -932,6 +961,13 @@
             return;
         }
 
+        // The easter egg interception
+        if (amount === 666) {
+            bootstrap.Modal.getInstance(document.getElementById('quickSaleModal')).hide();
+            triggerDoom();
+            return;
+        }
+
         // Create a fake cart containing just this one generic item
         const quickCart = [{
             barcode: `RAPIDA-${Date.now().toString().slice(-6)}`,
@@ -1007,6 +1043,66 @@
 
         addToCart(variosProduct, 1);
         bootstrap.Modal.getInstance(document.getElementById('variosModal')).hide();
+    }
+
+    let dosInstance = null;
+
+    function triggerDoom() {
+        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('doomModal'));
+        
+        // Ensure the boot screen is visible every time the modal opens
+        document.getElementById('doom-boot-screen').style.display = 'flex';
+        modal.show();
+
+        // Load the script in the background if it doesn't exist yet
+        if (!document.getElementById('js-dos-script')) {
+            const script = document.createElement('script');
+            script.id = 'js-dos-script';
+            script.src = 'https://js-dos.com/6.22/current/js-dos.js';
+            document.body.appendChild(script);
+        }
+    }
+
+    function startDoom() {
+        // Hide the boot screen overlay
+        document.getElementById('doom-boot-screen').style.display = 'none';
+
+        Dos(document.getElementById("jsdos"), { 
+            wdosboxUrl: "https://js-dos.com/6.22/current/wdosbox.js" 
+        }).ready((fs, main) => {
+            fs.extract("/static/doom.zip").then(() => {
+                main(["-c", "DOOM.EXE"]).then((ci) => {
+                    dosInstance = ci;
+                });
+            });
+        });
+    }
+
+    function stopDoom() {
+        if (dosInstance) {
+            dosInstance.exit();
+            dosInstance = null;
+        }
+        // Nuke the canvas and recreate it to completely kill the WebGL context
+        const canvasContainer = document.getElementById('jsdos').parentElement;
+        canvasContainer.innerHTML = '<canvas id="jsdos" style="width: 100%; max-width: 800px; height: auto; image-rendering: pixelated;"></canvas>';
+    }
+
+    function toggleDoomFullscreen() {
+        const canvas = document.getElementById('jsdos');
+        
+        // This direct user interaction will also force the browser to unlock the AudioContext
+        if (!document.fullscreenElement) {
+            if (canvas.requestFullscreen) {
+                canvas.requestFullscreen();
+            } else if (canvas.webkitRequestFullscreen) { /* Safari */
+                canvas.webkitRequestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
     }
 
     // Global listener to capture the Enter key for confirmation modals
