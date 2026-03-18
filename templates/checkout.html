@@ -4,36 +4,54 @@
 {% block title %}Caja{% endblock %}
 
 {% block head %}
-<!--HEAD-->
 <style>
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
         -webkit-appearance: none;
         margin: 0;
     }
-
     input[type="number"] {
         -moz-appearance: textfield;
         appearance: textfield;
+    }
+    .crt-cursor { 
+        animation: blink-step 1s step-end infinite; 
+        border-bottom: 3px solid #ed4245; 
+        display: inline-block; 
+        width: 14px; 
+        height: 1.2em; 
+        vertical-align: bottom; 
+        margin-left: 2px;
+    }
+    @keyframes blink-step { 50% { opacity: 0; } }
+    .boot-btn {
+        background: transparent;
+        transition: all 0.1s;
+    }
+    .boot-btn:hover { 
+        background: #ed4245 !important; 
+        color: #000 !important; 
+        text-shadow: none !important;
+        cursor: pointer;
     }
 </style>
 {% endblock %}
 
 {% block content %}
     {{ render_receipt() }}
+    
     {% call confirm_modal('removeConfirmModal', 'Quitar Producto', 'btn-danger-discord', 'Quitar', 'executeRemoveItem()') %}
         ¿Estás seguro de que quieres quitar <strong id="removeItemName"></strong> del carrito?
     {% endcall %}
+    
     {% call confirm_modal('clearCartModal', 'Vaciar Carrito', 'btn-danger-discord', 'Sí, vaciar', 'executeClearCart()') %}
         <div class="text-center">
             <i class="bi bi-cart-x text-danger" style="font-size: 3rem;"></i>
             <p class="mt-3">¿Seguro que quieres eliminar todos los productos del carrito?</p>
         </div>
     {% endcall %}
-    <div class="modal fade"
-         id="customProductModal"
-         tabindex="-1"
-         data-bs-backdrop="static">
+
+    <div class="modal fade" id="customProductModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -43,19 +61,13 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label text-muted small mb-1">Descripción</label>
-                        <input type="text"
-                               id="custom-name"
-                               class="form-control"
-                               placeholder="Ej: Varios, Bolsa, etc."
+                        <input type="text" id="custom-name" class="form-control" placeholder="Ej: Varios, Bolsa, etc."
                                onkeydown="if(event.key === 'Enter') document.getElementById('custom-price').focus()">
                     </div>
                     <div class="row g-2">
                         <div class="col-8">
                             <label class="form-label text-muted small mb-1">Precio Unitario</label>
-                            <input type="number"
-                                   id="custom-price"
-                                   class="form-control"
-                                   placeholder="Ej: 1500"
+                            <input type="number" id="custom-price" class="form-control" placeholder="Ej: 1500"
                                    onkeydown="if(event.key === 'Enter') addCustomProduct()">
                         </div>
                         <div class="col-4">
@@ -88,12 +100,126 @@
                     <div class="mb-3 text-start">
                         <label class="text-muted small mb-1">Precio (CLP)</label>
                         <input type="number" id="varios-price-input" class="form-control form-control-lg text-center fw-bold fs-4"
-                            placeholder="$0"
-                            onkeydown="if(event.key === 'Enter') addVariosToCart()">
+                            placeholder="$0" onkeydown="if(event.key === 'Enter') addVariosToCart()">
                     </div>
                     <button class="btn btn-warning w-100 py-3 fw-bold" onclick="addVariosToCart()">
                         <i class="bi bi-cart-plus me-1"></i> Agregar al Carrito
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="weightModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5>Ingresar Peso (Gramos)</h5>
+                </div>
+                <div class="modal-body">
+                    <input type="number" id="weight-input" class="form-control form-control-lg" step="1"
+                           placeholder="Ej: 500" onkeydown="if(event.key === 'Enter') confirmWeight()">
+                </div>
+                <div class="modal-footer d-flex">
+                    <button class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-accent flex-grow-1" onclick="confirmWeight()">Agregar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem">
+                        Total a Pagar
+                    </h5>
+                    <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center pt-1 pb-4">
+                    <h1 id="payment-modal-total" class="mb-4" style="color: var(--accent); font-weight: 800; font-size: 3rem">$0</h1>
+                    <div class="d-grid gap-3 px-3">
+                        <button class="btn btn-lg btn-success py-3" onclick="openVueltoModal()">
+                            <i class="bi bi-cash-coin me-2" style="font-size: 1.5rem; vertical-align: middle"></i> Efectivo
+                        </button>
+                        <button class="btn btn-lg btn-secondary py-3" onclick="executeCheckout('tarjeta')">
+                            <i class="bi bi-credit-card me-2" style="font-size: 1.5rem; vertical-align: middle"></i> Tarjeta (Pronto)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="vueltoModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem">Pago en Efectivo</h5>
+                    <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center pt-1 pb-4">
+                    <div class="mb-3">
+                        <span class="text-muted small">Total a Pagar:</span><br>
+                        <span id="vuelto-total-display" class="fs-4 fw-bold" style="color: var(--text-main)">$0</span>
+                    </div>
+                    <div class="mb-3 text-start">
+                        <label class="text-muted small mb-1">Monto Recibido</label>
+                        <input type="number" id="monto-recibido" class="form-control form-control-lg text-center fw-bold fs-4"
+                               placeholder="$0" onkeyup="calculateVuelto()" onchange="calculateVuelto()"
+                               onkeydown="if(event.key === 'Enter' && !document.getElementById('btn-confirm-vuelto').disabled) executeCheckout('efectivo')">
+                    </div>
+                    <div class="d-flex justify-content-center gap-2 mb-3" id="vuelto-quick-buttons"></div>
+                    <div class="p-3 mb-3" style="background: var(--input-bg); border-radius: 8px">
+                        <span class="text-muted small text-uppercase fw-bold">Vuelto a Entregar</span><br>
+                        <span id="vuelto-amount" class="fs-1 fw-bold text-muted">$0</span>
+                    </div>
+                    <button id="btn-confirm-vuelto" class="btn btn-success w-100 py-3 fw-bold" onclick="executeCheckout('efectivo')" disabled>Confirmar Venta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="quickSaleModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem;">Venta Rápida</h5>
+                    <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center pt-1 pb-4">
+                    <div class="mb-3 text-start">
+                        <label class="text-muted small mb-1">Monto (CLP)</label>
+                        <input type="number" id="quick-sale-amount" class="form-control form-control-lg text-center fw-bold fs-4"
+                            placeholder="$0" onkeydown="if(event.key === 'Enter') processQuickSale()">
+                    </div>
+                    <button class="btn btn-primary w-100 py-3 fw-bold" onclick="processQuickSale()">
+                        <i class="bi bi-lightning-charge me-1"></i> Finalizar Venta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="notFoundModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-warning">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center pt-0 pb-4">
+                    <i class="bi bi-question-circle text-warning mb-3" style="font-size: 3rem"></i>
+                    <h4 class="mb-2">Producto No Registrado</h4>
+                    <p class="text-muted px-3 small">El código <strong id="not-found-barcode" style="color: var(--text-main);"></strong> no existe.</p>
+                    <div class="d-flex flex-column gap-2 px-3 mt-4">
+                        <button class="btn btn-accent w-100 py-2" onclick="goToInventory()">
+                            <i class="bi bi-database-add me-2"></i>Registrar en Inventario
+                        </button>
+                        <button class="btn btn-outline-secondary w-100 py-2" onclick="openTempProduct()">
+                            <i class="bi bi-cart-plus me-2"></i>Venta Temporal (Solo por esta vez)
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -111,122 +237,8 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="paymentModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title w-100 text-center text-muted text-uppercase"
-                        style="font-size: 0.8rem">
-                        Total
-                        a Pagar
-                    </h5>
-                    <button type="button"
-                            class="btn-close position-absolute end-0 top-0 m-3"
-                            data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-center pt-1 pb-4">
-                    <h1 id="payment-modal-total"
-                        class="mb-4"
-                        style="color: var(--accent);
-                               font-weight: 800;
-                               font-size: 3rem">$0</h1>
-                    <div class="d-grid gap-3 px-3">
-                        <button class="btn btn-lg btn-success py-3" onclick="openVueltoModal()">
-                            <i class="bi bi-cash-coin me-2"
-                               style="font-size: 1.5rem;
-                                      vertical-align: middle"></i>
-                            Efectivo
-                        </button>
-                        <button class="btn btn-lg btn-secondary py-3"
-                                onclick="executeCheckout('tarjeta')">
-                            <i class="bi bi-credit-card me-2"
-                               style="font-size: 1.5rem;
-                                      vertical-align: middle"></i>
-                            Tarjeta (Pronto)
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade"
-         id="vueltoModal"
-         tabindex="-1"
-         data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title w-100 text-center text-muted text-uppercase"
-                        style="font-size: 0.8rem">
-                        Pago
-                        en Efectivo
-                    </h5>
-                    <button type="button"
-                            class="btn-close position-absolute end-0 top-0 m-3"
-                            data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-center pt-1 pb-4">
-                    <div class="mb-3">
-                        <span class="text-muted small">Total a Pagar:</span>
-                        <br>
-                        <span id="vuelto-total-display"
-                              class="fs-4 fw-bold"
-                              style="color: var(--text-main)">$0</span>
-                    </div>
-                    <div class="mb-3 text-start">
-                        <label class="text-muted small mb-1">Monto Recibido</label>
-                        <input type="number"
-                               id="monto-recibido"
-                               class="form-control form-control-lg text-center fw-bold fs-4"
-                               placeholder="$0"
-                               onkeyup="calculateVuelto()"
-                               onchange="calculateVuelto()"
-                               onkeydown="if(event.key === 'Enter' && !document.getElementById('btn-confirm-vuelto').disabled) executeCheckout('efectivo')">
-                    </div>
-                    <div class="d-flex justify-content-center gap-2 mb-3"
-                         id="vuelto-quick-buttons"></div>
-                    <div class="p-3 mb-3"
-                         style="background: var(--input-bg);
-                                border-radius: 8px">
-                        <span class="text-muted small text-uppercase fw-bold">Vuelto a Entregar</span>
-                        <br>
-                        <span id="vuelto-amount" class="fs-1 fw-bold text-muted">$0</span>
-                    </div>
-                    <button id="btn-confirm-vuelto"
-                            class="btn btn-success w-100 py-3 fw-bold"
-                            onclick="executeCheckout('efectivo')"
-                            disabled>Confirmar Venta</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="notFoundModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-warning">
-                <div class="modal-header border-0 pb-0">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-center pt-0 pb-4">
-                    <i class="bi bi-question-circle text-warning mb-3"
-                       style="font-size: 3rem"></i>
-                    <h4 class="mb-2">Producto No Registrado</h4>
-                    <p class="text-muted px-3 small">
-                        El código <strong id="not-found-barcode" style="color: var(--text-main);"></strong> no existe en la base de datos.
-                    </p>
-                    <div class="d-flex flex-column gap-2 px-3 mt-4">
-                        <button class="btn btn-accent w-100 py-2" onclick="goToInventory()">
-                            <i class="bi bi-database-add me-2"></i>Registrar en Inventario
-                        </button>
-                        <button class="btn btn-outline-secondary w-100 py-2"
-                                onclick="openTempProduct()">
-                            <i class="bi bi-cart-plus me-2"></i>Venta Temporal (Solo por esta vez)
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-<div class="modal fade" id="doomModal" tabindex="-1" data-bs-backdrop="static">
+
+    <div class="modal fade" id="doomModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 90vw;">
             <div class="modal-content border-danger" style="background: #000;">
                 <div class="modal-header border-0 pb-0 d-flex justify-content-between">
@@ -236,60 +248,56 @@
                         <button class="btn btn-sm btn-outline-danger me-3" onclick="toggleDoomFullscreen()" title="Pantalla Completa">
                             <i class="bi bi-arrows-fullscreen"></i>
                         </button>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="stopDoom()"></button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                 </div>
                 <div class="modal-body text-center p-0 d-flex justify-content-center bg-black position-relative" style="min-height: 80vh;">
-                    <div id="doom-boot-screen" class="position-absolute w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="z-index: 10; background: #000;">
-                        <h2 class="text-danger font-monospace mb-4">SISTEMA MS-DOS LISTO</h2>
-                        <button class="btn btn-danger btn-lg font-monospace px-5" onclick="startDoom()">INICIAR SECUENCIA</button>
+                    <div id="doom-boot-screen" class="position-absolute w-100 h-100 flex-column align-items-start p-5 d-none" style="z-index: 10; background: #050505; font-family: 'Courier New', monospace; text-transform: uppercase; cursor: pointer;" onclick="startDoom()">
+                        <div class="text-start" style="color: #4af626; text-shadow: 0 0 4px rgba(74, 246, 38, 0.5);">
+                            <p class="mb-1">UAC_BIOS v1.9.9.3</p>
+                            <div id="boot-loading" class="mt-3">
+                                <span id="boot-status">CARGANDO SISTEMA MS-DOS...</span><span class="crt-cursor"></span>
+                            </div>
+                            <div id="boot-ready" class="d-none mt-3">
+                                <p class="mb-1">HIMEM IS TESTING EXTENDED MEMORY... [OK]</p>
+                                <p class="mb-1">SND_INIT: SOUNDBLASTER 16 ... [OK]</p>
+                                <p class="mb-4 text-warning" style="text-shadow: 0 0 4px rgba(255, 193, 7, 0.5);">WARNING: NON-STANDARD SEKIPOS HARDWARE DETECTED.</p>
+                                <div class="fs-4 text-danger d-flex align-items-center" style="text-shadow: 0 0 5px rgba(237, 66, 69, 0.6);">
+                                    <span>C:\UAC\SEKIPOS> DOOM.EXE</span><span class="crt-cursor"></span>
+                                </div>
+                                <p class="mt-5 text-muted small" style="animation: blink-step 2s step-end infinite;">[ HAZ CLIC PARA INICIAR ]</p>
+                            </div>
+                        </div>
                     </div>
-                    
                     <canvas id="jsdos" style="width: 100%; height: 80vh; object-fit: contain; image-rendering: pixelated;"></canvas>
                 </div>      
             </div>
         </div>
     </div>
+
     <div class="container-fluid">
         <div class="row g-3">
             <div class="col-md-8">
                 <div class="discord-card p-3">
-                    <h4>
-                        <i class="bi bi-cart3"></i> Carrito
-                    </h4>
+                    <h4><i class="bi bi-cart3"></i> Carrito</h4>
                     <div class="position-relative mb-4">
                         <div class="input-group">
-                            <span class="input-group-text border-0 position-absolute"
-                                  style="background: transparent; z-index: 10">
+                            <span class="input-group-text border-0 position-absolute" style="background: transparent; z-index: 10">
                                 <i class="bi bi-search text-muted"></i>
                             </span>
-                            <input type="text"
-                                   id="manual-search"
-                                   class="form-control ps-5 py-2 rounded"
-                                   placeholder="Buscar producto por nombre o código..."
-                                   autocomplete="off"
-                                   onkeyup="filterSearch()">
+                            <input type="text" id="manual-search" class="form-control ps-5 py-2 rounded"
+                                   placeholder="Buscar producto por nombre o código..." autocomplete="off" onkeyup="filterSearch()">
                                    
                             <button class="btn btn-warning px-3 fw-bold" type="button" onclick="openVariosModal()" title="Agregar Varios rápido">
                                 <i class="bi bi-asterisk"></i> <span class="d-none d-sm-inline ms-1">Varios</span>
                             </button>
                             
-                            <button class="btn btn-accent px-3"
-                                    type="button"
-                                    onclick="openCustomProductModal()"
-                                    title="Agregar manual detallado">
+                            <button class="btn btn-accent px-3" type="button" onclick="openCustomProductModal()" title="Agregar manual detallado">
                                 <i class="bi bi-plus-lg"></i> <span class="d-none d-sm-inline ms-1">Manual</span>
                             </button>
                         </div>
-                        <div id="search-results"
-                             class="dropdown-menu w-100 shadow-sm mt-1"
-                             style="display: none;
-                                    position: absolute;
-                                    top: 100%;
-                                    left: 0;
-                                    z-index: 1000;
-                                    max-height: 300px;
-                                    overflow-y: auto"></div>
+                        <div id="search-results" class="dropdown-menu w-100 shadow-sm mt-1"
+                             style="display: none; position: absolute; top: 100%; left: 0; z-index: 1000; max-height: 300px; overflow-y: auto"></div>
                     </div>
                     <div class="table-responsive">
                         <table class="table mt-3" id="cart-table">
@@ -303,103 +311,50 @@
                                     <th></th>
                                 </tr>
                             </thead>
-                            <tbody id="cart-items">
-                            </tbody>
+                            <tbody id="cart-items"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
+            
             <div class="col-md-4">
                 <div class="discord-card p-3 mb-3 text-center shadow-sm">
-                    <p class="mb-1 fw-semibold text-uppercase"
-                       style="color:var(--text-muted);
-                              font-size:0.7rem">
-                        Último
-                        Escaneado
-                    </p>
-                    <img id="display-img"
-                         src="./static/placeholder.png"
-                         class="mb-2"
-                         alt="product">
+                    <p class="mb-1 fw-semibold text-uppercase" style="color:var(--text-muted); font-size:0.7rem">Último Escaneado</p>
+                    <img id="display-img" src="./static/placeholder.png" class="mb-2" alt="product">
                     <h6 id="display-name" class="mb-0 text-truncate">Esperando scan...</h6>
-                    <small id="display-barcode"
-                           class="text-muted font-monospace"
-                           style="font-size: 0.7rem"></small>
-                    <div class="total-banner text-center mb-3">
-                        <div class="total-banner text-center mb-3">
-                            <h2 class="mb-0">TOTAL</h2>
-                            <h1 id="grand-total" style="font-size: 3.5rem; font-weight: 800;">$0</h1>
-                        </div>
-                        <button class="btn btn-primary w-100 btn-lg mb-2" onclick="openQuickSaleModal()">
-                            <i class="bi bi-lightning-charge"></i> VENTA RÁPIDA
-                        </button>
-                        <button class="btn btn-success w-100 btn-lg mb-2" onclick="processSale()">
-                            <i class="bi bi-cash-coin"></i> COBRAR
-                        </button>
-                        <button class="btn btn-danger w-100 btn-lg" onclick="clearCart()">
-                            <i class="bi bi-trash3"></i> VACIAR
-                        </button>
+                    <small id="display-barcode" class="text-muted font-monospace" style="font-size: 0.7rem"></small>
+                    
+                    <div class="total-banner text-center mb-3 mt-3">
+                        <h2 class="mb-0">TOTAL</h2>
+                        <h1 id="grand-total" style="font-size: 3.5rem; font-weight: 800;">$0</h1>
                     </div>
-                </div>
-            </div>
-        </div>
-        <div class="modal fade"
-             id="weightModal"
-             tabindex="-1"
-             data-bs-backdrop="static">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5>Ingresar Peso (Gramos)</h5>
-                    </div>
-                    <div class="modal-body">
-                        <input type="number"
-                               id="weight-input"
-                               class="form-control form-control-lg"
-                               step="1"
-                               placeholder="Ej: 500"
-                               onkeydown="if(event.key === 'Enter') confirmWeight()">
-                    </div>
-                    <div class="modal-footer d-flex">
-                        <button class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal">Cancelar</button>
-                        <button class="btn btn-accent flex-grow-1" onclick="confirmWeight()">Agregar</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="quickSaleModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem;">
-                        Venta Rápida
-                    </h5>
-                    <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-center pt-1 pb-4">
-                    <div class="mb-3 text-start">
-                        <label class="text-muted small mb-1">Monto (CLP)</label>
-                        <input type="number" id="quick-sale-amount" class="form-control form-control-lg text-center fw-bold fs-4"
-                            placeholder="$0"
-                            onkeydown="if(event.key === 'Enter') processQuickSale()">
-                    </div>
-                    <button class="btn btn-primary w-100 py-3 fw-bold" onclick="processQuickSale()">
-                        <i class="bi bi-lightning-charge me-1"></i> Finalizar Venta
+                    
+                    <button class="btn btn-primary w-100 btn-lg mb-2" onclick="openQuickSaleModal()">
+                        <i class="bi bi-lightning-charge"></i> VENTA RÁPIDA
+                    </button>
+                    <button class="btn btn-success w-100 btn-lg mb-2" onclick="processSale()">
+                        <i class="bi bi-cash-coin"></i> COBRAR
+                    </button>
+                    <button class="btn btn-danger w-100 btn-lg" onclick="clearCart()">
+                        <i class="bi bi-trash3"></i> VACIAR
                     </button>
                 </div>
             </div>
         </div>
     </div>
 {% endblock %}
+
 {% block scripts %}
-    <script>
-    let editingCartIndex = null;
-    let itemIndexToRemove = null;
-    let missingProductData = null;
-    let tempBarcode = null;
+<script>
+    /* =========================================
+       1. GLOBAL STATE & FORMATTERS
+       ========================================= */
     let cart = [];
     let pendingProduct = null;
+    let missingProductData = null;
+    let tempBarcode = null;
+    let editingCartIndex = null;
+    let itemIndexToRemove = null;
 
     let socket = io();
 
@@ -409,12 +364,26 @@
         minimumFractionDigits: 0
     });
 
+    const allProducts = [
+        {% for p in products %}
+        {
+            barcode: {{ p[0] | tojson }},
+            name: {{ p[1] | tojson }},
+            price: {{ p[2] | int }},
+            image: {{ p[3] | tojson }},
+            stock: {{ p[4] | int }},
+            unit: {{ p[5] | tojson }}
+        },
+        {% endfor %}
+    ];
+
+    /* =========================================
+       2. SOCKET LISTENERS (BARCODE / SCALE)
+       ========================================= */
     socket.on('scan_error', (data) => {
         missingProductData = data;
         document.getElementById('not-found-barcode').innerText = data.barcode;
-
-        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('notFoundModal'));
-        modal.show();
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('notFoundModal')).show();
     });
 
     socket.on('new_scan', (product) => {
@@ -422,41 +391,15 @@
     });
 
     socket.on('scale_update', function (data) {
-        const weightInput = document.getElementById('weight-input');
         const weightModal = document.getElementById('weightModal');
-
         if (weightModal.classList.contains('show')) {
-            weightInput.value = data.grams; 
+            document.getElementById('weight-input').value = data.grams; 
         }
     });
 
-    function goToInventory() {
-        if (missingProductData) {
-            window.location.href = `/?barcode=${missingProductData.barcode}`;
-        }
-    }
-
-    function openTempProduct() {
-        bootstrap.Modal.getInstance(document.getElementById('notFoundModal')).hide();
-
-        // Save the actual scanned barcode so it prints on the receipt instead of "MANUAL-XXX"
-        tempBarcode = missingProductData.barcode;
-
-        // Pre-fill the name if the OpenFoodFacts API managed to find it
-        document.getElementById('custom-name').value = missingProductData.name || '';
-        document.getElementById('custom-price').value = '';
-        document.getElementById('custom-unit').value = 'unit';
-
-        const customModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('customProductModal'));
-        customModal.show();
-
-        // Auto-focus the price if we already have a name, otherwise focus the name
-        setTimeout(() => {
-            if (missingProductData.name) document.getElementById('custom-price').focus();
-            else document.getElementById('custom-name').focus();
-        }, 500);
-    }
-
+    /* =========================================
+       3. CORE CART & UI LOGIC
+       ========================================= */
     function renderCart() {
         const tbody = document.getElementById('cart-items');
         tbody.innerHTML = '';
@@ -465,58 +408,88 @@
         cart.forEach((item, index) => {
             total += item.subtotal;
             const row = document.createElement('tr');
-
             let qtyControls;
+            
             if (item.unit === 'kg') {
                 qtyControls = `
-                            <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="editWeight(${index})">
-                                ${item.qty.toFixed(3)} kg <i class="bi bi-pencil ms-1" style="font-size: 0.7rem;"></i>
-                            </button>
-                        `;
+                    <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="editWeight(${index})">
+                        ${item.qty.toFixed(3)} kg <i class="bi bi-pencil ms-1" style="font-size: 0.7rem;"></i>
+                    </button>`;
             } else {
                 qtyControls = `
-                            <div class="d-flex align-items-center gap-1">
-                                <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="updateQty(${index}, -1)">-</button>
-                                <input type="number" class="form-control form-control-sm text-center p-0" style="width: 50px;" value="${item.qty}" onchange="manualQty(${index}, this.value)">
-                                <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="updateQty(${index}, 1)">+</button>
-                            </div>
-                        `;
+                    <div class="d-flex align-items-center gap-1">
+                        <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="updateQty(${index}, -1)">-</button>
+                        <input type="number" class="form-control form-control-sm text-center p-0" style="width: 50px;" value="${item.qty}" onchange="manualQty(${index}, this.value)">
+                        <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="updateQty(${index}, 1)">+</button>
+                    </div>`;
             }
 
             row.innerHTML = `
-                        <td class="font-monospace small text-muted">${item.barcode}</td>
-                        <td>${item.name}</td>
-                        <td>${clp.format(item.price)}</td>
-                        <td>${qtyControls}</td>
-                        <td>${clp.format(item.subtotal)}</td>
-                        <td>
-                            <button class="btn btn-danger-discord btn-sm" onclick="removeItem(${index})">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                    `;
+                <td class="font-monospace small text-muted">${item.barcode}</td>
+                <td>${item.name}</td>
+                <td>${clp.format(item.price)}</td>
+                <td>${qtyControls}</td>
+                <td>${clp.format(item.subtotal)}</td>
+                <td>
+                    <button class="btn btn-danger-discord btn-sm" onclick="removeItem(${index})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>`;
             tbody.appendChild(row);
         });
 
         document.getElementById('grand-total').innerText = clp.format(total);
-
         saveCart();
     }
 
-    function clearCart() {
-        if (cart.length === 0) return;
-        const modal = new bootstrap.Modal(document.getElementById('clearCartModal'));
-        modal.show();
+    function addToCart(product, qty) {
+        const existingIndex = cart.findIndex(item => item.barcode === product.barcode && item.unit !== 'kg');
+        if (existingIndex !== -1) {
+            cart[existingIndex].qty += qty;
+            cart[existingIndex].subtotal = calculateSubtotal(cart[existingIndex].price, cart[existingIndex].qty);
+        } else {
+            cart.push({ ...product, qty, subtotal: calculateSubtotal(product.price, qty) });
+        }
+        renderCart();
+    }
+
+    function updateQty(index, delta) {
+        if (cart[index].unit === 'kg') return; 
+        cart[index].qty += delta;
+        if (cart[index].qty <= 0) {
+            removeItem(index, cart[index].name);
+        } else {
+            cart[index].subtotal = calculateSubtotal(cart[index].price, cart[index].qty);
+            renderCart();
+        }
+    }
+
+    function manualQty(index, val) {
+        const newQty = parseFloat(val);
+        if (isNaN(newQty) || newQty <= 0) return;
+        cart[index].qty = newQty;
+        cart[index].subtotal = calculateSubtotal(cart[index].price, cart[index].qty);
+        renderCart();
+    }
+
+    function removeItem(idx) {
+        itemIndexToRemove = idx;
+        document.getElementById('removeItemName').innerText = cart[idx].name;
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('removeConfirmModal')).show();
     }
 
     function executeRemoveItem() {
         if (itemIndexToRemove !== null) {
             cart.splice(itemIndexToRemove, 1);
             renderCart();
-            const modal = bootstrap.Modal.getInstance(document.getElementById('removeConfirmModal'));
-            if (modal) modal.hide();
+            bootstrap.Modal.getInstance(document.getElementById('removeConfirmModal')).hide();
             itemIndexToRemove = null;
         }
+    }
+
+    function clearCart() {
+        if (cart.length === 0) return;
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('clearCartModal')).show();
     }
 
     function executeClearCart() {
@@ -526,184 +499,39 @@
         bootstrap.Modal.getInstance(document.getElementById('clearCartModal')).hide();
     }
 
-    function processSale() {
-        if (cart.length === 0) return;
-
-        const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
-        
-        // The easter egg interception
-        if (total === 666) {
-            triggerDoom();
-            return; 
-        }
-
-        document.getElementById('payment-modal-total').innerText = clp.format(total);
-        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModal'));
-        modal.show();
+    function calculateSubtotal(price, qty) {
+        return Math.round((price * qty) / 10) * 10;
     }
 
-    async function executeCheckout(method) {
-        if (cart.length === 0) return;
-
-        const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
-        let paidAmount = total; 
-        
-        if (method === 'efectivo') {
-            const inputVal = parseInt(document.getElementById('monto-recibido').value, 10);
-            // If the user left it blank or typed 0, paidAmount stays as 'total'
-            if (!isNaN(inputVal) && inputVal > 0) {
-                paidAmount = inputVal;
-            }
-        }
-
-        try {
-            const response = await fetch('/api/checkout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cart: cart, payment_method: method })
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                const pModal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'));
-                if (pModal) pModal.hide();
-
-                const vModal = bootstrap.Modal.getInstance(document.getElementById('vueltoModal'));
-                if (vModal) vModal.hide();
-
-                printReceipt(total, result.sale_id, paidAmount);
-
-                const successModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('successModal'));
-                successModal.show();
-
-                cart = [];
-                renderCart();
-                clearLastScanned();
-                setTimeout(() => successModal.hide(), 2000);
-            } else {
-                alert("Error: " + (result.error || "Error desconocido"));
-            }
-        } catch (err) {
-            console.error(err);
-            alert("Error de conexión.");
+    function saveCart() { localStorage.setItem('seki_cart', JSON.stringify(cart)); }
+    function loadCart() {
+        const saved = localStorage.getItem('seki_cart');
+        if (saved) {
+            try { cart = JSON.parse(saved); renderCart(); } 
+            catch (e) { console.error(e); cart = []; }
         }
     }
 
-    function confirmWeight() {
-        const weightInput = document.getElementById('weight-input');
-        const weightGrams = parseInt(weightInput.value, 10);
-
-        if (weightGrams > 0) {
-            const weightKg = weightGrams / 1000;
-
-            if (editingCartIndex !== null) {
-                // We are editing an existing row
-                cart[editingCartIndex].qty = weightKg;
-                cart[editingCartIndex].subtotal = calculateSubtotal(cart[editingCartIndex].price, weightKg);
-                renderCart();
-            } else {
-                // We are adding a new scan/search
-                addToCart(pendingProduct, weightKg);
-            }
-
-            bootstrap.Modal.getInstance(document.getElementById('weightModal')).hide();
-            weightInput.value = '';
-            editingCartIndex = null; // Clear the tracker
-        }
-    }
-
-    function addToCart(product, qty) {
-        // Check if product (unit-based only) already exists in cart
-        const existingIndex = cart.findIndex(item => item.barcode === product.barcode && item.unit !== 'kg');
-
-        if (existingIndex !== -1) {
-            cart[existingIndex].qty += qty;
-            cart[existingIndex].subtotal = calculateSubtotal(cart[existingIndex].price, cart[existingIndex].qty);
-        } else {
-            const subtotal = calculateSubtotal(product.price, qty);
-            cart.push({ ...product, qty, subtotal });
-        }
-        renderCart();
-    }
-
-    function updateQty(index, delta) {
-        if (cart[index].unit === 'kg') return; // Delta buttons disabled for weighted items
-
-        cart[index].qty += delta;
-        if (cart[index].qty <= 0) {
-            removeItem(index, cart[index].name);
-        } else {
-            cart[index].subtotal = cart[index].qty * cart[index].price;
-            renderCart();
-        }
-    }
-
-    function manualQty(index, val) {
-        const newQty = parseFloat(val);
-        if (isNaN(newQty) || newQty <= 0) return;
-
-        cart[index].qty = newQty;
-        cart[index].subtotal = cart[index].qty * cart[index].price;
-        renderCart();
-        // Don't re-render immediately to avoid losing input focus while typing
-    }
-
-    function editWeight(index) {
-        editingCartIndex = index;
-        const item = cart[index];
-        const weightInput = document.getElementById('weight-input');
-
-        // Convert current kg back to grams for the input
-        weightInput.value = Math.round(item.qty * 1000);
-
-        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('weightModal'));
-        modal.show();
-
-        // Auto-focus and highlight the existing number so you can just type over it
-        setTimeout(() => {
-            weightInput.focus();
-            weightInput.select();
-        }, 500);
-    }
-    
-    const allProducts = [
-        {% for p in products %}
-    {
-        barcode: {{ p[0] | tojson }},
-        name: {{ p[1] | tojson }},
-        price: {{ p[2] | int }},
-        image: {{ p[3] | tojson }},
-        stock: {{ p[4] | int }},
-        unit: {{ p[5] | tojson }}
-    },
-    {% endfor %}
-    ];
-    
-    // 2. Extracted this into a helper so both Scanner and Search can use it
+    /* =========================================
+       4. PRODUCT SCANNING & SEARCH
+       ========================================= */
     function handleProductScan(product) {
         document.getElementById('display-name').innerText = product.name;
         document.getElementById('display-barcode').innerText = product.barcode;
         document.getElementById('display-img').src = product.image || './static/placeholder.png';
 
-        // Standardize the unit key because Python sends 'unit_type' but the JS array uses 'unit'
         const actualUnit = product.unit || product.unit_type;
-
         if (actualUnit === 'kg') {
             pendingProduct = product;
-            pendingProduct.unit = 'kg'; // Force it to match the cart's expected format
-
-            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('weightModal'));
-            modal.show();
+            pendingProduct.unit = 'kg'; 
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('weightModal')).show();
             setTimeout(() => document.getElementById('weight-input').focus(), 500);
         } else {
-            // Ensure unit products also get the standardized key
             product.unit = 'unit';
             addToCart(product, 1);
         }
     }
 
-    // 4. The Search Logic
     function filterSearch() {
         const query = document.getElementById('manual-search').value.toLowerCase().trim();
         const resultsBox = document.getElementById('search-results');
@@ -713,137 +541,66 @@
             return;
         }
 
-        // Find matches by name or barcode
-        const matches = allProducts.filter(p =>
-            p.name.toLowerCase().includes(query) || p.barcode.includes(query)
-        ).slice(0, 10); // Limit to 10 results so it doesn't lag out
-
+        const matches = allProducts.filter(p => p.name.toLowerCase().includes(query) || p.barcode.includes(query)).slice(0, 10);
+        
         if (matches.length === 0) {
             resultsBox.innerHTML = '<div class="p-3 text-muted text-center">No se encontraron productos</div>';
         } else {
             resultsBox.innerHTML = matches.map(p => `
-                        <a href="#" class="dropdown-item d-flex justify-content-between align-items-center py-2" onclick="selectSearchResult('${p.barcode}')">
-                            <div>
-                                <strong>${p.name}</strong><br>
-                                <small class="text-muted font-monospace">${p.barcode}</small>
-                            </div>
-                            <div class="text-end">
-                                <span style="color: var(--accent); font-weight: bold;">${clp.format(p.price)}</span><br>
-                                <small class="text-muted">${p.unit === 'kg' ? 'Kg' : 'Unidad'}</small>
-                            </div>
-                        </a>
-                    `).join('');
+                <a href="#" class="dropdown-item d-flex justify-content-between align-items-center py-2" onclick="selectSearchResult('${p.barcode}')">
+                    <div>
+                        <strong>${p.name}</strong><br>
+                        <small class="text-muted font-monospace">${p.barcode}</small>
+                    </div>
+                    <div class="text-end">
+                        <span style="color: var(--accent); font-weight: bold;">${clp.format(p.price)}</span><br>
+                        <small class="text-muted">${p.unit === 'kg' ? 'Kg' : 'Unidad'}</small>
+                    </div>
+                </a>
+            `).join('');
         }
-
         resultsBox.style.display = 'block';
     }
 
     function selectSearchResult(barcode) {
         const product = allProducts.find(p => p.barcode === barcode);
-        if (product) {
-            handleProductScan(product);
-        }
+        if (product) handleProductScan(product);
 
-        // Clean up UI after selection
         const searchInput = document.getElementById('manual-search');
         searchInput.value = '';
         document.getElementById('search-results').style.display = 'none';
-        searchInput.focus(); // Keep focus for fast back-to-back searching
+        searchInput.focus();
     }
 
-    // Close the search dropdown if user clicks outside of it
-    document.addEventListener('click', function (e) {
-        const searchArea = document.getElementById('manual-search');
-        const resultsBox = document.getElementById('search-results');
-        if (e.target !== searchArea && !resultsBox.contains(e.target)) {
-            resultsBox.style.display = 'none';
-        }
-    });
-
-    // Make sure we clear the tracker if the user hits Cancel
-    document.getElementById('weightModal').addEventListener('hidden.bs.modal', function () {
-        document.getElementById('weight-input').value = '';
-        pendingProduct = null;
-        editingCartIndex = null;
-    });
-
-    function calculateSubtotal(price, qty) {
-        const rawTotal = price * qty;
-        // Ley del Redondeo: rounds to the nearest 10
-        return Math.round(rawTotal / 10) * 10;
+    function clearLastScanned() {
+        document.getElementById('display-img').src = './static/placeholder.png';
+        document.getElementById('display-name').innerText = 'Esperando scan...';
+        document.getElementById('display-barcode').innerText = '';
     }
 
-    function saveCart() {
-        localStorage.setItem('seki_cart', JSON.stringify(cart));
-    }
-
-    function loadCart() {
-        const saved = localStorage.getItem('seki_cart');
-        if (saved) {
-            try {
-                cart = JSON.parse(saved);
-                renderCart();
-            } catch (e) {
-                console.error("Error cargando el carrito", e);
-                cart = [];
-            }
-        }
-    }
-
-    function removeItem(idx) {
-        itemIndexToRemove = idx;
-        // Look up the name safely from the array
-        document.getElementById('removeItemName').innerText = cart[idx].name;
-
-        // getOrCreateInstance prevents UI-breaking ghost backdrops
-        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('removeConfirmModal'));
-        modal.show();
-    }
-
-    function printReceipt(total, saleId, paidAmount = 0) {
-        const tbody = document.getElementById('receipt-items-print');
-        tbody.innerHTML = '';
-
-        cart.forEach(item => {
-            const qtyStr = item.unit === 'kg' ? item.qty.toFixed(3) : item.qty;
-            tbody.innerHTML += `
-                <tr>
-                    <td>${qtyStr}</td>
-                    <td style="padding-left: 5px; padding-right: 5px; word-break: break-word;">${item.name}</td>
-                    <td style="text-align: right;">${clp.format(item.subtotal)}</td>
-                </tr>
-            `;
-        });
-
-        // Final fallback: if somehow paidAmount is still 0, use total
-        const finalPaid = paidAmount > 0 ? paidAmount : total;
-        const change = finalPaid - total;
-
-        document.getElementById('receipt-ticket-id').innerText = saleId || "N/A";
-        document.getElementById('receipt-total-print').innerText = clp.format(total);
-        
-        // Update the HTML elements created in the previous step
-        document.getElementById('receipt-paid-print').innerText = clp.format(finalPaid);
-        document.getElementById('receipt-change-print').innerText = clp.format(change);
-        
-        document.getElementById('receipt-date').innerText = new Date().toLocaleString('es-CL');
-
-        setTimeout(() => {
-            window.print();
-        }, 250);
-    }
-
-    function openCustomProductModal() {
-
-        tempBarcode = null; // Clear any leftover scanned barcodes
-
-        // Scrub the inputs clean
-        document.getElementById('custom-name').value = '';
+    /* =========================================
+       5. MANUAL & TEMPORARY PRODUCT INPUTS
+       ========================================= */
+    function openTempProduct() {
+        bootstrap.Modal.getInstance(document.getElementById('notFoundModal')).hide();
+        tempBarcode = missingProductData.barcode;
+        document.getElementById('custom-name').value = missingProductData.name || '';
         document.getElementById('custom-price').value = '';
         document.getElementById('custom-unit').value = 'unit';
 
-        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('customProductModal'));
-        modal.show();
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('customProductModal')).show();
+        setTimeout(() => {
+            if (missingProductData.name) document.getElementById('custom-price').focus();
+            else document.getElementById('custom-name').focus();
+        }, 500);
+    }
+
+    function openCustomProductModal() {
+        tempBarcode = null;
+        document.getElementById('custom-name').value = '';
+        document.getElementById('custom-price').value = '';
+        document.getElementById('custom-unit').value = 'unit';
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('customProductModal')).show();
         setTimeout(() => document.getElementById('custom-name').focus(), 500);
     }
 
@@ -857,11 +614,8 @@
             return;
         }
 
-        // Use the scanned barcode if it exists, otherwise generate a fake one
-        const finalBarcode = tempBarcode ? tempBarcode : `MANUAL-${Date.now().toString().slice(-6)}`;
-
         const customProduct = {
-            barcode: finalBarcode,
+            barcode: tempBarcode ? tempBarcode : `MANUAL-${Date.now().toString().slice(-6)}`,
             name: `* ${nameInput}`,
             price: priceInput,
             image: '',
@@ -872,45 +626,104 @@
         if (unitInput === 'kg') {
             pendingProduct = customProduct;
             bootstrap.Modal.getInstance(document.getElementById('customProductModal')).hide();
-
-            const weightModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('weightModal'));
-            weightModal.show();
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('weightModal')).show();
             setTimeout(() => document.getElementById('weight-input').focus(), 500);
         } else {
             addToCart(customProduct, 1);
             bootstrap.Modal.getInstance(document.getElementById('customProductModal')).hide();
         }
+        tempBarcode = null;
+    }
 
-        tempBarcode = null; // Reset it after adding
+    function openVariosModal() {
+        document.getElementById('varios-price-input').value = '';
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('variosModal')).show();
+        setTimeout(() => document.getElementById('varios-price-input').focus(), 500);
+    }
+
+    function addVariosToCart() {
+        const price = parseInt(document.getElementById('varios-price-input').value, 10);
+        if (isNaN(price) || price <= 0) return alert("Ingresa un precio válido.");
+
+        addToCart({
+            barcode: `VARIOS-${Date.now().toString().slice(-6)}`,
+            name: '* Varios',
+            price: price,
+            qty: 1,
+            subtotal: price,
+            image: '',
+            stock: 0,
+            unit: 'unit'
+        }, 1);
+        bootstrap.Modal.getInstance(document.getElementById('variosModal')).hide();
+    }
+
+    /* =========================================
+       6. WEIGHT LOGIC (GRAMS TO KG)
+       ========================================= */
+    function editWeight(index) {
+        editingCartIndex = index;
+        const weightInput = document.getElementById('weight-input');
+        weightInput.value = Math.round(cart[index].qty * 1000);
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('weightModal')).show();
+        setTimeout(() => { weightInput.focus(); weightInput.select(); }, 500);
+    }
+
+    function confirmWeight() {
+        const weightGrams = parseInt(document.getElementById('weight-input').value, 10);
+        if (weightGrams > 0) {
+            const weightKg = weightGrams / 1000;
+            if (editingCartIndex !== null) {
+                cart[editingCartIndex].qty = weightKg;
+                cart[editingCartIndex].subtotal = calculateSubtotal(cart[editingCartIndex].price, weightKg);
+                renderCart();
+            } else {
+                addToCart(pendingProduct, weightKg);
+            }
+            bootstrap.Modal.getInstance(document.getElementById('weightModal')).hide();
+            editingCartIndex = null;
+        }
+    }
+
+    document.getElementById('weightModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('weight-input').value = '';
+        pendingProduct = null;
+        editingCartIndex = null;
+    });
+
+    /* =========================================
+       7. CHECKOUT & PAYMENT LOGIC
+       ========================================= */
+    function processSale() {
+        if (cart.length === 0) return;
+        const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+        
+        if (total === 666) { triggerDoom(); return; }
+
+        document.getElementById('payment-modal-total').innerText = clp.format(total);
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModal')).show();
     }
 
     function openVueltoModal() {
         bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
-
         const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+        
         document.getElementById('vuelto-total-display').innerText = clp.format(total);
-
-        const input = document.getElementById('monto-recibido');
-        input.value = '';
+        document.getElementById('monto-recibido').value = '';
         document.getElementById('vuelto-amount').innerText = clp.format(0);
         document.getElementById('vuelto-amount').className = "fs-1 fw-bold text-success";
-        
         document.getElementById('btn-confirm-vuelto').disabled = false;
 
         const quickBox = document.getElementById('vuelto-quick-buttons');
         quickBox.innerHTML = `<button class="btn btn-sm btn-outline-secondary fw-bold" onclick="setMonto(${total})">Exacto</button>`;
-
         [5000, 10000, 20000].forEach(bill => {
             if (bill > total && (bill - total) <= 20000) {
                 quickBox.innerHTML += `<button class="btn btn-sm btn-outline-secondary fw-bold" onclick="setMonto(${bill})">${clp.format(bill)}</button>`;
             }
         });
 
-        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('vueltoModal'));
-        modal.show();
-
-        // Auto-focus input so you can start typing immediately
-        setTimeout(() => input.focus(), 500);
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('vueltoModal')).show();
+        setTimeout(() => document.getElementById('monto-recibido').focus(), 500);
     }
 
     function setMonto(amount) {
@@ -920,62 +733,78 @@
 
     function calculateVuelto() {
         const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
-        const inputElement = document.getElementById('monto-recibido');
-        const recibido = parseInt(inputElement.value, 10);
+        const recibido = parseInt(document.getElementById('monto-recibido').value, 10);
         const vueltoDisplay = document.getElementById('vuelto-amount');
         const confirmBtn = document.getElementById('btn-confirm-vuelto');
 
-        if (!inputElement.value || recibido === 0) {
+        if (isNaN(recibido) || recibido === 0) {
             vueltoDisplay.innerText = clp.format(0);
             vueltoDisplay.className = "fs-1 fw-bold text-success";
             confirmBtn.disabled = false;
-            return;
-        }
-
-        if (isNaN(recibido) || recibido < total) {
+        } else if (recibido < total) {
             vueltoDisplay.innerText = "Falta Dinero";
             vueltoDisplay.className = "fs-4 fw-bold text-danger mt-2 d-block";
             confirmBtn.disabled = true;
         } else {
-            const vuelto = recibido - total;
-            vueltoDisplay.innerText = clp.format(vuelto);
+            vueltoDisplay.innerText = clp.format(recibido - total);
             vueltoDisplay.className = "fs-1 fw-bold text-success";
             confirmBtn.disabled = false;
         }
     }
 
+    async function executeCheckout(method) {
+        if (cart.length === 0) return;
+        const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+        let paidAmount = total; 
+        
+        if (method === 'efectivo') {
+            const inputVal = parseInt(document.getElementById('monto-recibido').value, 10);
+            if (!isNaN(inputVal) && inputVal > 0) paidAmount = inputVal;
+        }
+
+        try {
+            const response = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cart: cart, payment_method: method })
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                const pModal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'));
+                const vModal = bootstrap.Modal.getInstance(document.getElementById('vueltoModal'));
+                if (pModal) pModal.hide();
+                if (vModal) vModal.hide();
+
+                printReceipt(total, result.sale_id, paidAmount);
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('successModal')).show();
+
+                cart = [];
+                renderCart();
+                clearLastScanned();
+                setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('successModal')).hide(), 2000);
+            } else { alert("Error: " + (result.error || "Error desconocido")); }
+        } catch (err) { alert("Error de conexión."); }
+    }
+
     function openQuickSaleModal() {
-        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('quickSaleModal'));
         document.getElementById('quick-sale-amount').value = '';
-        modal.show();
-        // Give the modal a tiny fraction of a second to render before stealing focus
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('quickSaleModal')).show();
         setTimeout(() => document.getElementById('quick-sale-amount').focus(), 500);
     }
 
     async function processQuickSale() {
-        const amountInput = document.getElementById('quick-sale-amount').value;
-        const amount = parseInt(amountInput, 10);
-
-        if (isNaN(amount) || amount <= 0) {
-            alert("Ingresa un monto válido.");
-            return;
-        }
-
-        // The easter egg interception
+        const amount = parseInt(document.getElementById('quick-sale-amount').value, 10);
+        if (isNaN(amount) || amount <= 0) return alert("Ingresa un monto válido.");
+        
         if (amount === 666) {
             bootstrap.Modal.getInstance(document.getElementById('quickSaleModal')).hide();
-            triggerDoom();
-            return;
+            triggerDoom(); return;
         }
 
-        // Create a fake cart containing just this one generic item
         const quickCart = [{
             barcode: `RAPIDA-${Date.now().toString().slice(-6)}`,
-            name: '* Varios',
-            price: amount,
-            qty: 1,
-            subtotal: amount,
-            unit: 'unit'
+            name: '* Varios', price: amount, qty: 1, subtotal: amount, unit: 'unit'
         }];
 
         try {
@@ -984,146 +813,163 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ cart: quickCart, payment_method: 'efectivo' })
             });
-
             const result = await response.json();
 
             if (response.ok) {
                 bootstrap.Modal.getInstance(document.getElementById('quickSaleModal')).hide();
-
-                // Temporarily swap the global cart variable so printReceipt reads the quick sale, then swap it back
                 const originalCart = [...cart];
                 cart = quickCart;
                 printReceipt(amount, result.sale_id, amount);
                 cart = originalCart; 
 
-                const successModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('successModal'));
-                successModal.show();
-                setTimeout(() => successModal.hide(), 2000);
-            } else {
-                alert("Error: " + (result.error || "Error desconocido"));
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('successModal')).show();
+                setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('successModal')).hide(), 2000);
+            } else { alert("Error: " + (result.error || "Error desconocido")); }
+        } catch (err) { alert("Error de conexión."); }
+    }
+
+    function printReceipt(total, saleId, paidAmount = 0) {
+        const tbody = document.getElementById('receipt-items-print');
+        tbody.innerHTML = '';
+
+        cart.forEach(item => {
+            const qtyStr = item.unit === 'kg' ? item.qty.toFixed(3) : item.qty;
+            tbody.innerHTML += `
+                <tr>
+                    <td>${qtyStr}</td>
+                    <td style="padding-left: 5px; padding-right: 5px; word-break: break-word;">${item.name}</td>
+                    <td style="text-align: right;">${clp.format(item.subtotal)}</td>
+                </tr>`;
+        });
+
+        const finalPaid = paidAmount > 0 ? paidAmount : total;
+        
+        document.getElementById('receipt-ticket-id').innerText = saleId || "N/A";
+        document.getElementById('receipt-total-print').innerText = clp.format(total);
+        document.getElementById('receipt-paid-print').innerText = clp.format(finalPaid);
+        document.getElementById('receipt-change-print').innerText = clp.format(finalPaid - total);
+        document.getElementById('receipt-date').innerText = new Date().toLocaleString('es-CL');
+
+        setTimeout(() => window.print(), 250);
+    }
+
+    /* =========================================
+       8. GLOBAL EVENT LISTENERS
+       ========================================= */
+    document.addEventListener('click', function (e) {
+        const searchArea = document.getElementById('manual-search');
+        const resultsBox = document.getElementById('search-results');
+        if (e.target !== searchArea && !resultsBox.contains(e.target)) {
+            resultsBox.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            const removeModal = document.getElementById('removeConfirmModal');
+            const clearModal = document.getElementById('clearCartModal');
+            
+            if (removeModal && removeModal.classList.contains('show')) {
+                event.preventDefault(); 
+                executeRemoveItem();
+            } else if (clearModal && clearModal.classList.contains('show')) {
+                event.preventDefault();
+                executeClearCart();
             }
-        } catch (err) {
-            console.error(err);
-            alert("Error de conexión con el servidor.");
         }
-    }
+    });
 
-    function clearLastScanned() {
-        document.getElementById('display-img').src = './static/placeholder.png';
-        document.getElementById('display-name').innerText = 'Esperando scan...';
-        document.getElementById('display-barcode').innerText = '';
-    }
-
-    function openVariosModal() {
-        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('variosModal'));
-        document.getElementById('varios-price-input').value = '';
-        modal.show();
-        setTimeout(() => document.getElementById('varios-price-input').focus(), 500);
-    }
-
-    function addVariosToCart() {
-        const priceInput = document.getElementById('varios-price-input').value;
-        const price = parseInt(priceInput, 10);
-
-        if (isNaN(price) || price <= 0) {
-            alert("Ingresa un precio válido.");
-            return;
-        }
-
-        const variosProduct = {
-            barcode: `VARIOS-${Date.now().toString().slice(-6)}`,
-            name: '* Varios',
-            price: price,
-            qty: 1,
-            subtotal: price,
-            image: '',
-            stock: 0,
-            unit: 'unit'
-        };
-
-        addToCart(variosProduct, 1);
-        bootstrap.Modal.getInstance(document.getElementById('variosModal')).hide();
-    }
-
+    /* =========================================
+       9. DOOM EASTER EGG LOGIC
+       ========================================= */
+    let doomMainFn = null;
+    let titleDefender = null;
     let dosInstance = null;
+    const posTitle = "SekiPOS - Caja";
 
     function triggerDoom() {
         const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('doomModal'));
         
-        // Ensure the boot screen is visible every time the modal opens
-        document.getElementById('doom-boot-screen').style.display = 'flex';
+        document.getElementById('boot-loading').classList.remove('d-none');
+        document.getElementById('boot-ready').classList.add('d-none');
+        document.getElementById('boot-status').innerHTML = "INICIANDO EMULADOR...<br>";
+        
+        const bootScreen = document.getElementById('doom-boot-screen');
+        bootScreen.classList.remove('d-none');
+        bootScreen.classList.add('d-flex');
+
+        titleDefender = setInterval(() => {
+            if (document.title === "DOSBox") document.title = posTitle;
+        }, 50);
+
         modal.show();
 
-        // Load the script in the background if it doesn't exist yet
         if (!document.getElementById('js-dos-script')) {
             const script = document.createElement('script');
             script.id = 'js-dos-script';
             script.src = 'https://js-dos.com/6.22/current/js-dos.js';
+            script.onload = prepDoomEnvironment;
             document.body.appendChild(script);
+        } else {
+            prepDoomEnvironment();
         }
     }
 
-    function startDoom() {
-        // Hide the boot screen overlay
-        document.getElementById('doom-boot-screen').style.display = 'none';
+    function prepDoomEnvironment() {
+        const bootText = document.getElementById('boot-status');
+        bootText.innerHTML += "MONTANDO UNIDAD VIRTUAL C:\\...<br>";
 
         Dos(document.getElementById("jsdos"), { 
             wdosboxUrl: "https://js-dos.com/6.22/current/wdosbox.js" 
         }).ready((fs, main) => {
-            fs.extract("/static/doom.zip").then(() => {
-                main(["-c", "DOOM.EXE"]).then((ci) => {
-                    dosInstance = ci;
-                });
+            bootText.innerHTML += "DESCARGANDO ARCHIVOS WAD...<br>";
+            const bypassCache = new Date().getTime();
+            
+            fs.extract(`/static/doom.zip?t=${bypassCache}`).then(() => {
+                const configData = "snd_channels 4\nsnd_musicdevice 3\nsnd_sfxdevice 3\nsnd_sbport 544\nsnd_sbirq 7\nsnd_sbdma 1\nsnd_mport 816\nuse_mouse 1\n";
+                const configBytes = new Uint8Array(new TextEncoder().encode(configData));
+                fs.createFile("fdoom.cfg", configBytes);
+                fs.createFile("default.cfg", configBytes);
+
+                doomMainFn = main;
+                document.getElementById('boot-loading').classList.add('d-none');
+                document.getElementById('boot-ready').classList.remove('d-none');
             });
         });
     }
 
-    function stopDoom() {
-        if (dosInstance) {
-            dosInstance.exit();
-            dosInstance = null;
+    function startDoom() {
+        if (!doomMainFn) return;
+        const bootScreen = document.getElementById('doom-boot-screen');
+        bootScreen.classList.remove('d-flex');
+        bootScreen.classList.add('d-none');
+
+        if (window.SDL && window.SDL.audioContext && window.SDL.audioContext.state === 'suspended') {
+            window.SDL.audioContext.resume();
         }
-        // Nuke the canvas and recreate it to completely kill the WebGL context
-        const canvasContainer = document.getElementById('jsdos').parentElement;
-        canvasContainer.innerHTML = '<canvas id="jsdos" style="width: 100%; max-width: 800px; height: auto; image-rendering: pixelated;"></canvas>';
+
+        doomMainFn(["-c", "DOOM.EXE"]).then((ci) => { dosInstance = ci; });
     }
 
     function toggleDoomFullscreen() {
         const canvas = document.getElementById('jsdos');
-        
-        // This direct user interaction will also force the browser to unlock the AudioContext
         if (!document.fullscreenElement) {
-            if (canvas.requestFullscreen) {
-                canvas.requestFullscreen();
-            } else if (canvas.webkitRequestFullscreen) { /* Safari */
-                canvas.webkitRequestFullscreen();
-            }
+            if (canvas.requestFullscreen) canvas.requestFullscreen();
+            else if (canvas.webkitRequestFullscreen) canvas.webkitRequestFullscreen();
         } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            }
+            if (document.exitFullscreen) document.exitFullscreen();
         }
     }
 
-    // Global listener to capture the Enter key for confirmation modals
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                const removeModal = document.getElementById('removeConfirmModal');
-                const clearModal = document.getElementById('clearCartModal');
-                
-                // If the "Quitar Producto" modal is open
-                if (removeModal && removeModal.classList.contains('show')) {
-                    event.preventDefault(); // Stop it from clicking anything else in the background
-                    executeRemoveItem();
-                } 
-                // If the "Vaciar Carrito" modal is open
-                else if (clearModal && clearModal.classList.contains('show')) {
-                    event.preventDefault();
-                    executeClearCart();
-                }
-            }
-        });
-        
+    // The Nuclear Cleanup Crew
+    document.getElementById('doomModal').addEventListener('hidden.bs.modal', function () {
+        window.location.reload();
+    });
+
+    /* =========================================
+       10. INIT
+       ========================================= */
     loadCart();
-    </script>
+
+</script>
 {% endblock %}
