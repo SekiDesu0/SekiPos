@@ -1,12 +1,15 @@
 package main
 
 import (
+	_ "embed"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"image/color"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -17,10 +20,35 @@ import (
 	"github.com/google/gousb"
 )
 
+//go:embed icon.ico
+var iconData []byte
+
+type HexUint16 uint16
+
+func (h HexUint16) MarshalJSON() ([]byte, error) {
+	return json.Marshal(fmt.Sprintf("0x%04X", h))
+}
+
+func (h *HexUint16) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	s = strings.TrimPrefix(s, "0x")
+	val, err := strconv.ParseUint(s, 16, 16)
+	if err != nil {
+		return err
+	}
+	*h = HexUint16(val)
+	return nil
+}
+
 type Config struct {
-	TargetURL string `json:"target_url"`
-	VendorID  uint16 `json:"vendor_id"`
-	ProductID uint16 `json:"product_id"`
+	TargetURL   string    `json:"target_url"`
+	VendorID    HexUint16 `json:"vendor_id"`
+	ProductID   HexUint16 `json:"product_id"`
+	FallbackVID HexUint16 `json:"fallback_vendor_id"`
+	FallbackPID HexUint16 `json:"fallback_product_id"`
 }
 
 var hidMap = map[byte]string{
@@ -49,15 +77,16 @@ func (b *BridgeApp) saveConfig() {
 
 func loadConfig() Config {
 	conf := Config{
-		TargetURL: "https://scanner.sekidesu.xyz/scan",
-		VendorID:  0xFFFF,
-		ProductID: 0x0035,
+		TargetURL:   "https://scanner.sekidesu.xyz/scan",
+		VendorID:    0xFFFF,
+		ProductID:   0x0035,
+		FallbackVID: 0x04B3,
+		FallbackPID: 0x3107,
 	}
 	file, err := os.ReadFile("config.json")
 	if err == nil {
 		json.Unmarshal(file, &conf)
 	} else {
-		// Create default config if missing
 		data, _ := json.MarshalIndent(conf, "", "  ")
 		os.WriteFile("config.json", data, 0644)
 	}
@@ -82,6 +111,8 @@ func main() {
 
 	a := app.New()
 	w := a.NewWindow("POS Hardware Bridge (Go)")
+	w.SetIcon(fyne.NewStaticResource("icon.ico", iconData))
+
 	bridge.window = w
 	bridge.urlEntry = widget.NewEntry()
 	bridge.urlEntry.SetText(conf.TargetURL)
@@ -90,18 +121,18 @@ func main() {
 
 	bridge.logList = widget.NewList(
 		func() int { return len(bridge.logs) },
-					func() fyne.CanvasObject { return widget.NewLabel("template") },
-					func(i widget.ListItemID, o fyne.CanvasObject) {
-						o.(*widget.Label).SetText(bridge.logs[i])
-					},
+		func() fyne.CanvasObject { return widget.NewLabel("template") },
+		func(i widget.ListItemID, o fyne.CanvasObject) {
+			o.(*widget.Label).SetText(bridge.logs[i])
+		},
 	)
 
 	content := container.NewBorder(
 		container.NewVBox(
 			widget.NewLabel("Target POS Endpoint:"),
-				  bridge.urlEntry,
-		    bridge.status,
-		    widget.NewLabel("Activity Log:"),
+			bridge.urlEntry,
+			bridge.status,
+			widget.NewLabel("Activity Log:"),
 		),
 		nil, nil, nil,
 		bridge.logList,
@@ -129,18 +160,18 @@ func (b *BridgeApp) addLog(msg string) {
 	ts := time.Now().Format("15:04:05")
 	formatted := fmt.Sprintf("[%s] %s", ts, msg)
 
-		if b.isCLI {
-			fmt.Println(formatted)
-			return
-		}
+	if b.isCLI {
+		fmt.Println(formatted)
+		return
+	}
 
-		fyne.DoAndWait(func() {
-			b.logs = append([]string{formatted}, b.logs...)
-			if len(b.logs) > 15 {
-				b.logs = b.logs[:15]
-			}
-			b.logList.Refresh()
-		})
+	fyne.DoAndWait(func() {
+		b.logs = append([]string{formatted}, b.logs...)
+		if len(b.logs) > 15 {
+			b.logs = b.logs[:15]
+		}
+		b.logList.Refresh()
+	})
 }
 
 func (b *BridgeApp) updateStatus(msg string, col color.Color) {
@@ -179,13 +210,17 @@ func (b *BridgeApp) usbListenLoop() {
 	for {
 		dev, err := ctx.OpenDeviceWithVIDPID(gousb.ID(b.config.VendorID), gousb.ID(b.config.ProductID))
 
+		if (err != nil || dev == nil) && (b.config.FallbackVID != 0) {
+			dev, err = ctx.OpenDeviceWithVIDPID(gousb.ID(b.config.FallbackVID), gousb.ID(b.config.FallbackPID))
+		}
+
 		if err != nil || dev == nil {
 			b.updateStatus("Scanner unplugged. Waiting...", color.NRGBA{200, 0, 0, 255})
 			time.Sleep(2 * time.Second)
 			continue
 		}
 
-		b.updateStatus("Scanner Locked & Ready", color.NRGBA{0, 180, 0, 255})
+		b.updateStatus(fmt.Sprintf("Scanner Ready (0x%04X)", dev.Desc.Vendor), color.NRGBA{0, 180, 0, 255})
 
 		intf, done, err := dev.DefaultInterface()
 		if err != nil {
