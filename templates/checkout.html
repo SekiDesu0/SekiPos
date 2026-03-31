@@ -87,7 +87,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="variosModal" tabindex="-1">
+    <div class="modal" id="variosModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content">
                 <div class="modal-header border-0 pb-0">
@@ -99,8 +99,10 @@
                 <div class="modal-body text-center pt-1 pb-4">
                     <div class="mb-3 text-start">
                         <label class="text-muted small mb-1">Precio (CLP)</label>
-                        <input type="number" id="varios-price-input" class="form-control form-control-lg text-center fw-bold fs-4"
-                            placeholder="$0" onkeydown="if(event.key === 'Enter') addVariosToCart()">
+                        <input type="text" inputmode="numeric" id="varios-price-input" class="form-control form-control-lg text-center fw-bold fs-4"
+                            placeholder="$0" 
+                            oninput="let v = this.value.replace(/\D/g, ''); this.value = v ? parseInt(v, 10).toLocaleString('es-CL') : '';"
+                            onkeydown="if(event.key === 'Enter') addVariosToCart()">
                     </div>
                     <button class="btn btn-warning w-100 py-3 fw-bold" onclick="addVariosToCart()">
                         <i class="bi bi-cart-plus me-1"></i> Agregar al Carrito
@@ -152,7 +154,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="vueltoModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal" id="vueltoModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content">
                 <div class="modal-header border-0 pb-0">
@@ -181,7 +183,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="quickSaleModal" tabindex="-1">
+    <div class="modal" id="quickSaleModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content">
                 <div class="modal-header border-0 pb-0">
@@ -191,8 +193,10 @@
                 <div class="modal-body text-center pt-1 pb-4">
                     <div class="mb-3 text-start">
                         <label class="text-muted small mb-1">Monto (CLP)</label>
-                        <input type="number" id="quick-sale-amount" class="form-control form-control-lg text-center fw-bold fs-4"
-                            placeholder="$0" onkeydown="if(event.key === 'Enter') processQuickSale()">
+                        <input type="text" inputmode="numeric" id="quick-sale-amount" class="form-control form-control-lg text-center fw-bold fs-4"
+                            placeholder="$0" 
+                            oninput="let v = this.value.replace(/\D/g, ''); this.value = v ? parseInt(v, 10).toLocaleString('es-CL') : '';"
+                            onkeydown="if(event.key === 'Enter') processQuickSale()">
                     </div>
                     <button class="btn btn-primary w-100 py-3 fw-bold" onclick="processQuickSale()">
                         <i class="bi bi-lightning-charge me-1"></i> Finalizar Venta
@@ -636,13 +640,17 @@
     }
 
     function openVariosModal() {
-        document.getElementById('varios-price-input').value = '';
+        const input = document.getElementById('varios-price-input');
+        input.value = '';
         bootstrap.Modal.getOrCreateInstance(document.getElementById('variosModal')).show();
-        setTimeout(() => document.getElementById('varios-price-input').focus(), 500);
+        input.focus(); // Instant focus
     }
 
     function addVariosToCart() {
-        const price = parseInt(document.getElementById('varios-price-input').value, 10);
+        // Grab the value and strip the dots before parsing
+        const rawValue = document.getElementById('varios-price-input').value.replace(/\./g, '');
+        const price = parseInt(rawValue, 10);
+        
         if (isNaN(price) || price <= 0) return alert("Ingresa un precio válido.");
 
         addToCart({
@@ -709,21 +717,23 @@
         const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
         
         document.getElementById('vuelto-total-display').innerText = clp.format(total);
-        document.getElementById('monto-recibido').value = '';
+        const input = document.getElementById('monto-recibido');
+        input.value = '';
+        
         document.getElementById('vuelto-amount').innerText = clp.format(0);
         document.getElementById('vuelto-amount').className = "fs-1 fw-bold text-success";
         document.getElementById('btn-confirm-vuelto').disabled = false;
 
         const quickBox = document.getElementById('vuelto-quick-buttons');
         quickBox.innerHTML = `<button class="btn btn-sm btn-outline-secondary fw-bold" onclick="setMonto(${total})">Exacto</button>`;
-        [5000, 10000, 20000].forEach(bill => {
+        [2000, 5000, 10000, 20000].forEach(bill => {
             if (bill > total && (bill - total) <= 20000) {
                 quickBox.innerHTML += `<button class="btn btn-sm btn-outline-secondary fw-bold" onclick="setMonto(${bill})">${clp.format(bill)}</button>`;
             }
         });
 
         bootstrap.Modal.getOrCreateInstance(document.getElementById('vueltoModal')).show();
-        setTimeout(() => document.getElementById('monto-recibido').focus(), 500);
+        input.focus(); // Instant focus
     }
 
     function setMonto(amount) {
@@ -788,13 +798,17 @@
     }
 
     function openQuickSaleModal() {
-        document.getElementById('quick-sale-amount').value = '';
+        const input = document.getElementById('quick-sale-amount');
+        input.value = '';
         bootstrap.Modal.getOrCreateInstance(document.getElementById('quickSaleModal')).show();
-        setTimeout(() => document.getElementById('quick-sale-amount').focus(), 500);
+        input.focus(); // Instant focus
     }
 
     async function processQuickSale() {
-        const amount = parseInt(document.getElementById('quick-sale-amount').value, 10);
+        // Strip the dots before asking JS to do math
+        const rawValue = document.getElementById('quick-sale-amount').value.replace(/\./g, '');
+        const amount = parseInt(rawValue, 10);
+        
         if (isNaN(amount) || amount <= 0) return alert("Ingresa un monto válido.");
         
         if (amount === 666) {
@@ -865,18 +879,96 @@
     });
 
     document.addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-            const removeModal = document.getElementById('removeConfirmModal');
-            const clearModal = document.getElementById('clearCartModal');
-            
-            if (removeModal && removeModal.classList.contains('show')) {
-                event.preventDefault(); 
-                executeRemoveItem();
-            } else if (clearModal && clearModal.classList.contains('show')) {
+        const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+        const isTyping = activeTag === 'input' || activeTag === 'textarea';
+        
+        // Find modals that are fully open OR in the middle of their fade-in animation
+        const openModal = document.querySelector('.modal.show, .modal[style*="display: block"]');
+
+        // 1. The Eject Button: NumpadDecimal (.) or Delete
+        if (event.code === 'NumpadDecimal' || event.key === 'Delete') {
+            if (isTyping && event.key === 'Delete') return; 
+
+            if (openModal) {
                 event.preventDefault();
-                executeClearCart();
+                const modalInstance = bootstrap.Modal.getInstance(openModal) || bootstrap.Modal.getOrCreateInstance(openModal);
+                if (modalInstance) modalInstance.hide();
+                return; 
             }
         }
+
+        // 2. Payment Modal Selection: 1 for Efectivo, 2 for Tarjeta
+        if (openModal && openModal.id === 'paymentModal') {
+            if (event.code === 'Numpad1' || event.key === '1') {
+                event.preventDefault();
+                openVueltoModal();
+                return;
+            }
+            if (event.code === 'Numpad2' || event.key === '2') {
+                event.preventDefault();
+                executeCheckout('tarjeta');
+                return;
+            }
+        }
+
+        // 3. The Money Button: Enter
+        if (event.code === 'NumpadEnter' || event.key === 'Enter') {
+            
+            if (itemIndexToRemove !== null) {
+                event.preventDefault(); 
+                executeRemoveItem();
+                return;
+            } 
+            
+            const clearModal = document.getElementById('clearCartModal');
+            if (clearModal && (clearModal.classList.contains('show') || clearModal.style.display === 'block')) {
+                event.preventDefault();
+                executeClearCart();
+                return;
+            }
+
+            if (!openModal && !isTyping && cart.length > 0) {
+                event.preventDefault();
+                processSale(); 
+                return;
+            }
+        }
+
+        // 4. The Varios Button: +
+        if (event.code === 'NumpadAdd' || event.key === '+') {
+            if (isTyping) return;
+            event.preventDefault(); 
+            openVariosModal();
+            return;
+        }
+
+        // 5. The Oops Button: - (Remove last item)
+        if (event.code === 'NumpadSubtract' || event.key === '-') {
+            if (isTyping) return;
+            if (!openModal && cart.length > 0) {
+                event.preventDefault();
+                removeItem(cart.length - 1);
+                return;
+            }
+        }
+
+        // 6. The Speedrun Button: * (Venta Rápida)
+        if (event.code === 'NumpadMultiply' || event.key === '*') {
+            if (isTyping) return;
+            event.preventDefault();
+            openQuickSaleModal();
+            return;
+        }
+    });
+
+    // Safety cleanup: If you close the remove modal with ESC or the Eject button, clear the memory
+    document.getElementById('removeConfirmModal').addEventListener('hidden.bs.modal', function () {
+        itemIndexToRemove = null;
+    });
+
+    // Safety cleanup: If you close the remove modal with ESC or the Eject button, clear the memory
+    document.getElementById('removeConfirmModal').addEventListener('hidden.bs.modal', function () {
+        itemIndexToRemove = null;
     });
 
     /* =========================================
@@ -970,6 +1062,8 @@
        10. INIT
        ========================================= */
     loadCart();
+
+
 
 </script>
 {% endblock %}
