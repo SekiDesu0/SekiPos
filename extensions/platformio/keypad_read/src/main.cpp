@@ -1,76 +1,70 @@
 #include <Arduino.h>
+#include <Keypad.h>
 
-const int BUZZER_PIN = 6;
-const int pins[] = {0, 1, 2, 3, 4, 5, 7};
-const int numPins = 7;
+#define BUZZER_PIN 9
 
-struct KeyMap {
-  int strobe;
-  int target;
-  char key;
-};
+const byte ROWS = 4;
+const byte COLS = 5;
 
-// Your discovered mapping
-KeyMap keypad[] = {{7, 1, '1'}, {7, 2, '2'}, {3, 7, '3'}, {5, 0, 'C'},
-                   {7, 0, 'T'}, {4, 1, 'm'}, {1, 2, 'Y'}, {5, 3, '6'},
-                   {1, 0, '+'}, {2, 0, 'Z'}, {1, 5, '7'}, {5, 2, 'U'},
-                   {2, 5, '8'}, {3, 5, '9'}, {2, 4, 'M'}, {3, 1, '4'},
-                   {0, 2, '5'}, {3, 4, 'P'}, {4, 0, '$'}, {0, 4, 'L'}};
+char keys[ROWS][COLS] = {{'1', '2','3','C','T'},
+                         {'4', '5','6','A','Z'},
+                         {'7', '8','9','X','Y'},
+                         {'0', '.','S','M','L'}};
+
+byte rowPins[ROWS] = {0,1,2,3};
+byte colPins[COLS] = {4,5,6,7,8};
+
+Keypad kpd = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+
+unsigned long loopCount = 0;
+unsigned long startTime;
+
+void playBeep() {
+  analogWrite(BUZZER_PIN, 10);
+  delay(50);
+  analogWrite(BUZZER_PIN, 0);
+}
 
 void setup() {
   Serial.begin(115200);
-  for (int p : pins) {
-    pinMode(p, INPUT_PULLUP);
-  }
-  // Keep buzzer pin high-impedance so it doesn't sink the matrix
-  pinMode(BUZZER_PIN, INPUT_PULLUP);
-}
-
-void playBeep() {
-  analogWrite(BUZZER_PIN, 10); 
-  
-  delay(50); // Beep duration
-  
-  analogWrite(BUZZER_PIN, 0); // Turn it off
-  pinMode(BUZZER_PIN, INPUT_PULLUP); // Reset to input for the matrix
-}
-
-char getKeyPressed() {
-  for (int s = 0; s < numPins; s++) {
-    int strobe = pins[s];
-
-    pinMode(strobe, OUTPUT);
-    digitalWrite(strobe, LOW);
-    delayMicroseconds(50);
-
-    for (int i = 0; i < numPins; i++) {
-      int target = pins[i];
-      if (target == strobe)
-        continue;
-
-      if (digitalRead(target) == LOW) {
-        for (int k = 0; k < 20; k++) {
-          if (keypad[k].strobe == strobe && keypad[k].target == target) {
-
-            // Visual and Audio feedback
-            Serial.print("Pressed: ");
-            Serial.println(keypad[k].key);
-            playBeep();
-
-            while (digitalRead(target) == LOW)
-              ; // Wait for release
-            pinMode(strobe, INPUT_PULLUP);
-            return keypad[k].key;
-          }
-        }
-      }
-    }
-    pinMode(strobe, INPUT_PULLUP);
-  }
-  return '\0';
+  startTime = millis();
 }
 
 void loop() {
-  getKeyPressed();
-  delay(10);
+  loopCount++;
+  if ((millis() - startTime) > 5000) {
+    Serial.print("Average loops per second = ");
+    Serial.println(loopCount / 5);
+    startTime = millis();
+    loopCount = 0;
+  }
+
+  if (kpd.getKeys()) {
+    for (int i = 0; i < LIST_MAX; i++) {
+      if (kpd.key[i].stateChanged) {
+        String msg = "";
+        switch (kpd.key[i].kstate) {
+        case PRESSED:
+          msg = " PRESSED.";
+          playBeep();
+          break;
+        case HOLD:
+          msg = " HOLD.";
+          break;
+        case RELEASED:
+          msg = " RELEASED.";
+          break;
+        case IDLE:
+          msg = " IDLE.";
+          break;
+        }
+
+        if (msg != "") {
+          Serial.print("Key ");
+          Serial.print(kpd.key[i].kchar);
+          Serial.println(msg);
+        }
+      }
+    }
+  }
 }

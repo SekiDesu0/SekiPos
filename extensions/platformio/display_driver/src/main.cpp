@@ -53,11 +53,6 @@ void setup() {
   pinMode(LCD_WR, OUTPUT);
   pinMode(LCD_CS, OUTPUT);
   digitalWrite(LCD_CS, HIGH); // Initialize serial interface [cite: 443]
-
-  Serial.begin(9600);
-  // while (!Serial); 
-
-  Serial.println("--- TM1621 Interactive Mapper ---");
   
   sendCmd(0x01); // SYS EN [cite: 534]
   sendCmd(0x29); // BIAS 1/3, 4 COM [cite: 420, 544]
