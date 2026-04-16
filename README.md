@@ -35,6 +35,8 @@ services:
     sekipos:
         ports:
             - 5000:5000
+        environment:
+            - TZ=America/Santiago
         volumes:
             - YOUR_PATH/sekipos/db:/app/db
             - YOUR_PATH/sekipos/static/cache:/app/static/cache
