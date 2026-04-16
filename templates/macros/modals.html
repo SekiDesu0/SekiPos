@@ -49,51 +49,42 @@
 <div id="receipt-print-zone{{ id_suffix }}" class="d-none d-print-block">
     <style>
         @media print {
-            /* Tell the browser this is a continuous 80mm thermal roll */
-            @page {
-                margin: 0;
-                size: 80mm auto; 
-            }
-
-            /* Nuke the rest of the layout from the document flow so it takes up 0 height */
-            nav, .discord-card, .modal, .row {
-                display: none !important;
-            }
-            
-            body * { 
-                visibility: hidden; 
-            }
-
-            /* Resurrect the receipt and put it in the top left corner */
-            #receipt-print-zone{{ id_suffix }}, #receipt-print-zone{{ id_suffix }} * { 
-                visibility: visible; 
-            }
+            @page { margin: 0; size: 80mm auto; }
+            nav, .discord-card, .modal, .row { display: none !important; }
+            body * { visibility: hidden; }
+            #receipt-print-zone{{ id_suffix }}, #receipt-print-zone{{ id_suffix }} * { visibility: visible; }
             #receipt-print-zone{{ id_suffix }} {
-                position: absolute; 
-                left: 0; 
-                top: 0; 
-                width: 80mm;
-                padding: 2mm 5mm; 
-                margin: 0; 
-                display: block !important;
-                font-family: 'Courier New', Courier, monospace; 
-                font-size: 10px; 
-                color: #000;
+                position: absolute; left: 0; top: 0; width: 80mm;
+                padding: 2mm 5mm; margin: 0; display: block !important;
+                font-family: 'Courier New', Courier, monospace; font-size: 10px; color: #000;
             }
         }
-        
         .receipt-table { width: 100%; border-collapse: collapse; font-family: monospace; font-size: 12px; }
         .receipt-header { text-align: center; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 5px; }
         .receipt-total-row { border-top: 1px dashed #000; margin-top: 5px; padding-top: 5px; font-weight: bold; }
     </style>
 
     <div class="receipt-header">
-        <h3 style="margin: 0; font-weight: 800;">SekiPOS</h3>
+        <h3 style="margin: 0; font-weight: 800;" class="receipt-biz-name">SekiPOS</h3>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelectorAll('.receipt-biz-name').forEach(el => {
+                    el.innerText = localStorage.getItem('seki_biz_name') || 'SekiPOS';
+                });
+            });
+        </script>
+        
         <div style="font-size: 10px; margin-bottom: 5px;" id="receipt-type{{ id_suffix }}">Comprobante de Venta</div>
         <div style="font-size: 11px; font-weight: bold;">
             Ticket Nº <span id="receipt-ticket-id{{ id_suffix }}"></span>
         </div>
         <div id="receipt-date{{ id_suffix }}" style="font-size: 11px;"></div>
+        
+        <div id="receipt-order-info{{ id_suffix }}" style="display: none; margin-top: 5px; padding-top: 5px; border-top: 1px dashed #000; text-align: left; font-size: 11px;">
+            <div style="font-weight: bold;">Cliente: <span id="receipt-client-name{{ id_suffix }}"></span></div>
+            <div id="receipt-pickup-container{{ id_suffix }}" style="display: none; font-weight: bold;">Retiro: <span id="receipt-pickup-time{{ id_suffix }}"></span></div>
+            <div>Notas: <span id="receipt-order-notes{{ id_suffix }}"></span></div>
+        </div>
     </div>
 
     <table class="receipt-table">
@@ -125,4 +116,65 @@
 
     <div style="text-align: center; margin-top: 20px; font-size: 10px;">¡Gracias por su compra!</div>
 </div>
+{% endmacro %}
+
+{% macro settings_modal() %}
+<div class="modal fade" id="settingsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-gear-fill me-2"></i>Configuración del POS</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <label class="form-label text-muted small mb-1">Nombre del Local (Impreso en la Boleta)</label>
+                    <input type="text" id="setting-biz-name" class="form-control" placeholder="Ej: Mi Tiendita" autocomplete="off">
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="setting-auto-print">
+                    <label class="form-check-label text-muted small" for="setting-auto-print">
+                        Imprimir automáticamente al finalizar venta
+                    </label>
+                </div>
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="setting-ask-order-details">
+                    <label class="form-check-label text-muted small" for="setting-ask-order-details">
+                        Solicitar Nombre/Notas al cobrar (Modo Comida)
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer d-flex">
+                <button class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-primary flex-grow-1" onclick="savePosSettings()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const modalEl = document.getElementById('settingsModal');
+        if (modalEl) {
+            modalEl.addEventListener('show.bs.modal', () => {
+                document.getElementById('setting-biz-name').value = localStorage.getItem('seki_biz_name') || 'SekiPOS';
+                document.getElementById('setting-auto-print').checked = localStorage.getItem('seki_auto_print') !== 'false';
+                document.getElementById('setting-ask-order-details').checked = localStorage.getItem('seki_ask_order_details') === 'true';
+            });
+        }
+    });
+
+    function savePosSettings() {
+        const bizName = document.getElementById('setting-biz-name').value.trim() || 'SekiPOS';
+        const autoPrint = document.getElementById('setting-auto-print').checked;
+        const askDetails = document.getElementById('setting-ask-order-details').checked;
+        
+        localStorage.setItem('seki_biz_name', bizName);
+        localStorage.setItem('seki_auto_print', autoPrint);
+        localStorage.setItem('seki_ask_order_details', askDetails);
+        
+        document.querySelectorAll('.receipt-biz-name').forEach(el => { el.innerText = bizName; });
+        
+        bootstrap.Modal.getInstance(document.getElementById('settingsModal')).hide();
+    }
+</script>
 {% endmacro %}

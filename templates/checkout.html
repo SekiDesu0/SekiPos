@@ -1,6 +1,5 @@
 {% extends "macros/base.html" %}
 {% from 'macros/modals.html' import confirm_modal, scanner_modal, render_receipt %}
-
 {% block title %}Caja{% endblock %}
 
 {% block head %}
@@ -130,8 +129,38 @@
         </div>
     </div>
 
-    <div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal fade" id="orderDetailsModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem">
+                        Detalles del Pedido
+                    </h5>
+                    <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body pt-2 pb-4">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small mb-1">Nombre del Cliente</label>
+                        <input type="text" id="order-client-name" class="form-control" placeholder="Ej: Juan Pérez" autocomplete="off" onkeydown="if(event.key === 'Enter') document.getElementById('order-pickup-time').focus()">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small mb-1">Hora de Retiro (Opcional)</label>
+                        <input type="time" id="order-pickup-time" class="form-control" onkeydown="if(event.key === 'Enter') document.getElementById('order-notes').focus()">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted small mb-1">Detalles / Notas</label>
+                        <input type="text" id="order-notes" class="form-control" placeholder="Ej: Para llevar, Sin cebolla" autocomplete="off" onkeydown="if(event.key === 'Enter') confirmOrderDetails()">
+                    </div>
+                    <button class="btn btn-primary w-100 py-2 fw-bold" onclick="confirmOrderDetails()">
+                        Continuar al Pago <i class="bi bi-arrow-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header border-0 pb-0">
                     <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem">
@@ -143,10 +172,13 @@
                     <h1 id="payment-modal-total" class="mb-4" style="color: var(--accent); font-weight: 800; font-size: 3rem">$0</h1>
                     <div class="d-grid gap-3 px-3">
                         <button class="btn btn-lg btn-success py-3" onclick="openVueltoModal()">
-                            <i class="bi bi-cash-coin me-2" style="font-size: 1.5rem; vertical-align: middle"></i> Efectivo
+                            <i class="bi bi-cash-coin me-2" style="font-size: 1.5rem; vertical-align: middle"></i> Efectivo (1)
                         </button>
                         <button class="btn btn-lg btn-secondary py-3" onclick="executeCheckout('tarjeta')">
-                            <i class="bi bi-credit-card me-2" style="font-size: 1.5rem; vertical-align: middle"></i> Tarjeta (Pronto)
+                            <i class="bi bi-credit-card me-2" style="font-size: 1.5rem; vertical-align: middle"></i> Tarjeta (2)
+                        </button>
+                        <button class="btn btn-lg btn-info py-3 text-white" onclick="executeCheckout('transferencia')">
+                            <i class="bi bi-bank me-2" style="font-size: 1.5rem; vertical-align: middle"></i> Transferencia (3)
                         </button>
                     </div>
                 </div>
@@ -168,11 +200,12 @@
                     </div>
                     <div class="mb-3 text-start">
                         <label class="text-muted small mb-1">Monto Recibido</label>
-                        <input type="number" id="monto-recibido" class="form-control form-control-lg text-center fw-bold fs-4"
-                               placeholder="$0" onkeyup="calculateVuelto()" onchange="calculateVuelto()"
+                        <input type="text" inputmode="numeric" id="monto-recibido" class="form-control form-control-lg text-center fw-bold fs-4"
+                               placeholder="$0" 
+                               oninput="let v = this.value.replace(/\D/g, ''); this.value = v ? parseInt(v, 10).toLocaleString('es-CL') : ''; calculateVuelto();"
                                onkeydown="if(event.key === 'Enter' && !document.getElementById('btn-confirm-vuelto').disabled) executeCheckout('efectivo')">
                     </div>
-                    <div class="d-flex justify-content-center gap-2 mb-3" id="vuelto-quick-buttons"></div>
+                    <div class="d-flex flex-wrap justify-content-center gap-2 mb-3" id="vuelto-quick-buttons"></div>
                     <div class="p-3 mb-3" style="background: var(--input-bg); border-radius: 8px">
                         <span class="text-muted small text-uppercase fw-bold">Vuelto a Entregar</span><br>
                         <span id="vuelto-amount" class="fs-1 fw-bold text-muted">$0</span>
@@ -284,6 +317,7 @@
             <div class="col-md-8">
                 <div class="discord-card p-3">
                     <h4><i class="bi bi-cart3"></i> Carrito</h4>
+
                     <div class="position-relative mb-4">
                         <div class="input-group">
                             <span class="input-group-text border-0 position-absolute" style="background: transparent; z-index: 10">
@@ -303,6 +337,9 @@
                         <div id="search-results" class="dropdown-menu w-100 shadow-sm mt-1"
                              style="display: none; position: absolute; top: 100%; left: 0; z-index: 1000; max-height: 300px; overflow-y: auto"></div>
                     </div>
+                    
+                    <div id="pinned-products-container" class="d-flex flex-wrap gap-2 mb-3"></div>
+
                     <div class="table-responsive">
                         <table class="table mt-3" id="cart-table">
                             <thead>
@@ -359,6 +396,16 @@
     let tempBarcode = null;
     let editingCartIndex = null;
     let itemIndexToRemove = null;
+
+    let currentClientName = '';
+    let currentOrderNotes = '';
+    let currentPickupTime = '';
+
+    // The lock to prevent duplicate sales
+    let isProcessing = false;
+
+    // Fetch the pinned items from local storage
+    let pinnedBarcodes = JSON.parse(localStorage.getItem('seki_pinned_products')) || [];
 
     let socket = io();
 
@@ -550,20 +597,63 @@
         if (matches.length === 0) {
             resultsBox.innerHTML = '<div class="p-3 text-muted text-center">No se encontraron productos</div>';
         } else {
-            resultsBox.innerHTML = matches.map(p => `
+            resultsBox.innerHTML = matches.map(p => {
+                // Check if it's pinned to color the icon
+                const isPinned = pinnedBarcodes.includes(p.barcode);
+                const pinIcon = isPinned ? 'bi-pin-angle-fill text-warning' : 'bi-pin-angle text-muted';
+                
+                return `
                 <a href="#" class="dropdown-item d-flex justify-content-between align-items-center py-2" onclick="selectSearchResult('${p.barcode}')">
-                    <div>
-                        <strong>${p.name}</strong><br>
-                        <small class="text-muted font-monospace">${p.barcode}</small>
+                    <div class="d-flex align-items-center gap-3">
+                        <button class="btn btn-sm btn-link p-0 text-decoration-none" onclick="togglePin('${p.barcode}', event)" title="Fijar producto">
+                            <i class="bi ${pinIcon} fs-5"></i>
+                        </button>
+                        <div>
+                            <strong>${p.name}</strong><br>
+                            <small class="text-muted font-monospace">${p.barcode}</small>
+                        </div>
                     </div>
                     <div class="text-end">
                         <span style="color: var(--accent); font-weight: bold;">${clp.format(p.price)}</span><br>
                         <small class="text-muted">${p.unit === 'kg' ? 'Kg' : 'Unidad'}</small>
                     </div>
                 </a>
-            `).join('');
+            `}).join('');
         }
         resultsBox.style.display = 'block';
+    }
+
+    function togglePin(barcode, event) {
+        event.stopPropagation(); // Stop the row from adding to cart when clicking the pin
+        if (pinnedBarcodes.includes(barcode)) {
+            pinnedBarcodes = pinnedBarcodes.filter(b => b !== barcode);
+        } else {
+            pinnedBarcodes.push(barcode);
+        }
+        localStorage.setItem('seki_pinned_products', JSON.stringify(pinnedBarcodes));
+        
+        renderPinnedProducts();
+        filterSearch(); // Re-render the search dropdown so the pin icon updates
+        document.getElementById('manual-search').focus(); // Keep focus on search input
+    }
+
+    function renderPinnedProducts() {
+        const container = document.getElementById('pinned-products-container');
+        const pinnedProducts = allProducts.filter(p => pinnedBarcodes.includes(p.barcode));
+
+        if (pinnedProducts.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+
+        container.innerHTML = pinnedProducts.map(p => `
+            <button class="btn btn-outline-secondary text-start p-2 shadow-sm d-flex flex-column justify-content-between" 
+                    style="width: 110px; height: 75px; border-color: var(--border); background: var(--input-bg); color: var(--text-main);" 
+                    onclick="handleProductScan(allProducts.find(x => x.barcode === '${p.barcode}'))">
+                <span class="small fw-bold text-truncate w-100 mb-1" title="${p.name}">${p.name}</span>
+                <span class="small" style="color: var(--accent); font-weight: 800;">${clp.format(p.price)}</span>
+            </button>
+        `).join('');
     }
 
     function selectSearchResult(barcode) {
@@ -708,6 +798,31 @@
         
         if (total === 666) { triggerDoom(); return; }
 
+        // Intercept checkout if Restaurant mode is active
+        if (localStorage.getItem('seki_ask_order_details') === 'true') {
+            document.getElementById('order-client-name').value = '';
+            document.getElementById('order-pickup-time').value = ''; // <-- ADD THIS
+            document.getElementById('order-notes').value = '';
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('orderDetailsModal')).show();
+            setTimeout(() => document.getElementById('order-client-name').focus(), 500);
+            return;
+        }
+
+        showPaymentModal(total);
+    }
+
+    function confirmOrderDetails() {
+        currentClientName = document.getElementById('order-client-name').value.trim();
+        currentPickupTime = document.getElementById('order-pickup-time').value;
+        currentOrderNotes = document.getElementById('order-notes').value.trim();
+        
+        bootstrap.Modal.getInstance(document.getElementById('orderDetailsModal')).hide();
+        
+        const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+        showPaymentModal(total);
+    }
+    
+    function showPaymentModal(total) {
         document.getElementById('payment-modal-total').innerText = clp.format(total);
         bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModal')).show();
     }
@@ -737,13 +852,16 @@
     }
 
     function setMonto(amount) {
-        document.getElementById('monto-recibido').value = amount;
+        // Formats the quick-select buttons so they have dots too
+        document.getElementById('monto-recibido').value = amount.toLocaleString('es-CL');
         calculateVuelto();
     }
 
     function calculateVuelto() {
         const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
-        const recibido = parseInt(document.getElementById('monto-recibido').value, 10);
+        // Strip the dots before parsing the math
+        const rawRecibido = document.getElementById('monto-recibido').value.replace(/\./g, '');
+        const recibido = parseInt(rawRecibido, 10);
         const vueltoDisplay = document.getElementById('vuelto-amount');
         const confirmBtn = document.getElementById('btn-confirm-vuelto');
 
@@ -763,13 +881,23 @@
     }
 
     async function executeCheckout(method) {
-        if (cart.length === 0) return;
+        if (cart.length === 0 || isProcessing) return;
+        isProcessing = true;
+        
         const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
         let paidAmount = total; 
         
+        const confirmBtn = document.getElementById('btn-confirm-vuelto');
+        const originalBtnText = confirmBtn.innerHTML;
+        
         if (method === 'efectivo') {
-            const inputVal = parseInt(document.getElementById('monto-recibido').value, 10);
+            // Strip the dots here too
+            const rawVal = document.getElementById('monto-recibido').value.replace(/\./g, '');
+            const inputVal = parseInt(rawVal, 10);
             if (!isNaN(inputVal) && inputVal > 0) paidAmount = inputVal;
+            
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Procesando...';
         }
 
         try {
@@ -793,8 +921,15 @@
                 renderCart();
                 clearLastScanned();
                 setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('successModal')).hide(), 2000);
-            } else { alert("Error: " + (result.error || "Error desconocido")); }
-        } catch (err) { alert("Error de conexión."); }
+            } else { 
+                alert("Error: " + (result.error || "Error desconocido")); 
+            }
+        } catch (err) { 
+            alert("Error de conexión."); 
+        } finally {
+            isProcessing = false;
+            confirmBtn.innerHTML = originalBtnText;
+        }
     }
 
     function openQuickSaleModal() {
@@ -805,7 +940,8 @@
     }
 
     async function processQuickSale() {
-        // Strip the dots before asking JS to do math
+        if (isProcessing) return;
+        
         const rawValue = document.getElementById('quick-sale-amount').value.replace(/\./g, '');
         const amount = parseInt(rawValue, 10);
         
@@ -815,6 +951,12 @@
             bootstrap.Modal.getInstance(document.getElementById('quickSaleModal')).hide();
             triggerDoom(); return;
         }
+
+        isProcessing = true;
+        const quickBtn = document.querySelector('#quickSaleModal .btn-primary');
+        const originalBtnText = quickBtn.innerHTML;
+        quickBtn.disabled = true;
+        quickBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Procesando...';
 
         const quickCart = [{
             barcode: `RAPIDA-${Date.now().toString().slice(-6)}`,
@@ -838,8 +980,16 @@
 
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('successModal')).show();
                 setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('successModal')).hide(), 2000);
-            } else { alert("Error: " + (result.error || "Error desconocido")); }
-        } catch (err) { alert("Error de conexión."); }
+            } else { 
+                alert("Error: " + (result.error || "Error desconocido")); 
+            }
+        } catch (err) { 
+            alert("Error de conexión."); 
+        } finally {
+            isProcessing = false;
+            quickBtn.disabled = false;
+            quickBtn.innerHTML = originalBtnText;
+        }
     }
 
     function printReceipt(total, saleId, paidAmount = 0) {
@@ -864,7 +1014,36 @@
         document.getElementById('receipt-change-print').innerText = clp.format(finalPaid - total);
         document.getElementById('receipt-date').innerText = new Date().toLocaleString('es-CL');
 
-        setTimeout(() => window.print(), 250);
+       // NEW: Fill in Restaurant Info if it exists
+        const orderInfoDiv = document.getElementById('receipt-order-info');
+        if (currentClientName || currentOrderNotes || currentPickupTime) {
+            orderInfoDiv.style.display = 'block';
+            document.getElementById('receipt-client-name').innerText = currentClientName || '-';
+            document.getElementById('receipt-order-notes').innerText = currentOrderNotes || '-';
+            
+            const pickupContainer = document.getElementById('receipt-pickup-container');
+            if (currentPickupTime) {
+                pickupContainer.style.display = 'block';
+                document.getElementById('receipt-pickup-time').innerText = currentPickupTime;
+            } else {
+                pickupContainer.style.display = 'none';
+            }
+        } else {
+            orderInfoDiv.style.display = 'none';
+        }
+
+        // Wipe the memory for the next sale
+        currentClientName = '';
+        currentOrderNotes = '';
+        currentPickupTime = '';
+
+
+        // Check the setting before printing
+        setTimeout(() => {
+            if (localStorage.getItem('seki_auto_print') !== 'false') {
+                window.print();
+            }
+        }, 250);
     }
 
     /* =========================================
@@ -897,7 +1076,7 @@
             }
         }
 
-        // 2. Payment Modal Selection: 1 for Efectivo, 2 for Tarjeta
+        // 2. Payment Modal Selection: 1 for Efectivo, 2 for Tarjeta, 3 for Transferencia
         if (openModal && openModal.id === 'paymentModal') {
             if (event.code === 'Numpad1' || event.key === '1') {
                 event.preventDefault();
@@ -907,6 +1086,12 @@
             if (event.code === 'Numpad2' || event.key === '2') {
                 event.preventDefault();
                 executeCheckout('tarjeta');
+                return;
+            }
+            // NEW TRANSFER SHORTCUT
+            if (event.code === 'Numpad3' || event.key === '3') {
+                event.preventDefault();
+                executeCheckout('transferencia');
                 return;
             }
         }
@@ -1062,6 +1247,7 @@
        10. INIT
        ========================================= */
     loadCart();
+    renderPinnedProducts();
 
 
 

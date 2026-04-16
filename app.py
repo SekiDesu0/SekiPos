@@ -189,26 +189,80 @@ def dicom():
 @login_required
 def sales():
     selected_date = request.args.get('date')
+    payment_method = request.args.get('payment_method')
+    page = request.args.get('page', 1, type=int)
+    per_page = 100
+
     with sqlite3.connect(DB_FILE) as conn:
         cur = conn.cursor()
         
-        # Determine the target date for the "Daily" stat
+        # 1. Calculate the top 3 cards (Now respecting the payment method!)
         target_date = selected_date if selected_date else cur.execute("SELECT date('now', 'localtime')").fetchone()[0]
         
+        daily_query = "SELECT SUM(total) FROM sales WHERE date(date, 'localtime') = ?"
+        week_query = "SELECT SUM(total) FROM sales WHERE date(date, 'localtime') >= date('now', 'localtime', '-7 days')"
+        month_query = "SELECT SUM(total) FROM sales WHERE strftime('%Y-%m', date, 'localtime') = strftime('%Y-%m', 'now', 'localtime')"
+        
+        daily_params = [target_date]
+        week_params = []
+        month_params = []
+        
+        # If a payment method is selected, inject it into the top card queries
+        if payment_method:
+            daily_query += " AND payment_method = ?"
+            week_query += " AND payment_method = ?"
+            month_query += " AND payment_method = ?"
+            
+            daily_params.append(payment_method)
+            week_params.append(payment_method)
+            month_params.append(payment_method)
+        
         stats = {
-            "daily": cur.execute("SELECT SUM(total) FROM sales WHERE date(date, 'localtime') = ?", (target_date,)).fetchone()[0] or 0,
-            "week": cur.execute("SELECT SUM(total) FROM sales WHERE date(date, 'localtime') >= date('now', 'localtime', '-7 days')").fetchone()[0] or 0,
-            "month": cur.execute("SELECT SUM(total) FROM sales WHERE strftime('%Y-%m', date, 'localtime') = strftime('%Y-%m', 'now', 'localtime')").fetchone()[0] or 0
+            "daily": cur.execute(daily_query, tuple(daily_params)).fetchone()[0] or 0,
+            "week": cur.execute(week_query, tuple(week_params)).fetchone()[0] or 0,
+            "month": cur.execute(month_query, tuple(month_params)).fetchone()[0] or 0
         }
         
+        # 2. Dynamic query builder for the main table and pagination
+        base_query = "FROM sales WHERE 1=1"
+        params = []
+
         if selected_date:
-            sales_data = cur.execute('''SELECT id, date, total, payment_method FROM sales 
-                                        WHERE date(date, 'localtime') = ? 
-                                        ORDER BY date DESC''', (selected_date,)).fetchall()
-        else:
-            sales_data = cur.execute('SELECT id, date, total, payment_method FROM sales ORDER BY date DESC LIMIT 100').fetchall()
+            base_query += " AND date(date, 'localtime') = ?"
+            params.append(selected_date)
+        if payment_method:
+            base_query += " AND payment_method = ?"
+            params.append(payment_method)
+            
+        # Get total count and sum for the current table filters BEFORE applying limit/offset
+        stats_query = f"SELECT COUNT(*), SUM(total) {base_query}"
+        count_res, sum_res = cur.execute(stats_query, tuple(params)).fetchone()
         
-    return render_template('sales.html', active_page='sales', user=current_user, sales=sales_data, stats=stats, selected_date=selected_date)
+        total_count = count_res or 0
+        total_sum = sum_res or 0
+        total_pages = (total_count + per_page - 1) // per_page
+        
+        filtered_stats = {
+            "total": total_sum,
+            "count": total_count
+        }
+
+        # Fetch the actual 100 rows for the current page
+        offset = (page - 1) * per_page
+        data_query = f"SELECT id, date, total, payment_method {base_query} ORDER BY date DESC LIMIT ? OFFSET ?"
+        
+        sales_data = cur.execute(data_query, tuple(params) + (per_page, offset)).fetchall()
+        
+    return render_template('sales.html', 
+                           active_page='sales', 
+                           user=current_user, 
+                           sales=sales_data, 
+                           stats=stats, 
+                           filtered_stats=filtered_stats,
+                           selected_date=selected_date,
+                           selected_payment=payment_method,
+                           current_page=page,
+                           total_pages=total_pages)
 
 
 @app.route("/upsert", methods=["POST"])
@@ -559,6 +613,70 @@ def export_images():
         as_attachment=True,
         download_name=f"SekiPOS_Images_{datetime.now().strftime('%Y%m%d')}.zip"
     )
+
+
+from datetime import datetime
+
+@app.route('/gastos')
+@login_required
+def gastos():
+    # Default to the current month if no filter is applied
+    selected_month = request.args.get('month', datetime.now().strftime('%Y-%m'))
+    
+    with sqlite3.connect(DB_FILE) as conn:
+        cur = conn.cursor()
+        
+        # Auto-create the table so it doesn't crash on first load
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS expenses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                description TEXT NOT NULL,
+                amount INTEGER NOT NULL
+            )
+        ''')
+        
+        # Calculate totals for the selected month
+        sales_total = cur.execute("SELECT SUM(total) FROM sales WHERE strftime('%Y-%m', date, 'localtime') = ?", (selected_month,)).fetchone()[0] or 0
+        expenses_total = cur.execute("SELECT SUM(amount) FROM expenses WHERE strftime('%Y-%m', date, 'localtime') = ?", (selected_month,)).fetchone()[0] or 0
+        
+        # Fetch the expense list
+        expenses_list = cur.execute("SELECT id, date, description, amount FROM expenses WHERE strftime('%Y-%m', date, 'localtime') = ? ORDER BY date DESC", (selected_month,)).fetchall()
+        
+    return render_template('gastos.html', 
+                           active_page='gastos', 
+                           user=current_user,
+                           sales_total=sales_total,
+                           expenses_total=expenses_total,
+                           net_profit=sales_total - expenses_total,
+                           expenses=expenses_list,
+                           selected_month=selected_month)
+
+@app.route('/api/gastos', methods=['POST'])
+@login_required
+def add_gasto():
+    data = request.get_json()
+    desc = data.get('description')
+    amount = data.get('amount')
+    
+    if not desc or not amount:
+        return jsonify({"error": "Faltan datos"}), 400
+        
+    with sqlite3.connect(DB_FILE) as conn:
+        cur = conn.cursor()
+        cur.execute("INSERT INTO expenses (description, amount) VALUES (?, ?)", (desc, int(amount)))
+        conn.commit()
+    return jsonify({"success": True})
+
+@app.route('/api/gastos/<int:gasto_id>', methods=['DELETE'])
+@login_required
+def delete_gasto(gasto_id):
+    with sqlite3.connect(DB_FILE) as conn:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM expenses WHERE id = ?", (gasto_id,))
+        conn.commit()
+    return jsonify({"success": True})
+
 
 # @app.route('/process_payment', methods=['POST'])
 # @login_required

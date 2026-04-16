@@ -4,7 +4,25 @@
 {% block title %}Ventas{% endblock %}
 
 {% block head %}
-<!--HEAD-->
+<style>
+    /* Burn the ugly arrows */
+    input[type="number"]::-webkit-inner-spin-button, 
+    input[type="number"]::-webkit-outer-spin-button { 
+        -webkit-appearance: none; 
+        margin: 0; 
+    }
+    input[type="number"] {
+        -moz-appearance: textfield;
+    }
+    
+    /* Fix the weird focus line on the ticket input group */
+    .ticket-group .input-group-text { border-right: none; }
+    .ticket-group #ticket-filter { border-left: none; }
+    .ticket-group #ticket-filter:focus {
+        box-shadow: none;
+        border-color: var(--border);
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -13,46 +31,60 @@
 <div class="row g-3 mb-3">
     <div class="col-12 col-md-4">
         <div class="discord-card p-3 shadow-sm text-center">
-            <h6 class="text-muted text-uppercase mb-1" style="font-size: 0.75rem; font-weight: 700;">
-                {% if selected_date %}Día Seleccionado{% else %}Ventas de Hoy{% endif %}
-            </h6>
-            <h2 class="price-cell mb-0" style="color: var(--accent); font-weight: 800;" data-value="{{ stats.daily }}">
-            </h2>
+            <h6 class="text-muted text-uppercase mb-1" style="font-size: 0.75rem; font-weight: 700;">Hoy</h6>
+            <h2 class="price-cell mb-0" style="color: var(--accent); font-weight: 800;" data-value="{{ stats.daily }}"></h2>
         </div>
     </div>
     <div class="col-12 col-md-4">
         <div class="discord-card p-3 shadow-sm text-center">
-            <h6 class="text-muted text-uppercase mb-1" style="font-size: 0.75rem; font-weight: 700;">Últimos 7
-                Días</h6>
-            <h2 class="price-cell mb-0" style="color: var(--accent); font-weight: 800;" data-value="{{ stats.week }}">
-            </h2>
+            <h6 class="text-muted text-uppercase mb-1" style="font-size: 0.75rem; font-weight: 700;">Esta Semana</h6>
+            <h2 class="price-cell mb-0" style="color: var(--accent); font-weight: 800;" data-value="{{ stats.week }}"></h2>
         </div>
     </div>
     <div class="col-12 col-md-4">
         <div class="discord-card p-3 shadow-sm text-center">
-            <h6 class="text-muted text-uppercase mb-1" style="font-size: 0.75rem; font-weight: 700;">Este Mes
-            </h6>
-            <h2 class="price-cell mb-0" style="color: var(--accent); font-weight: 800;" data-value="{{ stats.month }}">
-            </h2>
+            <h6 class="text-muted text-uppercase mb-1" style="font-size: 0.75rem; font-weight: 700;">Este Mes</h6>
+            <h2 class="price-cell mb-0" style="color: var(--accent); font-weight: 800;" data-value="{{ stats.month }}"></h2>
         </div>
     </div>
 </div>
 
 <div class="discord-card p-3 shadow-sm">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <h4 class="mb-0"><i class="bi bi-receipt-cutoff me-2"></i>Historial</h4>
-        <div class="d-flex align-items-center gap-2">
-            <label for="date-filter" class="form-label mb-0 text-muted small d-none d-sm-block">Filtrar
-                Día:</label>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            
+            <select id="payment-filter" class="form-select form-select-sm" onchange="applyFilters(1)"
+                    style="width: auto; background: var(--input-bg); color: var(--text-main); border-color: var(--border);">
+                <option value="">Cualquier Pago</option>
+                <option value="efectivo" {% if selected_payment == 'efectivo' %}selected{% endif %}>Efectivo</option>
+                <option value="tarjeta" {% if selected_payment == 'tarjeta' %}selected{% endif %}>Tarjeta</option>
+                <option value="transferencia" {% if selected_payment == 'transferencia' %}selected{% endif %}>Transferencia</option>
+            </select>
+
             <input type="date" id="date-filter" class="form-control form-control-sm"
-                style="background: var(--input-bg); color: var(--text-main); border-color: var(--border);"
-                value="{{ selected_date or '' }}" onchange="filterByDate(this.value)">
-            {% if selected_date %}
-            <a href="/sales" class="btn btn-sm btn-outline-secondary" title="Limpiar filtro"><i
-                    class="bi bi-x-lg"></i></a>
+                style="width: auto; background: var(--input-bg); color: var(--text-main); border-color: var(--border);"
+                value="{{ selected_date or '' }}" onchange="applyFilters(1)">
+            
+            {% if selected_date or selected_payment %}
+            <a href="/sales" class="btn btn-sm btn-outline-danger px-2" title="Limpiar filtros"><i class="bi bi-x-lg"></i></a>
             {% endif %}
         </div>
     </div>
+
+    {% if selected_date or selected_payment or selected_ticket %}
+    <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded shadow-sm" 
+         style="background: rgba(var(--accent-rgb, 88, 101, 242), 0.1); border: 1px dashed var(--accent, #5865F2);">
+        <div>
+            <h6 class="mb-0 text-uppercase" style="font-size: 0.75rem; font-weight: 700; color: var(--accent, #5865F2);">
+                <i class="bi bi-funnel-fill me-1"></i> Total Filtrado
+            </h6>
+            <small class="text-muted">{{ filtered_stats.count }} ventas encontradas</small>
+        </div>
+        <h3 class="price-cell mb-0" style="color: var(--accent, #5865F2); font-weight: 800;" data-value="{{ filtered_stats.total }}"></h3>
+    </div>
+    {% endif %}
+
     <div class="table-responsive">
         <table class="table table-hover">
             <thead>
@@ -82,15 +114,32 @@
             </tbody>
         </table>
     </div>
-</div>
+    {% if total_pages > 1 %}
+    <nav aria-label="Navegación de páginas" class="mt-4">
+        <ul class="pagination justify-content-center pagination-sm">
+            <li class="page-item {% if current_page <= 1 %}disabled{% endif %}">
+                <button class="page-link" onclick="applyFilters({{ current_page - 1 }})" style="background: var(--input-bg); color: var(--text-main); border-color: var(--border);">Anterior</button>
+            </li>
+            
+            <li class="page-item disabled">
+                <span class="page-link" style="background: var(--bg-main); color: var(--text-muted); border-color: var(--border);">
+                    Página {{ current_page }} de {{ total_pages }}
+                </span>
+            </li>
+
+            <li class="page-item {% if current_page >= total_pages %}disabled{% endif %}">
+                <button class="page-link" onclick="applyFilters({{ current_page + 1 }})" style="background: var(--input-bg); color: var(--text-main); border-color: var(--border);">Siguiente</button>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 
 <div class="modal fade" id="receiptModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Detalle de Venta <span id="modal-ticket-id" class="text-muted small"></span>
-                </h5>
+                <h5 class="modal-title">Detalle de Venta <span id="modal-ticket-id" class="text-muted small"></span></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -103,8 +152,7 @@
                             <th class="text-end">Subtotal</th>
                         </tr>
                     </thead>
-                    <tbody id="receipt-items">
-                    </tbody>
+                    <tbody id="receipt-items"></tbody>
                     <tfoot>
                         <tr>
                             <th colspan="2" class="text-end">TOTAL:</th>
@@ -112,8 +160,6 @@
                         </tr>
                     </tfoot>
                 </table>
-            </div>
-            <div class="modal-body">
             </div>
             <div class="modal-footer d-flex justify-content-between border-0 pt-0">
                 <div class="d-flex gap-2">
@@ -124,7 +170,6 @@
                         <i class="bi bi-printer me-1"></i>Re-imprimir
                     </button>
                 </div>
-                
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
@@ -152,6 +197,7 @@
     </div>
 </div>
 {% endblock %}
+
 {% block scripts %}
 <script>
     const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 });
@@ -238,12 +284,21 @@
         }
     }
 
-    function filterByDate(dateVal) {
-        if (dateVal) {
-            window.location.href = `/sales?date=${dateVal}`;
-        } else {
-            window.location.href = `/sales`;
-        }
+    function applyFilters(page = 1) {
+        const dateVal = document.getElementById('date-filter').value;
+        const paymentVal = document.getElementById('payment-filter').value;
+
+        const url = new URL(window.location.origin + '/sales');
+        
+        if (dateVal) url.searchParams.set('date', dateVal);
+        if (paymentVal) url.searchParams.set('payment_method', paymentVal);
+        if (page > 1) url.searchParams.set('page', page);
+
+        window.location.href = url.toString();
+    }
+
+    function handleEnter(e) {
+        if (e.key === 'Enter') applyFilters();
     }
 
     function reverseSale(id) {

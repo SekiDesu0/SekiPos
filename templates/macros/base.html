@@ -21,7 +21,11 @@
     <main class="container-fluid px-3">
         {% block content %}{% endblock %}
     </main>
+    
+    {% from 'macros/modals.html' import settings_modal %}
+    {{ settings_modal() }}
 
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='cookieStuff.js') }}"></script>
     <script src="{{ url_for('static', filename='themeStuff.js') }}"></script>
