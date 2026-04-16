@@ -1008,7 +1008,16 @@
 
         const finalPaid = paidAmount > 0 ? paidAmount : total;
         
+        // Calculate Neto & IVA (Assuming 19% IVA)
+        const neto = Math.round(total / 1.19);
+        const iva = total - neto;
+
         document.getElementById('receipt-ticket-id').innerText = saleId || "N/A";
+        
+        // Add the Neto and IVA fields
+        document.getElementById('receipt-neto-print').innerText = clp.format(neto);
+        document.getElementById('receipt-iva-print').innerText = clp.format(iva);
+        
         document.getElementById('receipt-total-print').innerText = clp.format(total);
         document.getElementById('receipt-paid-print').innerText = clp.format(finalPaid);
         document.getElementById('receipt-change-print').innerText = clp.format(finalPaid - total);

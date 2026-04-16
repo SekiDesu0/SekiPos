@@ -62,7 +62,8 @@
         .receipt-table { width: 100%; border-collapse: collapse; font-family: 'Courier New', Courier, monospace; font-size: 11px; margin-top: 10px;}
         .receipt-header { text-align: center; margin-bottom: 5px; }
         .sii-box { border: 2px solid #000; padding: 5px; text-align: center; font-weight: bold; }
-        .receipt-total-row { border-top: 1px dashed #000; margin-top: 5px; padding-top: 5px; font-weight: bold; font-size: 14px; display: flex; justify-content: space-between; }
+        .receipt-subtotal-row { display: flex; justify-content: space-between; font-size: 11px; }
+        .receipt-total-row { margin-top: 2px; padding-top: 2px; font-weight: bold; font-size: 14px; display: flex; justify-content: space-between; }
         .ted-block { text-align: center; margin-top: 15px; margin-bottom: 10px; }
     </style>
 
@@ -90,7 +91,7 @@
         </div>
 
         <div class="receipt-sii-info" style="display: none; font-weight: bold; font-size: 10px; margin-bottom: 10px;">
-            S.I.I. - RESOLUCION
+            S.I.I. - CONCEPCION
         </div>
 
         <script>
@@ -139,7 +140,7 @@
                             bwipjs.toCanvas('receipt-ted-canvas{{ id_suffix }}', {
                                 bcid: 'pdf417',
                                 text: tedData,
-                                scale: 1,
+                                scale: 2,
                                 columns: 12 
                             });
                         } catch (e) { console.error("Error drawing TED:", e); }
@@ -171,9 +172,19 @@
         <tbody id="receipt-items-print{{ id_suffix }}"></tbody>
     </table>
 
-    <div class="receipt-total-row">
-        <span>TOTAL:</span>
-        <span id="receipt-total-print{{ id_suffix }}"></span>
+    <div style="border-top: 1px dashed #000; margin-top: 5px; padding-top: 5px;">
+        <div class="receipt-subtotal-row">
+            <span>NETO:</span>
+            <span id="receipt-neto-print{{ id_suffix }}"></span>
+        </div>
+        <div class="receipt-subtotal-row">
+            <span>I.V.A. (19%):</span>
+            <span id="receipt-iva-print{{ id_suffix }}"></span>
+        </div>
+        <div class="receipt-total-row">
+            <span>TOTAL:</span>
+            <span id="receipt-total-print{{ id_suffix }}"></span>
+        </div>
     </div>
 
     <div id="receipt-payment-info{{ id_suffix }}" style="font-size: 11px; margin-top: 5px;">
@@ -188,12 +199,16 @@
     </div>
 
     <div class="receipt-sii-info ted-block" style="display: none;">
-        <canvas id="receipt-ted-canvas{{ id_suffix }}" style="max-width: 80%; height: auto; image-rendering: pixelated;"></canvas>
+        <canvas id="receipt-ted-canvas{{ id_suffix }}" style="max-width: 90%; height: auto; image-rendering: pixelated; margin: 0 auto; display: block;"></canvas>
     </div>
 
     <div class="receipt-sii-info" style="display: none; text-align: center; font-size: 9px; font-weight: bold;">
         Timbre electrónico SII - Res. 80 de 2014<br>
         Verifique documento en sii.cl<br>
+    </div>
+
+    <div style="text-align: center; margin-top: 15px; font-size: 11px; font-weight: bold;">
+        ¡Gracias por su compra!
     </div>
 
 </div>
