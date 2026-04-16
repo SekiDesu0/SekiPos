@@ -56,29 +56,102 @@
             #receipt-print-zone{{ id_suffix }} {
                 position: absolute; left: 0; top: 0; width: 80mm;
                 padding: 2mm 5mm; margin: 0; display: block !important;
-                font-family: 'Courier New', Courier, monospace; font-size: 10px; color: #000;
+                font-family: 'Courier New', Courier, monospace; font-size: 11px; color: #000;
             }
         }
-        .receipt-table { width: 100%; border-collapse: collapse; font-family: monospace; font-size: 12px; }
-        .receipt-header { text-align: center; margin-bottom: 10px; border-bottom: 1px dashed #000; padding-bottom: 5px; }
-        .receipt-total-row { border-top: 1px dashed #000; margin-top: 5px; padding-top: 5px; font-weight: bold; }
+        .receipt-table { width: 100%; border-collapse: collapse; font-family: 'Courier New', Courier, monospace; font-size: 11px; margin-top: 10px;}
+        .receipt-header { text-align: center; margin-bottom: 5px; }
+        .sii-box { border: 2px solid #000; padding: 5px; text-align: center; font-weight: bold; }
+        .receipt-total-row { border-top: 1px dashed #000; margin-top: 5px; padding-top: 5px; font-weight: bold; font-size: 14px; display: flex; justify-content: space-between; }
+        .ted-block { text-align: center; margin-top: 15px; margin-bottom: 10px; }
     </style>
 
     <div class="receipt-header">
-        <h3 style="margin: 0; font-weight: 800;" class="receipt-biz-name">SekiPOS</h3>
+        <h3 style="margin: 0; font-weight: 800; font-size: 16px;" class="receipt-biz-name text-uppercase">SekiPOS</h3>
+        
+        <div class="receipt-sii-info" style="display: none; font-size: 10px; margin-top: 2px;">
+            <div class="receipt-giro text-uppercase"></div>
+            <div class="receipt-address text-uppercase"></div>
+        </div>
+
+        <div class="receipt-title-box" style="text-align: center; font-weight: bold; margin: 10px 0;">
+            <div class="receipt-sii-info" style="display: none;">
+                <div style="font-size: 12px;">R.U.T.: <span class="receipt-rut"></span></div>
+                <div style="font-size: 12px; margin-top: 2px;">BOLETA ELECTRONICA</div>
+            </div>
+            
+            <div class="receipt-standard-info" style="font-size: 12px;">
+                COMPROBANTE DE VENTA
+            </div>
+            
+            <div style="margin-top: 2px; font-size: 12px;">
+                Ticket Nº <span id="receipt-ticket-id{{ id_suffix }}"></span>
+            </div>
+        </div>
+
+        <div class="receipt-sii-info" style="display: none; font-weight: bold; font-size: 10px; margin-bottom: 10px;">
+            S.I.I. - RESOLUCION
+        </div>
+
         <script>
             document.addEventListener('DOMContentLoaded', () => {
-                document.querySelectorAll('.receipt-biz-name').forEach(el => {
-                    el.innerText = localStorage.getItem('seki_biz_name') || 'SekiPOS';
+                const bizName = localStorage.getItem('seki_biz_name') || 'SekiPOS';
+                const showSii = localStorage.getItem('seki_show_sii') === 'true';
+                
+                document.querySelectorAll('.receipt-biz-name').forEach(el => el.innerText = bizName);
+                
+                // Toggle visibility based on SII mode
+                document.querySelectorAll('.receipt-sii-info').forEach(el => el.style.display = showSii ? 'block' : 'none');
+                document.querySelectorAll('.receipt-standard-info').forEach(el => el.style.display = showSii ? 'none' : 'block');
+                
+                // Toggle the heavy border box
+                document.querySelectorAll('.receipt-title-box').forEach(el => {
+                    if (showSii) {
+                        el.classList.add('sii-box');
+                        el.style.margin = '10px 15%';
+                    } else {
+                        el.classList.remove('sii-box');
+                        el.style.margin = '10px 0';
+                    }
                 });
+
+                if (showSii) {
+                    document.querySelectorAll('.receipt-rut').forEach(el => el.innerText = localStorage.getItem('seki_rut') || '-');
+                    document.querySelectorAll('.receipt-giro').forEach(el => el.innerText = localStorage.getItem('seki_giro') || '-');
+                    document.querySelectorAll('.receipt-address').forEach(el => el.innerText = localStorage.getItem('seki_address') || '-');
+
+                    // Load Barcode generator for the SII PDF417 TED
+                    if (!document.getElementById('bwip-script')) {
+                        const script = document.createElement('script');
+                        script.id = 'bwip-script';
+                        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/bwip-js/3.4.1/bwip-js-min.js';
+                        document.head.appendChild(script);
+                    }
+
+                    const tedData = "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iSVNPLTg4NTktMSI/Pgo8VEVEIHZlcnNpb249IjEuMCI+PEREPjxSRT43NjEyMzQ1Ni03PC9SRT48VEQ+Mzk8L1REPjxGPjEyMzwvRj48RkU+MjAyNi0wNC0xNTwvRkU+PFJSPjExMTExMTExLTE8L1JSPjxSU1I+SlVBTiBQRVJFPC9SU1I+PE1OVD4xNTAwMDwvTU5UPjxJVDE+VmFyaW9zPC9JVDE+PENBRiB2ZXJzaW9uPSIxLjAiPjxEQT48UkU+NzYxMjM0NTYtNzwvUkU+PFJTPlNLSVBPUyBMSU1JVEFEQTwvUlM+PFREPjM5PC9URD48Uk5HPjxEPjE8L0Q+PEg+MTAwMDwvSD48L1JORz48RkE+MjAyNi0wNC0xNTwvRkE+PFJTQVBLPjxNPndYeFl5WnouLi48L00+PEU+QXc9PTwvRT48L1JTQVBLPjxJREs+MTAwPC9JREs+PC9EQT48RlJNQSBhbGdvcml0bW89IlNIQTF3aXRoUlNBIj5hQmNEZUY8L0ZSTUE+PC9DQUY+PFRTVEVEPjIwMjYtMDQtMTVUMTI6MDA6MDA8L1RTVEVEPjwvREQ+PEZSTVQgYWxnb3JpdG1vPSJTSEExd2l0aFJTQSI+elp5WXhYPC9GUk1UPjwvVEVEPg==";
+
+                    const drawTED = () => {
+                        if (typeof bwipjs === 'undefined') {
+                            setTimeout(drawTED, 100);
+                            return;
+                        }
+                        try {
+                            bwipjs.toCanvas('receipt-ted-canvas{{ id_suffix }}', {
+                                bcid: 'pdf417',
+                                text: tedData,
+                                scale: 1,
+                                columns: 12 
+                            });
+                        } catch (e) { console.error("Error drawing TED:", e); }
+                    };
+                    drawTED();
+                }
             });
         </script>
         
-        <div style="font-size: 10px; margin-bottom: 5px;" id="receipt-type{{ id_suffix }}">Comprobante de Venta</div>
-        <div style="font-size: 11px; font-weight: bold;">
-            Ticket Nº <span id="receipt-ticket-id{{ id_suffix }}"></span>
+        <div style="font-size: 11px; text-align: left; display: flex; justify-content: space-between;">
+            <span>Fecha: <span id="receipt-date{{ id_suffix }}"></span></span>
         </div>
-        <div id="receipt-date{{ id_suffix }}" style="font-size: 11px;"></div>
         
         <div id="receipt-order-info{{ id_suffix }}" style="display: none; margin-top: 5px; padding-top: 5px; border-top: 1px dashed #000; text-align: left; font-size: 11px;">
             <div style="font-weight: bold;">Cliente: <span id="receipt-client-name{{ id_suffix }}"></span></div>
@@ -89,32 +162,40 @@
 
     <table class="receipt-table">
         <thead>
-            <tr>
-                <th style="width: 15%; text-align: left;">Cant</th>
-                <th style="width: 60%; padding-left: 5px; text-align: left;">Desc</th>
-                <th style="width: 25%; text-align: right;">Total</th>
+            <tr style="border-bottom: 1px dashed #000; border-top: 1px dashed #000;">
+                <th style="width: 15%; text-align: left; padding: 2px 0;">Cant</th>
+                <th style="width: 55%; padding-left: 5px; text-align: left;">Articulo</th>
+                <th style="width: 30%; text-align: right;">Total</th>
             </tr>
         </thead>
         <tbody id="receipt-items-print{{ id_suffix }}"></tbody>
     </table>
 
-    <div class="receipt-total-row d-flex justify-content-between">
+    <div class="receipt-total-row">
         <span>TOTAL:</span>
         <span id="receipt-total-print{{ id_suffix }}"></span>
     </div>
 
-    <div id="receipt-payment-info{{ id_suffix }}">
+    <div id="receipt-payment-info{{ id_suffix }}" style="font-size: 11px; margin-top: 5px;">
         <div class="d-flex justify-content-between">
-            <span>RECIBIDO:</span>
+            <span>Efectivo:</span>
             <span id="receipt-paid-print{{ id_suffix }}"></span>
         </div>
         <div class="d-flex justify-content-between">
-            <span>VUELTO:</span>
+            <span>Vuelto:</span>
             <span id="receipt-change-print{{ id_suffix }}"></span>
         </div>
     </div>
 
-    <div style="text-align: center; margin-top: 20px; font-size: 10px;">¡Gracias por su compra!</div>
+    <div class="receipt-sii-info ted-block" style="display: none;">
+        <canvas id="receipt-ted-canvas{{ id_suffix }}" style="max-width: 80%; height: auto; image-rendering: pixelated;"></canvas>
+    </div>
+
+    <div class="receipt-sii-info" style="display: none; text-align: center; font-size: 9px; font-weight: bold;">
+        Timbre electrónico SII - Res. 80 de 2014<br>
+        Verifique documento en sii.cl<br>
+    </div>
+
 </div>
 {% endmacro %}
 
@@ -126,17 +207,31 @@
                 <h5 class="modal-title"><i class="bi bi-gear-fill me-2"></i>Configuración del POS</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
                 <div class="mb-4">
-                    <label class="form-label text-muted small mb-1">Nombre del Local (Impreso en la Boleta)</label>
+                    <label class="form-label text-muted small mb-1">Nombre del Local</label>
                     <input type="text" id="setting-biz-name" class="form-control" placeholder="Ej: Mi Tiendita" autocomplete="off">
                 </div>
+                
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="setting-show-sii" onchange="toggleSiiFields()">
+                    <label class="form-check-label text-muted small" for="setting-show-sii">
+                        Spoof datos legales para SII (Boleta)
+                    </label>
+                </div>
+                <div id="setting-sii-fields" class="d-none border-start border-2 border-primary ps-3 mb-4 mt-2">
+                    <input type="text" id="setting-rut" class="form-control form-control-sm mb-2" placeholder="RUT (Ej: 76.123.456-7)">
+                    <input type="text" id="setting-giro" class="form-control form-control-sm mb-2" placeholder="Giro (Ej: Minimarket)">
+                    <input type="text" id="setting-address" class="form-control form-control-sm" placeholder="Dirección y Comuna">
+                </div>
+
                 <div class="form-check form-switch mb-3">
                     <input class="form-check-input" type="checkbox" id="setting-auto-print">
                     <label class="form-check-label text-muted small" for="setting-auto-print">
                         Imprimir automáticamente al finalizar venta
                     </label>
                 </div>
+                
                 <div class="form-check form-switch mb-2">
                     <input class="form-check-input" type="checkbox" id="setting-ask-order-details">
                     <label class="form-check-label text-muted small" for="setting-ask-order-details">
@@ -152,6 +247,11 @@
     </div>
 </div>
 <script>
+    function toggleSiiFields() {
+        const isChecked = document.getElementById('setting-show-sii').checked;
+        document.getElementById('setting-sii-fields').classList.toggle('d-none', !isChecked);
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         const modalEl = document.getElementById('settingsModal');
         if (modalEl) {
@@ -159,6 +259,14 @@
                 document.getElementById('setting-biz-name').value = localStorage.getItem('seki_biz_name') || 'SekiPOS';
                 document.getElementById('setting-auto-print').checked = localStorage.getItem('seki_auto_print') !== 'false';
                 document.getElementById('setting-ask-order-details').checked = localStorage.getItem('seki_ask_order_details') === 'true';
+                
+                const showSii = localStorage.getItem('seki_show_sii') === 'true';
+                document.getElementById('setting-show-sii').checked = showSii;
+                document.getElementById('setting-rut').value = localStorage.getItem('seki_rut') || '';
+                document.getElementById('setting-giro').value = localStorage.getItem('seki_giro') || '';
+                document.getElementById('setting-address').value = localStorage.getItem('seki_address') || '';
+                
+                toggleSiiFields();
             });
         }
     });
@@ -167,14 +275,42 @@
         const bizName = document.getElementById('setting-biz-name').value.trim() || 'SekiPOS';
         const autoPrint = document.getElementById('setting-auto-print').checked;
         const askDetails = document.getElementById('setting-ask-order-details').checked;
+        const showSii = document.getElementById('setting-show-sii').checked;
         
         localStorage.setItem('seki_biz_name', bizName);
         localStorage.setItem('seki_auto_print', autoPrint);
         localStorage.setItem('seki_ask_order_details', askDetails);
+        localStorage.setItem('seki_show_sii', showSii);
         
-        document.querySelectorAll('.receipt-biz-name').forEach(el => { el.innerText = bizName; });
+        if (showSii) {
+            localStorage.setItem('seki_rut', document.getElementById('setting-rut').value.trim());
+            localStorage.setItem('seki_giro', document.getElementById('setting-giro').value.trim());
+            localStorage.setItem('seki_address', document.getElementById('setting-address').value.trim());
+        }
+        
+        document.querySelectorAll('.receipt-biz-name').forEach(el => el.innerText = bizName);
+        
+        document.querySelectorAll('.receipt-sii-info').forEach(el => el.style.display = showSii ? 'block' : 'none');
+        document.querySelectorAll('.receipt-standard-info').forEach(el => el.style.display = showSii ? 'none' : 'block');
+        
+        document.querySelectorAll('.receipt-title-box').forEach(el => {
+            if (showSii) {
+                el.classList.add('sii-box');
+                el.style.margin = '10px 15%';
+            } else {
+                el.classList.remove('sii-box');
+                el.style.margin = '10px 0';
+            }
+        });
+
+        if (showSii) {
+            document.querySelectorAll('.receipt-rut').forEach(el => el.innerText = localStorage.getItem('seki_rut') || '-');
+            document.querySelectorAll('.receipt-giro').forEach(el => el.innerText = localStorage.getItem('seki_giro') || '-');
+            document.querySelectorAll('.receipt-address').forEach(el => el.innerText = localStorage.getItem('seki_address') || '-');
+        }
         
         bootstrap.Modal.getInstance(document.getElementById('settingsModal')).hide();
+        window.location.reload();
     }
 </script>
 {% endmacro %}
