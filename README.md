@@ -10,6 +10,44 @@ A reactive POS inventory system for software engineers with a snack addiction. F
 - **Secure:** Hashed password authentication via Flask-Login.
 - **On device scanner:** Add and scan products from within your phone!
 
+## 📦 Building the Desktop App (.exe)
+
+If you want to run SekiPOS as a standalone Windows application with its own embedded browser window, you need to compile it using PyInstaller.
+
+### 1. Prerequisites
+You **must** use a stable Python release like **Python 3.11** or **3.12**. Pre-release versions (like 3.14) will fail to compile the PyWebView C# dependencies.
+
+Install the required build tools globally for your stable Python version:
+```powershell
+py -3.11 -m pip install -r requirements.txt pyinstaller
+```
+
+### 2. Prepare `app.py`
+Before compiling, scroll to the absolute bottom of `app.py` and ensure the standalone runner is active. It should look like this:
+```python
+if __name__ == '__main__':
+    init_db()
+    
+    # For standalone desktop app with embedded browser, use
+    run_standalone()
+    
+    # For docker or traditional server deployment, comment out run_standalone() and uncomment the line below:
+    # socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+```
+
+### 3. Compile
+Run this exact command in your terminal. It includes the hidden SocketIO threads and bundles your web templates:
+```powershell
+py -3.11 -m PyInstaller --noconfirm --onedir --windowed --add-data "templates;templates/" --add-data "static;static/" --hidden-import "engineio.async_drivers.threading" --icon "static/favicon.png" app.py
+```
+
+
+### 4. Post-Build
+Your portable app will be generated inside the `dist\app` folder. 
+* To keep your existing inventory, copy your `db/pos_database.db` and `static/cache/` folders from your source code into the new `dist\app` folder before running the `.exe`.
+
+---
+
 ## 🐳 Docker Deployment (Server)
 
 Build and run the central inventory server:

@@ -1,4 +1,5 @@
 import os
+import sys
 import sqlite3
 import requests
 from flask import send_file
@@ -12,6 +13,8 @@ import uuid
 from datetime import datetime
 import zipfile
 import io
+import webview
+import threading
 
 # from dotenv import load_dotenv
 
@@ -20,16 +23,42 @@ import io
 # MP_ACCESS_TOKEN = os.getenv('MP_ACCESS_TOKEN')
 # MP_TERMINAL_ID = os.getenv('MP_TERMINAL_ID')
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'seki_super_secret_key_99' # Change this if you have actual friends
-socketio = SocketIO(app, cors_allowed_origins="*")
+# --- PATH HELPERS FOR PYINSTALLER ---
+def get_bundled_path(relative_path):
+    """Path for read-only files packed inside the .exe (templates, static)"""
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.abspath(os.path.dirname(__file__))
+    return os.path.join(base_path, relative_path)
 
-# Auth Setup
+def get_persistent_path(relative_path):
+    """Path for read/write files that must survive reboots (db, cache)"""
+    if getattr(sys, 'frozen', False):
+        base_path = os.path.dirname(sys.executable)
+    else:
+        base_path = os.path.abspath(os.path.dirname(__file__))
+    return os.path.join(base_path, relative_path)
+
+# --- FLASK INIT ---
+app = Flask(
+    __name__,
+    template_folder=get_bundled_path('templates'),
+    static_folder=get_bundled_path('static')
+)
+app.config['SECRET_KEY'] = 'seki_super_secret_key_99' # Change this if you have actual friends
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+
+# --- AUTH SETUP (Do not delete this) ---
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-DB_FILE = 'db/pos_database.db'
-CACHE_DIR = 'static/cache'
+# --- DIRECTORY SETUP ---
+DB_DIR = get_persistent_path('db')
+os.makedirs(DB_DIR, exist_ok=True)
+DB_FILE = os.path.join(DB_DIR, "pos_database.db")
+
+CACHE_DIR = get_persistent_path(os.path.join('static', 'cache'))
 os.makedirs(CACHE_DIR, exist_ok=True)
 
 # --- MODELS ---
@@ -753,6 +782,29 @@ def delete_gasto(gasto_id):
 #     })
 #     return jsonify({"status": "ok"}), 200
 
+def start_server():
+    # Use socketio.run instead of default app.run
+    socketio.run(app, host='127.0.0.1', port=5000)
+    
+def run_standalone():
+    t = threading.Thread(target=start_server)
+    t.daemon = True
+    t.start()
+    
+    # GIVE FLASK 2 SECONDS TO BOOT UP BEFORE OPENING THE BROWSER
+    time.sleep(2)
+    
+    webview.create_window('SekiPOS', 'http://127.0.0.1:5000', width=1366, height=768, resizable=True, fullscreen=False, min_size=(800, 600), maximized=True)
+    
+    # private_mode=False is the magic flag that allows localStorage to survive.
+    # It saves data to %APPDATA%\pywebview on Windows.
+    webview.start(private_mode=False)
+    
 if __name__ == '__main__':
     init_db()
+    
+    # For standalone desktop app with embedded browser, use
+    #run_standalone()
+    
+    # For docker or traditional server deployment, comment out run_standalone() and uncomment the line below:
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
