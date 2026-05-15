@@ -16,6 +16,14 @@ import io
 import webview
 import threading
 
+# --- PYINSTALLER WINDOWED MODE FIX ---
+# If running as a compiled exe, redirect stdout/stderr so Flask doesn't crash
+if getattr(sys, 'frozen', False) and sys.platform == "win32":
+    # Force output to a real file instead of the console
+    log_file = os.path.join(os.path.dirname(sys.executable), 'seki_crash.log')
+    sys.stdout = open(log_file, 'w', encoding='utf-8')
+    sys.stderr = sys.stdout
+
 # from dotenv import load_dotenv
 
 # load_dotenv()
@@ -785,7 +793,8 @@ def delete_gasto(gasto_id):
 
 def start_server():
     # Use socketio.run instead of default app.run
-    socketio.run(app, host='127.0.0.1', port=5000)
+    #socketio.run(app, host='127.0.0.1', port=5000)
+    socketio.run(app, host='127.0.0.1', port=5000, log_output=False, allow_unsafe_werkzeug=True)
     
 def run_standalone():
     t = threading.Thread(target=start_server)
@@ -802,6 +811,7 @@ def run_standalone():
     webview.start(private_mode=False)
     
 if __name__ == '__main__':
+    
     init_db()
     
     # For standalone desktop app with embedded browser, use
