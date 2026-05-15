@@ -59,6 +59,54 @@
                 font-family: 'Courier New', Courier, monospace; font-size: 11px; color: #000;
             }
         }
+
+        /* --- MODO COMIDA (KITCHEN MODE) PRINT STYLES --- */
+        @media print {
+            body.food-mode-active #receipt-print-zone{{ id_suffix }} {
+                width: 100% !important;
+                padding: 0 !important;
+            }
+            
+            /* Make the Item Name massive */
+            body.food-mode-active .receipt-table td:nth-child(2) {
+                font-size: 26pt !important;
+                font-weight: 900 !important;
+                text-transform: uppercase;
+                line-height: 1.1;
+            }
+
+            /* Make the Quantity large */
+            body.food-mode-active .receipt-table td:nth-child(1) {
+                font-size: 22pt !important;
+                font-weight: bold !important;
+                vertical-align: top;
+            }
+
+            /* Hide the pricing (kitchen doesn't care) */
+            body.food-mode-active .receipt-table th:nth-child(3),
+            body.food-mode-active .receipt-table td:nth-child(3) {
+                display: none !important;
+            }
+
+            /* Hide all the irrelevant legal/business clutter */
+            body.food-mode-active .receipt-biz-name, 
+            body.food-mode-active .receipt-standard-info,
+            body.food-mode-active .receipt-sii-info,
+            body.food-mode-active .receipt-subtotal-row,
+            body.food-mode-active .receipt-total-row,
+            body.food-mode-active #receipt-payment-info{{ id_suffix }} {
+                display: none !important;
+            }
+            
+            /* Make Order notes extra visible */
+            body.food-mode-active #receipt-order-info{{ id_suffix }} {
+                font-size: 16pt !important;
+                border-top: 2px solid #000 !important;
+                border-bottom: 2px solid #000 !important;
+                padding: 10px 0 !important;
+                margin-bottom: 10px !important;
+            }
+        }
         .receipt-table { width: 100%; border-collapse: collapse; font-family: 'Courier New', Courier, monospace; font-size: 11px; margin-top: 10px;}
         .receipt-header { text-align: center; margin-bottom: 5px; }
         .sii-box { border: 2px solid #000; padding: 5px; text-align: center; font-weight: bold; }
@@ -250,7 +298,13 @@
                 <div class="form-check form-switch mb-2">
                     <input class="form-check-input" type="checkbox" id="setting-ask-order-details">
                     <label class="form-check-label text-muted small" for="setting-ask-order-details">
-                        Solicitar Nombre/Notas al cobrar (Modo Comida)
+                        <i class="bi bi-egg-fried"></i> Solicitar Nombre/Notas al cobrar
+                    </label>
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="setting-food-mode">
+                    <label class="form-check-label text-muted small" for="setting-food-mode">
+                        <i class="bi bi-egg-fried"></i> Modo Comida (Letras Grandes)
                     </label>
                 </div>
             </div>
@@ -274,28 +328,31 @@
                 document.getElementById('setting-biz-name').value = localStorage.getItem('seki_biz_name') || 'SekiPOS';
                 document.getElementById('setting-auto-print').checked = localStorage.getItem('seki_auto_print') !== 'false';
                 document.getElementById('setting-ask-order-details').checked = localStorage.getItem('seki_ask_order_details') === 'true';
+                document.getElementById('setting-food-mode').checked = localStorage.getItem('seki_food_mode') === 'true';
                 
                 const showSii = localStorage.getItem('seki_show_sii') === 'true';
                 document.getElementById('setting-show-sii').checked = showSii;
                 document.getElementById('setting-rut').value = localStorage.getItem('seki_rut') || '';
                 document.getElementById('setting-giro').value = localStorage.getItem('seki_giro') || '';
                 document.getElementById('setting-address').value = localStorage.getItem('seki_address') || '';
-                
+
                 toggleSiiFields();
             });
         }
     });
+
 
     function savePosSettings() {
         const bizName = document.getElementById('setting-biz-name').value.trim() || 'SekiPOS';
         const autoPrint = document.getElementById('setting-auto-print').checked;
         const askDetails = document.getElementById('setting-ask-order-details').checked;
         const showSii = document.getElementById('setting-show-sii').checked;
-        
+        const foodMode = document.getElementById('setting-food-mode').checked;
         localStorage.setItem('seki_biz_name', bizName);
         localStorage.setItem('seki_auto_print', autoPrint);
         localStorage.setItem('seki_ask_order_details', askDetails);
         localStorage.setItem('seki_show_sii', showSii);
+        localStorage.setItem('seki_food_mode', foodMode);
         
         if (showSii) {
             localStorage.setItem('seki_rut', document.getElementById('setting-rut').value.trim());

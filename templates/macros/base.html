@@ -16,6 +16,14 @@
     {% block head %}{% endblock %}
 </head>
 <body>
+
+    <script>
+        // Inject Food Mode class immediately to appease the kitchen staff
+        if (localStorage.getItem('seki_food_mode') === 'true') {
+            document.body.classList.add('food-mode-active');
+        }
+    </script>
+    
     {% include 'macros/navbar.html' %}
 
     <main class="container-fluid px-3">

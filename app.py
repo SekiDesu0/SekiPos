@@ -72,6 +72,7 @@ def init_db():
     with sqlite3.connect(DB_FILE) as conn:
         conn.execute('''CREATE TABLE IF NOT EXISTS users 
                         (id INTEGER PRIMARY KEY, username TEXT UNIQUE, password TEXT)''')
+        
         # Updated table definition
         conn.execute('''CREATE TABLE IF NOT EXISTS products 
                         (barcode TEXT PRIMARY KEY, 
