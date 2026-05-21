@@ -82,14 +82,20 @@
         <div class="discord-card p-3">
             <h6 id="form-title" class="mb-3 fw-bold">Editar / Crear</h6>
             <form action="/upsert" method="POST" id="product-form">
-                <input class="form-control mb-2" type="text" name="barcode" id="form-barcode" placeholder="Barcode"
-                    required>
+                <div class="input-group mb-2">
+                    <input class="form-control" type="text" name="barcode" id="form-barcode" placeholder="Barcode"
+                        required>
+                    <button class="btn btn-outline-secondary" type="button" onclick="generateBarcode()" title="Generar código">
+                        <i class="bi bi-upc-scan"></i>
+                    </button>
+                </div>
                 <input class="form-control mb-2" type="text" name="name" id="form-name" placeholder="Nombre" required>
 
                 <div class="row g-2 mb-2">
                     <div class="col-8">
-                        <input class="form-control" type="number" name="price" id="form-price"
-                            placeholder="Precio (CLP)" required>
+                        <input class="form-control" type="text" inputmode="numeric" name="price" id="form-price"
+                            placeholder="Precio (CLP)" required
+                            oninput="let v = this.value.replace(/\D/g, ''); this.value = v ? parseInt(v, 10).toLocaleString('es-CL') : '';">
                     </div>
                     <div class="col-4">
                         <select class="form-select" name="unit_type" id="form-unit-type">
@@ -301,7 +307,6 @@ permanentemente', 'executeBulkDelete()') %}
         document.getElementById('form-name').value = n;
 
         // Force integers here to nuke the decimals once and for all
-        document.getElementById('form-price').value = p ? parseInt(p, 10) : '';
         document.getElementById('form-stock').value = stock ? parseInt(stock, 10) : 0;
 
         document.getElementById('form-unit-type').value = unit || 'unit';
@@ -318,7 +323,7 @@ permanentemente', 'executeBulkDelete()') %}
         document.getElementById('form-title').innerText = t;
         document.getElementById('display-img').src = displayImg;
         document.getElementById('display-name').innerText = n || 'Producto Nuevo';
-        document.getElementById('display-price').innerText = clp.format(p || 0);
+        document.getElementById('form-price').value = p ? parseInt(p, 10).toLocaleString('es-CL') : '';
         document.getElementById('display-barcode').innerText = b;
 
         toggleStockInput(); // Show/hide stock input based on unit type
@@ -380,6 +385,8 @@ permanentemente', 'executeBulkDelete()') %}
 
     function clearForm() {
         document.getElementById('product-form').reset();
+        document.getElementById('form-price').value = '';
+        document.getElementById('form-price').dataset.raw = '';
         document.getElementById('form-title').innerText = 'Editar / Crear';
         // Reset preview card
         document.getElementById('display-img').src = './static/placeholder.png';
@@ -738,6 +745,22 @@ permanentemente', 'executeBulkDelete()') %}
         }
     }
 
+    function generateBarcode() {
+        const existing = new Set(
+            Array.from(document.querySelectorAll('#inventoryTable tbody tr'))
+                .map(tr => tr.getAttribute('data-barcode'))
+        );
+        const prefix = '78';
+        let code;
+        do {
+            code = prefix;
+            for (let i = 0; i < 10; i++) {
+                code += Math.floor(Math.random() * 10);
+            }
+        } while (existing.has(code));
+        document.getElementById('form-barcode').value = code;
+    }
+
     function toggleStockInput() {
         const unitSelect = document.getElementById('form-unit-type');
         const stockInput = document.getElementById('form-stock');
@@ -753,5 +776,12 @@ permanentemente', 'executeBulkDelete()') %}
     }
 
     document.getElementById('form-unit-type').addEventListener('change', toggleStockInput);
+
+    document.getElementById('product-form').addEventListener('submit', function() {
+    const priceInput = document.getElementById('form-price');
+    priceInput.value = priceInput.value.replace(/\./g, '');
+    });
+
+
 </script>
 {% endblock %}
