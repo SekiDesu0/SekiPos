@@ -12,6 +12,18 @@
         --danger: #ed4245;
     }
 
+    html, body {
+        background-color: var(--bg);
+        transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    /* Prevent theme flash on initial load */
+    html[data-theme="dark"] body,
+    html[data-theme="dark"] {
+        background-color: #36393f;
+        color: #dcddde;
+    }
+
     [data-theme="dark"] {
         --bg: #36393f;
         --card-bg: #2f3136;

@@ -1,9 +1,10 @@
 <nav class="navbar navbar-expand-md sticky-top px-3 mb-3">
     <span class="navbar-brand">
         SekiPOS
-        <small class="text-muted fw-normal" style="font-size:0.65rem;">v2.2</small>
+        <small class="text-muted fw-normal" style="font-size:0.65rem;">v3.0</small>
     </span>
 
+    {% if user and user.is_authenticated %}
     <div class="ms-3 gap-2 d-flex">
         <a href="/inventory" class="btn btn-sm {{ 'btn-primary' if active_page == 'inventory' else 'btn-outline-primary' }}">
             <i class="bi bi-box-seam me-1"></i>Inventario
@@ -22,8 +23,10 @@
             <i class="bi bi-journal-x me-1"></i>Dicom
         </a>
     </div>
+    {% endif %}
 
     <div class="ms-auto">
+        {% if user and user.is_authenticated %}
         <div class="dropdown">
             <button class="btn btn-accent dropdown-toggle" type="button" data-bs-toggle="dropdown">
                 <i class="bi bi-person-circle me-1"></i>
@@ -32,7 +35,7 @@
             <ul class="dropdown-menu dropdown-menu-end shadow">
                 <li>
                     <button class="dropdown-item" onclick="toggleTheme()">
-                        <i class="bi bi-moon-stars me-2"></i>Modo Oscuro
+                        <i class="bi bi-moon-stars me-2" id="theme-icon"></i><span id="theme-label">Modo Oscuro</span>
                     </button>
                 </li>
                 <li>
@@ -58,5 +61,10 @@
                 </li>
             </ul>
         </div>
+        {% else %}
+        <a href="/login" class="btn btn-accent">
+            <i class="bi bi-box-arrow-in-right me-1"></i>Iniciar Sesión
+        </a>
+        {% endif %}
     </div>
 </nav>

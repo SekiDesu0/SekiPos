@@ -312,7 +312,104 @@
         </div>
     </div>
 
+    <!-- Dicom Checkout Modal -->
+    <div class="modal fade" id="dicomModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Mandar a Dicom</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small mb-1">Seleccionar Deudor</label>
+                        <div class="input-group">
+                            <select id="dicom-debtor-select" class="form-select" onchange="toggleNewDebtorInput()">
+                                <option value="">-- Seleccionar deudor --</option>
+                            </select>
+                            <button class="btn btn-success" type="button" onclick="showNewDebtorInput()" title="Nuevo deudor">
+                                <i class="bi bi-plus-lg"></i> Nuevo
+                            </button>
+                        </div>
+                        <input type="text" id="dicom-debtor-name" class="form-control mt-2" placeholder="Nombre del nuevo deudor..." style="display:none;">
+                        <small id="debtor-count" class="text-muted"></small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small mb-1">Información de Contacto (Opcional)</label>
+                        <input type="text" id="dicom-contact-info" class="form-control" placeholder="Teléfono, dirección...">
+                    </div>
+                    <div class="p-3 rounded mb-2" style="background: var(--input-bg);">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Total a Dicom:</span>
+                            <span id="dicom-total" class="fw-bold" style="color: var(--danger); font-size: 1.2rem;">$0</span>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-bold small mb-1" style="color: #198754;">
+                            <i class="bi bi-cash-coin me-1"></i>Pago inicial (opcional)
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="background: #198754; border-color: #198754; color: #fff;">$</span>
+                            <input type="text" id="dicom-initial-payment" class="form-control fw-bold border-start-0" style="border-color: #198754;" placeholder="0" oninput="formatDicomPayment(this)">
+                        </div>
+                    </div>
+                    <div class="p-2 rounded" style="background: var(--input-bg);">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Saldo pendiente:</span>
+                            <span id="dicom-remaining" class="fw-bold" style="color: #198754;">$0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex">
+                    <button class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-danger flex-grow-1" onclick="processDicomCheckout()">
+                        <i class="bi bi-send me-1"></i>Enviar a Dicom
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dicom Success Modal -->
+    <div class="modal fade" id="dicomSuccessModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>Enviado a Dicom</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="mb-3">
+                        <i class="bi bi-receipt" style="font-size: 3rem; color: var(--success);"></i>
+                    </div>
+                    <h6 class="mb-2">Ticket #<span id="dicom-success-ticket-id"></span></h6>
+                    <p class="text-muted mb-0">Registrado para</p>
+                    <h5 class="text-success mb-0" id="dicom-success-debtor"></h5>
+                </div>
+                <div class="modal-footer d-flex">
+                    <button class="btn btn-success flex-grow-1" data-bs-dismiss="modal">Aceptar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="container-fluid">
+        <!-- Kitchen Ticket Print Zone -->
+        <div id="kitchen-print-zone" class="d-none d-print-block">
+            <style>
+                @media print {
+                    @page { size: 80mm auto; margin: 0; }
+                    nav, .discord-card, .modal, .row, #kitchen-print-zone { display: none !important; }
+                    #kitchen-print-zone, #kitchen-print-zone * { visibility: visible; }
+                    #kitchen-print-zone {
+                        position: absolute; left: 0; top: 0; width: 80mm;
+                        padding: 5mm; display: block !important;
+                    }
+                }
+            </style>
+            <div id="kitchen-ticket-content"></div>
+        </div>
+
         <div class="row g-3">
             <div class="col-md-8">
                 <div class="discord-card p-3">
@@ -359,11 +456,44 @@
             </div>
             
             <div class="col-md-4">
+                <!-- Restaurant Mode Panel -->
+                <div id="restaurant-panel" class="discord-card p-3 mb-3 d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0"><i class="bi bi-receipt me-2"></i>Comanda</h6>
+                        <span class="badge bg-accent">Modo Comida</span>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label text-muted small mb-1">Nombre del Cliente</label>
+                        <input type="text" id="restaurant-client-name" class="form-control" placeholder="Ej: Juan" autocomplete="off">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label text-muted small mb-1">Tipo</label>
+                        <select id="restaurant-order-type" class="form-select">
+                            <option value="servir">Para Servir</option>
+                            <option value="llevar">Para Llevar</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small mb-1">Notas Adicionales</label>
+                        <input type="text" id="restaurant-notes" class="form-control" placeholder="Sin cebolla, extra salsa..." autocomplete="off">
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-accent flex-grow-1" onclick="printKitchenTicket()">
+                            <i class="bi bi-printer me-1"></i>Imprimir Comanda
+                        </button>
+                        <button id="btn-reset-comanda" class="btn btn-outline-secondary d-none" onclick="resetKitchenTicket()">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="discord-card p-3 mb-3 text-center shadow-sm">
-                    <p class="mb-1 fw-semibold text-uppercase" style="color:var(--text-muted); font-size:0.7rem">Último Escaneado</p>
-                    <img id="display-img" src="./static/placeholder.png" class="mb-2" alt="product">
-                    <h6 id="display-name" class="mb-0 text-truncate">Esperando scan...</h6>
-                    <small id="display-barcode" class="text-muted font-monospace" style="font-size: 0.7rem"></small>
+                    <div id="last-scanned-content">
+                        <p class="mb-1 fw-semibold text-uppercase" style="color:var(--text-muted); font-size:0.7rem">Último Escaneado</p>
+                        <img id="display-img" src="./static/placeholder.png" class="mb-2" alt="product">
+                        <h6 id="display-name" class="mb-0 text-truncate">Esperando scan...</h6>
+                        <small id="display-barcode" class="text-muted font-monospace" style="font-size: 0.7rem"></small>
+                    </div>
                     
                     <div class="total-banner text-center mb-3 mt-3">
                         <h2 class="mb-0">TOTAL</h2>
@@ -379,6 +509,9 @@
                     <button class="btn btn-danger w-100 btn-lg" onclick="clearCart()">
                         <i class="bi bi-trash3"></i> VACIAR
                     </button>
+                    <button class="btn btn-outline-danger w-100 btn-lg mt-2" id="btn-mandar-dicom" onclick="openDicomModal()">
+                        <i class="bi bi-person-plus"></i> Mandar a Dicom
+                    </button>
                 </div>
             </div>
         </div>
@@ -390,7 +523,12 @@
     /* =========================================
        1. GLOBAL STATE & FORMATTERS
        ========================================= */
-    let cart = [];
+    let cart = JSON.parse(localStorage.getItem('seki_cart') || '[]');
+    
+    function saveCart() {
+        localStorage.setItem('seki_cart', JSON.stringify(cart));
+    }
+    
     let pendingProduct = null;
     let missingProductData = null;
     let tempBarcode = null;
@@ -406,6 +544,18 @@
 
     // Fetch the pinned items from local storage
     let pinnedBarcodes = JSON.parse(localStorage.getItem('seki_pinned_products')) || [];
+
+    // Restaurant Mode (Modo Comida) initialization
+    const modoComida = localStorage.getItem('modo_comida') === 'true';
+    if (modoComida) {
+        document.getElementById('restaurant-panel').classList.remove('d-none');
+    }
+
+    // Last Scanned panel toggle
+    const showLastScanned = localStorage.getItem('seki_last_scanned') !== 'false';
+    if (!showLastScanned) {
+        document.getElementById('last-scanned-content').classList.add('d-none');
+    }
 
     let socket = io();
 
@@ -491,6 +641,16 @@
 
         document.getElementById('grand-total').innerText = clp.format(total);
         saveCart();
+        
+        // Enable/disable Mandar a Dicom button
+        const dicomBtn = document.getElementById('btn-mandar-dicom');
+        if (cart.length === 0) {
+            dicomBtn.classList.add('disabled');
+            dicomBtn.setAttribute('disabled', 'true');
+        } else {
+            dicomBtn.classList.remove('disabled');
+            dicomBtn.removeAttribute('disabled');
+        }
     }
 
     function addToCart(product, qty) {
@@ -499,8 +659,9 @@
             cart[existingIndex].qty += qty;
             cart[existingIndex].subtotal = calculateSubtotal(cart[existingIndex].price, cart[existingIndex].qty);
         } else {
-            cart.push({ ...product, qty, subtotal: calculateSubtotal(product.price, qty) });
+            cart.push({ ...product, qty, subtotal: calculateSubtotal(product.price, qty), printed_qty: 0 });
         }
+        saveCart();
         renderCart();
     }
 
@@ -511,6 +672,7 @@
             removeItem(index, cart[index].name);
         } else {
             cart[index].subtotal = calculateSubtotal(cart[index].price, cart[index].qty);
+            saveCart();
             renderCart();
         }
     }
@@ -520,6 +682,7 @@
         if (isNaN(newQty) || newQty <= 0) return;
         cart[index].qty = newQty;
         cart[index].subtotal = calculateSubtotal(cart[index].price, cart[index].qty);
+        saveCart();
         renderCart();
     }
 
@@ -532,6 +695,7 @@
     function executeRemoveItem() {
         if (itemIndexToRemove !== null) {
             cart.splice(itemIndexToRemove, 1);
+            saveCart();
             renderCart();
             bootstrap.Modal.getInstance(document.getElementById('removeConfirmModal')).hide();
             itemIndexToRemove = null;
@@ -545,6 +709,7 @@
 
     function executeClearCart() {
         cart = [];
+        saveCart();
         renderCart();
         clearLastScanned();
         bootstrap.Modal.getInstance(document.getElementById('clearCartModal')).hide();
@@ -558,7 +723,16 @@
     function loadCart() {
         const saved = localStorage.getItem('seki_cart');
         if (saved) {
-            try { cart = JSON.parse(saved); renderCart(); } 
+            try { 
+                cart = JSON.parse(saved); 
+                // Ensure all items have printed_qty property
+                cart.forEach(item => {
+                    if (typeof item.printed_qty === 'undefined') {
+                        item.printed_qty = 0;
+                    }
+                });
+                renderCart(); 
+            } 
             catch (e) { console.error(e); cart = []; }
         }
     }
@@ -714,7 +888,8 @@
             price: priceInput,
             image: '',
             stock: 0,
-            unit: unitInput
+            unit: unitInput,
+            printed_qty: 0
         };
 
         if (unitInput === 'kg') {
@@ -751,7 +926,8 @@
             subtotal: price,
             image: '',
             stock: 0,
-            unit: 'unit'
+            unit: 'unit',
+            printed_qty: 0
         }, 1);
         bootstrap.Modal.getInstance(document.getElementById('variosModal')).hide();
     }
@@ -918,6 +1094,7 @@
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('successModal')).show();
 
                 cart = [];
+                saveCart();
                 renderCart();
                 clearLastScanned();
                 setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('successModal')).hide(), 2000);
@@ -960,7 +1137,7 @@
 
         const quickCart = [{
             barcode: `RAPIDA-${Date.now().toString().slice(-6)}`,
-            name: '* Varios', price: amount, qty: 1, subtotal: amount, unit: 'unit'
+            name: '* Varios', price: amount, qty: 1, subtotal: amount, unit: 'unit', printed_qty: 0
         }];
 
         try {
@@ -989,6 +1166,262 @@
             isProcessing = false;
             quickBtn.disabled = false;
             quickBtn.innerHTML = originalBtnText;
+        }
+    }
+
+    /* =========================================
+       RESTAURANT MODE (MODO COMIDA)
+       ========================================= */
+    function printKitchenTicket() {
+        const clientName = document.getElementById('restaurant-client-name').value.trim();
+        const orderType = document.getElementById('restaurant-order-type').value;
+        const notes = document.getElementById('restaurant-notes').value.trim();
+
+        // Calculate delta items (qty - printed_qty)
+        const deltaItems = cart.filter(item => {
+            const printed = item.printed_qty || 0;
+            return item.qty > printed;
+        }).map(item => ({
+            ...item,
+            delta: item.qty - (item.printed_qty || 0)
+        }));
+
+        if (deltaItems.length === 0) {
+            alert('No hay items nuevos para imprimir.');
+            return;
+        }
+
+        // Update printed_qty for delta items
+        cart.forEach(item => {
+            if (item.qty > (item.printed_qty || 0)) {
+                item.printed_qty = item.qty;
+            }
+        });
+
+        // Show reset button if anything has been printed
+        const hasPrinted = cart.some(item => (item.printed_qty || 0) > 0);
+        document.getElementById('btn-reset-comanda').classList.toggle('d-none', !hasPrinted);
+
+        // Get comanda size setting
+        const comandaSize = localStorage.getItem('seki_comanda_size') || 'medium';
+        const sizeMap = {
+            small: { header: '14px', title: '16px', item: '12px', qty: '12px' },
+            medium: { header: '16px', title: '20px', item: '14px', qty: '14px' },
+            large: { header: '18px', title: '24px', item: '18px', qty: '18px' },
+            xlarge: { header: '20px', title: '28px', item: '22px', qty: '22px' }
+        };
+        const sizes = sizeMap[comandaSize];
+
+        // Build the kitchen ticket HTML
+        const ticketHtml = `
+            <div style="font-family: 'Courier New', monospace; padding: 10px; font-size: ${sizes.header};">
+                <div style="text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 10px;">
+                    <strong style="font-size: ${sizes.title};">COMANDA</strong><br>
+                    ${clientName ? `<span>Cliente: ${clientName}</span><br>` : ''}
+                    <span>${orderType === 'servir' ? '🍽️ PARA SERVIR' : '🥡 PARA LLEVAR'}</span>
+                    ${notes ? `<br><em>Nota: ${notes}</em>` : ''}
+                </div>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 1px dashed #000;">
+                            <th style="text-align: left; padding: 3px 0;">Cant</th>
+                            <th style="text-align: left; padding: 3px 0;">Producto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${deltaItems.map(item => `
+                            <tr>
+                                <td style="padding: 2px 0; font-size: ${sizes.qty};"><strong>${item.unit === 'kg' ? item.delta.toFixed(3) : item.delta}</strong></td>
+                                <td style="padding: 2px 0; font-size: ${sizes.item};">${item.name}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <div style="text-align: center; margin-top: 15px; font-size: 11px;">
+                    ${new Date().toLocaleString('es-CL')}
+                </div>
+            </div>
+        `;
+
+        // Create a temporary print window
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Comanda - ${clientName || 'Sin nombre'}</title>
+                <style>
+                    @media print {
+                        body { margin: 0; padding: 0; }
+                        @page { size: 80mm auto; margin: 0; }
+                    }
+                </style>
+            </head>
+            <body>${ticketHtml}</body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 250);
+    }
+
+    function resetKitchenTicket() {
+        // Reset printed_qty for all items
+        cart.forEach(item => {
+            item.printed_qty = 0;
+        });
+
+        // Clear inputs
+        document.getElementById('restaurant-client-name').value = '';
+        document.getElementById('restaurant-notes').value = '';
+        document.getElementById('restaurant-order-type').value = 'servir';
+
+        // Hide reset button
+        document.getElementById('btn-reset-comanda').classList.add('d-none');
+    }
+
+    /* =========================================
+       DICOM CHECKOUT
+       ========================================= */
+    function openDicomModal() {
+        const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+        document.getElementById('dicom-total').innerText = clp.format(total);
+        document.getElementById('dicom-remaining').innerText = clp.format(total);
+        document.getElementById('dicom-debtor-name').value = '';
+        document.getElementById('dicom-contact-info').value = '';
+        document.getElementById('dicom-initial-payment').value = '';
+        
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('dicomModal')).show();
+        
+        fetchDebtorsList();
+    }
+
+    // Format payment input with dots
+    function formatDicomPayment(input) {
+        let value = input.value.replace(/\./g, '').replace(/[^0-9]/g, '');
+        const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
+        
+        if (value && parseInt(value) > total) {
+            value = total.toString();
+        }
+        
+        if (value) {
+            value = parseInt(value).toLocaleString('es-CL');
+        }
+        input.value = value;
+        
+        // Update remaining
+        const rawValue = parseInt(input.value.replace(/\./g, '')) || 0;
+        const remaining = Math.max(0, total - rawValue);
+        document.getElementById('dicom-remaining').innerText = clp.format(remaining);
+    }
+
+    // Update remaining when initial payment changes
+    document.getElementById('dicom-initial-payment').addEventListener('input', function() {
+        formatDicomPayment(this);
+    });
+
+    // Load when modal is fully shown
+    document.getElementById('dicomModal').addEventListener('shown.bs.modal', function() {
+        fetchDebtorsList();
+    });
+
+    async function fetchDebtorsList() {
+        try {
+            const res = await fetch('/api/dicom/debtors', { credentials: 'same-origin' });
+            
+            if (!res.ok) return;
+            
+            const debtors = await res.json();
+            
+            const select = document.getElementById('dicom-debtor-select');
+            const countLabel = document.getElementById('debtor-count');
+            
+            select.innerHTML = '<option value="">-- Seleccionar deudor --</option>';
+            
+            if (debtors && debtors.length > 0) {
+                for (let d of debtors) {
+                    const opt = document.createElement('option');
+                    opt.value = d.name;
+                    opt.textContent = d.contact_info ? `${d.name} - ${d.contact_info}` : d.name;
+                    select.appendChild(opt);
+                }
+                countLabel.textContent = `${debtors.length} deudor(es)`;
+            } else {
+                countLabel.textContent = 'No hay deudores';
+            }
+        } catch (e) {
+            console.error('Error loading debtors:', e);
+        }
+    }
+
+    function showNewDebtorInput() {
+        document.getElementById('dicom-debtor-select').value = '';
+        document.getElementById('dicom-debtor-name').style.display = 'block';
+        document.getElementById('dicom-debtor-name').focus();
+    }
+
+    function toggleNewDebtorInput() {
+        const select = document.getElementById('dicom-debtor-select');
+        const nameInput = document.getElementById('dicom-debtor-name');
+        if (select.value === '') {
+            nameInput.style.display = 'block';
+        } else {
+            nameInput.style.display = 'none';
+            nameInput.value = '';
+        }
+    }
+
+    async function processDicomCheckout() {
+        // Check if selecting existing or entering new
+        const select = document.getElementById('dicom-debtor-select');
+        const nameInput = document.getElementById('dicom-debtor-name');
+        
+        let debtorName = select.value || nameInput.value.trim();
+        const contactInfo = document.getElementById('dicom-contact-info').value.trim();
+        const paymentInput = document.getElementById('dicom-initial-payment').value.replace(/\./g, '');
+        const initialPayment = parseInt(paymentInput) || 0;
+        
+        if (!debtorName) {
+            alert('Por favor ingresa el nombre del deudor.');
+            return;
+        }
+        
+        try {
+            const res = await fetch('/api/dicom/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    cart: cart,
+                    debtor_name: debtorName,
+                    contact_info: contactInfo,
+                    initial_payment: initialPayment
+                })
+            });
+            
+            const result = await res.json();
+            
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('dicomModal')).hide();
+                document.getElementById('dicom-success-ticket-id').textContent = result.ticket_id;
+                document.getElementById('dicom-success-debtor').textContent = result.debtor;
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('dicomSuccessModal')).show();
+                
+                // Clear cart
+                cart = [];
+                saveCart();
+                renderCart();
+                clearLastScanned();
+            } else {
+                alert('Error: ' + (result.error || 'Error desconocido'));
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error de conexión.');
         }
     }
 

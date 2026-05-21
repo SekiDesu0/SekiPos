@@ -1,4 +1,4 @@
-# SekiPOS v2.2 🍫🥤
+# SekiPOS v3.0 🍫🥤
 
 A reactive POS inventory system for software engineers with a snack addiction. Features real-time UI updates, automatic product discovery via Open Food Facts, and local image caching.
 

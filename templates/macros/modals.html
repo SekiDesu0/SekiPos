@@ -307,6 +307,23 @@
                         <i class="bi bi-egg-fried"></i> Modo Comida (Letras Grandes)
                     </label>
                 </div>
+
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="setting-last-scanned">
+                    <label class="form-check-label text-muted small" for="setting-last-scanned">
+                        <i class="bi bi-upc-scan"></i> Mostrar "Último Escaneado" en Caja
+                    </label>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small mb-1">Tamaño de letra Comanda</label>
+                    <select id="setting-comanda-size" class="form-select">
+                        <option value="small">Pequeño</option>
+                        <option value="medium" selected>Mediano</option>
+                        <option value="large">Grande</option>
+                        <option value="xlarge">Extra Grande</option>
+                    </select>
+                </div>
             </div>
             <div class="modal-footer d-flex">
                 <button class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal">Cancelar</button>
@@ -329,6 +346,9 @@
                 document.getElementById('setting-auto-print').checked = localStorage.getItem('seki_auto_print') !== 'false';
                 document.getElementById('setting-ask-order-details').checked = localStorage.getItem('seki_ask_order_details') === 'true';
                 document.getElementById('setting-food-mode').checked = localStorage.getItem('seki_food_mode') === 'true';
+                document.getElementById('setting-last-scanned').checked = localStorage.getItem('seki_last_scanned') !== 'false';
+                const comandaSize = localStorage.getItem('seki_comanda_size') || 'medium';
+                document.getElementById('setting-comanda-size').value = comandaSize;
                 
                 const showSii = localStorage.getItem('seki_show_sii') === 'true';
                 document.getElementById('setting-show-sii').checked = showSii;
@@ -348,11 +368,16 @@
         const askDetails = document.getElementById('setting-ask-order-details').checked;
         const showSii = document.getElementById('setting-show-sii').checked;
         const foodMode = document.getElementById('setting-food-mode').checked;
+        const lastScanned = document.getElementById('setting-last-scanned').checked;
+        const comandaSize = document.getElementById('setting-comanda-size').value;
         localStorage.setItem('seki_biz_name', bizName);
         localStorage.setItem('seki_auto_print', autoPrint);
         localStorage.setItem('seki_ask_order_details', askDetails);
         localStorage.setItem('seki_show_sii', showSii);
         localStorage.setItem('seki_food_mode', foodMode);
+        localStorage.setItem('modo_comida', foodMode);
+        localStorage.setItem('seki_last_scanned', lastScanned);
+        localStorage.setItem('seki_comanda_size', comandaSize);
         
         if (showSii) {
             localStorage.setItem('seki_rut', document.getElementById('setting-rut').value.trim());

@@ -1,155 +1,188 @@
 {% extends "macros/base.html" %}
-{% from 'macros/modals.html' import confirm_modal %}
 
 {% block title %}Dicom{% endblock %}
 
 {% block content %}
+<style>
+    .debtor-item {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 12px;
+        transition: all 0.2s ease;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    .debtor-item:hover {
+        background: var(--input-bg);
+        border-color: rgba(255,255,255,0.1);
+    }
+    .debtor-item .debtor-avatar {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    .debtor-name {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: var(--text-main);
+    }
+    .debtor-contact {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+    .debtor-debt {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--danger);
+    }
+    .debtor-debt.paid {
+        color: var(--success);
+    }
+    .ticket-card {
+        background: var(--card-bg);
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 10px;
+        border: 1px solid rgba(255,255,255,0.05);
+        transition: all 0.2s ease;
+    }
+    .ticket-card:hover {
+        border-color: rgba(255,255,255,0.15);
+    }
+    .ticket-status {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .ticket-status.paid { background: rgba(40, 167, 69, 0.2); color: #28a745; }
+    .ticket-status.partial { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+    .ticket-status.unpaid { background: rgba(220, 53, 69, 0.2); color: #dc3545; }
+    .ticket-item-row {
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    .ticket-item-row:last-child { border-bottom: none; }
+    .chevron-icon {
+        transition: transform 0.3s ease;
+        font-size: 1.1rem;
+    }
+    .chevron-icon.rotated {
+        transform: rotate(180deg);
+    }
+    .btn-pay-all {
+        font-size: 0.8rem;
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+    .btn-delete-debtor {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-muted);
+    }
+    .empty-state i {
+        font-size: 3rem;
+        opacity: 0.3;
+    }
+</style>
+
 <div class="row g-3">
     <div class="col-12">
-        <div class="discord-card p-3">
-            
-            <div class="d-flex justify-content-between align-items-center mb-3 gap-3">
-                <div class="position-relative flex-grow-1">
-                    <input type="text" id="dicom-search" class="form-control ps-5 py-2"
-                        placeholder="Buscar cliente por nombre..." onkeyup="filterDicom()">
-                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                </div>
-                <button class="btn btn-accent text-nowrap py-2 px-3 fw-bold" onclick="openNewModal()">
-                    <i class="bi bi-plus-lg me-1"></i> Nuevo Deudor
-                </button>
+        <div class="discord-card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0"><i class="bi bi-people me-2"></i>Deudores</h4>
+                <span class="badge bg-secondary">{{ debtors|length }} registrados</span>
             </div>
-
-            <div class="table-responsive">
-                <table class="table mb-0" id="dicom-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 60px;">Foto</th>
-                            <th>Nombre</th>
-                            <th>Deuda Total</th>
-                            <th>Última Nota</th>
-                            <th>Actualizado</th>
-                            <th class="text-end">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for d in debtors %}
-                        <tr>
-                            <td>
-                                {% if d[5] %}
-                                <img src="{{ d[5] }}" class="rounded shadow-sm" style="width: 40px; height: 40px; object-fit: cover; cursor: pointer;" 
-                                    onclick="window.open(this.src, '_blank')">
-                                {% else %}
-                                <div class="bg-secondary rounded" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; opacity: 0.3;">
-                                    <i class="bi bi-person text-white"></i>
-                                </div>
-                                {% endif %}
-                            </td>
-                            <td class="fw-bold align-middle">{{ d[1] }}</td>
-                            <td class="fw-bold price-cell align-middle fs-5" data-value="{{ d[2] }}"></td>
-                            <td class="text-muted small align-middle">{{ d[3] }}</td>
-                            <td class="text-muted small align-middle">{{ d[4] }}</td>
-                            <td class="text-end align-middle">
-                                <button class="btn btn-sm btn-outline-secondary" onclick="openQuickEditModal('{{ d[1] }}', '{{ d[3] }}')"
-                                    title="Actualizar Deuda">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger ms-1"
-                                    onclick="forgiveDebt({{ d[0] }}, '{{ d[1] }}')" title="Eliminar Registro">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            
+            <div id="debtors-list">
+                {% for d in debtors %}
+                <div class="debtor-item" data-debtor-id="{{ d[0] }}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-3 flex-grow-1 cursor-pointer" onclick="toggleDebtor({{ d[0] }})">
+                            <div class="debtor-avatar {% if d[3] > 0 %}bg-danger{% else %}bg-success{% endif %} text-white">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="debtor-name">{{ d[1] }}</div>
+                                <div class="debtor-contact">{{ d[2] or 'Sin contacto' }}</div>
+                            </div>
+                        </div>
+                        <div class="text-end me-3">
+                            <div class="debtor-debt {% if d[3] <= 0 %}paid{% endif %} price-cell" data-value="{{ d[3] }}"></div>
+                            <small class="text-muted">{% if d[3] > 0 %}Deuda pendiente{% else %}Saldo cero{% endif %}</small>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            {% if d[3] > 0 %}
+                            <button class="btn btn-sm btn-success btn-pay-all" onclick="payAllDebtor({{ d[0] }}, {{ d[3] }})" title="Pagar toda la deuda">
+                                <i class="bi bi-check-lg me-1"></i>Pagar Todo
+                            </button>
+                            {% endif %}
+                            <button class="btn btn-sm btn-outline-danger btn-delete-debtor" onclick="deleteDebtor({{ d[0] }}, '{{ d[1] }}')" title="Eliminar deudor">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <i class="bi bi-chevron-down text-muted chevron-icon" id="chevron-{{ d[0] }}"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Expanded tickets view -->
+                    <div id="debtor-{{ d[0] }}" class="d-none mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.05);">
+                        <div id="tickets-container-{{ d[0] }}" class="text-center text-muted py-3">
+                            <span class="spinner-border spinner-border-sm me-2"></span>Cargando tickets...
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-emoji-frown d-block mb-3"></i>
+                    <p class="mb-0">No hay deudores registrados</p>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="dicomModal" tabindex="-1" data-bs-backdrop="static">
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem;" id="dicomModalTitle">
-                    Registrar Movimiento
-                </h5>
-                <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body pt-2 pb-4">
-                
-                <div class="mb-3">
-                    <label class="small text-muted mb-1">Nombre del Cliente</label>
-                    <input type="text" id="dicom-name" class="form-control form-control-lg fw-bold" placeholder="Ej: Doña Juanita">
-                </div>
-                
-                <div class="mb-3">
-                    <label class="small text-muted mb-1">Monto (CLP)</label>
-                    <input type="number" id="dicom-amount" class="form-control form-control-lg text-center fw-bold fs-4" placeholder="$0">
-                </div>
-
-                <div class="mb-3">
-                    <label class="small text-muted mb-1">Nota (Opcional)</label>
-                    <input type="text" id="dicom-notes" class="form-control" placeholder="Ej: Pan y bebida"
-                        onkeydown="if(event.key === 'Enter') submitDicom('add')">
-                </div>
-
-                <div class="mb-4">
-                    <label class="small text-muted mb-1">Foto / Comprobante (Opcional)</label>
-                    <div class="input-group">
-                        <input type="text" id="dicom-image-url" class="form-control" placeholder="URL de imagen" readonly>
-                        <input type="file" id="dicom-camera-input" accept="image/*" capture="environment" style="display: none;"
-                            onchange="handleDicomUpload(this)">
-                        <button class="btn btn-outline-secondary" type="button"
-                            onclick="document.getElementById('dicom-camera-input').click()">
-                            <i class="bi bi-camera"></i>
-                        </button>
-                    </div>
-                    <div id="dicom-img-preview-container" class="mt-2 text-center d-none">
-                        <img id="dicom-img-preview" src="" class="img-thumbnail rounded" style="max-height: 120px; border-color: var(--border);">
-                    </div>
-                </div>
-
-                <div class="d-flex gap-2">
-                    <button class="btn btn-danger flex-grow-1 py-3 fw-bold" onclick="submitDicom('add')">
-                        <i class="bi bi-cart-plus me-1"></i> Fiar
-                    </button>
-                    <button class="btn btn-success flex-grow-1 py-3 fw-bold" onclick="submitDicom('pay')">
-                        <i class="bi bi-cash-coin me-1"></i> Abonar
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="quickEditModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem;">
-                    Actualizar Deuda
+                <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem">
+                    Pagar Deuda
                 </h5>
                 <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center pt-1 pb-4">
-                <h4 id="quick-edit-name" class="mb-3 fw-bold" style="color: var(--text-main);"></h4>
-                <div class="mb-3 text-start">
-                    <label class="text-muted small mb-1">Monto a agregar/restar (CLP)</label>
-                    <input type="number" id="quick-edit-amount" class="form-control form-control-lg text-center fw-bold fs-4" placeholder="$0"
-                           onkeydown="if(event.key === 'Enter') submitQuickEdit('add')">
+                <div class="mb-4">
+                    <span class="text-muted small">Total a Pagar:</span><br>
+                    <span id="payment-remaining-display" class="fs-1 fw-bold" style="color: var(--accent)">$0</span>
                 </div>
-                <div class="mb-4 text-start">
-                    <label class="text-muted small mb-1">Nota Actualizada</label>
-                    <input type="text" id="quick-edit-notes" class="form-control" placeholder="Ej: Pan y bebida"
-                           onkeydown="if(event.key === 'Enter') submitQuickEdit('add')">
-                </div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-danger flex-grow-1 py-2 fw-bold" onclick="submitQuickEdit('add')">
-                        <i class="bi bi-cart-plus me-1"></i> Fiar
+                <div class="d-grid gap-3 px-3">
+                    <button class="btn btn-lg btn-success py-3" onclick="confirmPayment('efectivo')">
+                        <i class="bi bi-cash-coin me-2" style="font-size: 1.5rem; vertical-align: middle"></i> Efectivo (1)
                     </button>
-                    <button class="btn btn-success flex-grow-1 py-2 fw-bold" onclick="submitQuickEdit('pay')">
-                        <i class="bi bi-cash-coin me-1"></i> Abonar
+                    <button class="btn btn-lg btn-secondary py-3" onclick="confirmPayment('tarjeta')">
+                        <i class="bi bi-credit-card me-2" style="font-size: 1.5rem; vertical-align: middle"></i> Tarjeta (2)
+                    </button>
+                    <button class="btn btn-lg btn-info py-3 text-white" onclick="confirmPayment('transferencia')">
+                        <i class="bi bi-bank me-2" style="font-size: 1.5rem; vertical-align: middle"></i> Transferencia (3)
                     </button>
                 </div>
             </div>
@@ -157,222 +190,400 @@
     </div>
 </div>
 
-{% call confirm_modal('deleteDebtModal', 'Eliminar Registro', 'btn-danger', 'Eliminar Permanente', 'executeForgiveDebt()') %}
-    <div class="text-center">
-        <i class="bi bi-exclamation-triangle-fill text-danger mb-3" style="font-size: 3rem;"></i>
-        <p class="mb-1">¿Estás seguro de que quieres perdonar la deuda y eliminar completamente a <strong id="deleteDebtName" style="color: var(--text-main);"></strong> del registro?</p>
-        <p class="text-muted small">Esta acción no se puede deshacer.</p>
+<!-- Vuelto Modal -->
+<div class="modal" id="dicomVueltoModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem">Pago en Efectivo</h5>
+                <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center pt-1 pb-4">
+                <div class="mb-3">
+                    <span class="text-muted small">Total a Pagar:</span><br>
+                    <span id="dicom-vuelto-total" class="fs-4 fw-bold" style="color: var(--text-main)">$0</span>
+                </div>
+                <div class="mb-3 text-start">
+                    <label class="text-muted small mb-1">Monto Recibido</label>
+                    <input type="text" inputmode="numeric" id="dicom-monto-recibido" class="form-control form-control-lg text-center fw-bold fs-4"
+                           placeholder="$0" 
+                           oninput="let v = this.value.replace(/\D/g, ''); this.value = v ? parseInt(v, 10).toLocaleString('es-CL') : ''; calculateDicomVuelto();">
+                </div>
+                <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="setDicomVuelto(1000)">$1.000</button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="setDicomVuelto(2000)">$2.000</button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="setDicomVuelto(5000)">$5.000</button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="setDicomVuelto(10000)">$10.000</button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="setDicomVuelto(20000)">$20.000</button>
+                </div>
+                <div class="p-3 mb-3" style="background: var(--input-bg); border-radius: 8px">
+                    <span class="text-muted small text-uppercase fw-bold">Vuelto a Entregar</span><br>
+                    <span id="dicom-vuelto-amount" class="fs-1 fw-bold text-muted">$0</span>
+                </div>
+                <button id="btn-confirm-dicom-vuelto" class="btn btn-success w-100 py-3 fw-bold" onclick="confirmDicomPayment()" disabled>Confirmar Pago</button>
+            </div>
+        </div>
     </div>
-{% endcall %}
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="dicomSuccessModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-success">
+            <div class="modal-body text-center py-4">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                <h4 class="mt-3">¡Pago Exitoso!</h4>
+                <p class="text-muted">El pago se ha procesado correctamente.</p>
+                <button class="btn btn-accent px-5" data-bs-dismiss="modal">Listo</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="dicomDeleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <div class="modal-header pb-0 border-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center pt-0 pb-4">
+                <i class="bi bi-exclamation-triangle-fill text-danger mb-3" style="font-size: 3rem;"></i>
+                <h4 class="mb-3" id="dicom-delete-title">¿Eliminar?</h4>
+                <p class="text-muted small px-3" id="dicom-delete-desc">Esta acción no se puede deshacer.</p>
+
+                <div class="d-flex gap-2 justify-content-center mt-4 px-3">
+                    <button class="btn btn-secondary w-50" data-bs-dismiss="modal">Cancelar</button>
+                    <button class="btn btn-danger w-50" id="dicom-delete-confirm-btn">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
     const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 });
+    let currentDebtorId = null;
+    let currentTicketId = null;
+    let expandedDebtorId = null;
+    let payAllMode = false;
+    let pendingPaymentMethod = null;
+    let pendingPaymentAmount = 0;
+    let deleteCallback = null;
 
-    // Format debts and flip colors (Negative = Debt/Red, Positive = Credit/Green)
-    document.querySelectorAll('.price-cell').forEach(td => {
-        const val = parseFloat(td.getAttribute('data-value'));
-        td.innerText = clp.format(val);
-
-        if (val < 0) {
-            td.classList.add('text-danger');
-        } else if (val > 0) {
-            td.classList.add('text-success');
-        } else {
-            td.classList.add('text-muted');
-        }
-    });
-
-    // Modal Control Functions
-    function openNewModal() {
-        clearDicomForm();
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('dicomModal')).show();
-        setTimeout(() => document.getElementById('dicom-name').focus(), 500);
-    }
-
-    let currentQuickEditName = '';
-
-    function openQuickEditModal(name, notes) {
-        currentQuickEditName = name;
-        
-        document.getElementById('quick-edit-name').innerText = name;
-        document.getElementById('quick-edit-amount').value = '';
-        
-        // Inject the existing note directly into the new input field
-        document.getElementById('quick-edit-notes').value = notes || ''; 
-        
-        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('quickEditModal'));
-        modal.show();
-        
-        setTimeout(() => document.getElementById('quick-edit-amount').focus(), 500);
-    }
-
-    async function submitQuickEdit(action) {
-        const amount = document.getElementById('quick-edit-amount').value;
-        const notes = document.getElementById('quick-edit-notes').value; // Grab the newly edited note
-        
-        if (!amount || amount <= 0 || isNaN(amount)) {
-            alert('Ingresa un monto válido mayor a 0.');
-            return;
-        }
-
-        try {
-            const res = await fetch('/api/dicom/update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    name: currentQuickEditName, 
-                    amount: amount, 
-                    notes: notes, // Send the UI value instead of the background variable
-                    action: action, 
-                    image_url: '' 
-                }) 
-            });
-            
-            if (res.ok) {
-                bootstrap.Modal.getInstance(document.getElementById('quickEditModal')).hide();
-                window.location.reload();
-            } else {
-                alert("Error al actualizar la deuda.");
+    const deleteConfirmBtn = document.getElementById('dicom-delete-confirm-btn');
+    if (deleteConfirmBtn) {
+        deleteConfirmBtn.addEventListener('click', function() {
+            if (deleteCallback) {
+                deleteCallback();
+                deleteCallback = null;
             }
-        } catch (e) { alert("Error de conexión."); }
-    }
-
-    function clearDicomForm() {
-        document.getElementById('dicom-name').value = '';
-        document.getElementById('dicom-amount').value = '';
-        document.getElementById('dicom-notes').value = '';
-        document.getElementById('dicom-image-url').value = ''; 
-        document.getElementById('dicom-img-preview-container').classList.add('d-none'); 
-    }
-
-    // Image Compression & Upload
-    function compressImage(file, maxWidth, quality) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = event => {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    if (width > maxWidth) {
-                        height = Math.round((height * maxWidth) / width);
-                        width = maxWidth;
-                    }
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    canvas.toBlob(blob => resolve(blob), 'image/jpeg', quality);
-                };
-            };
+            bootstrap.Modal.getInstance(document.getElementById('dicomDeleteModal')).hide();
         });
     }
 
-    async function handleDicomUpload(input) {
-        const name = document.getElementById('dicom-name').value.trim();
-        if (!name) {
-            alert("Primero ingresa el nombre del cliente arriba para asociar la foto.");
-            input.value = '';
-            return;
-        }
-
-        const file = input.files[0];
-        if (!file) return;
-
-        try {
-            const compressedBlob = await compressImage(file, 800, 0.7);
-            const formData = new FormData();
-            formData.append('image', compressedBlob, `debt_${name}_${Date.now()}.jpg`);
-            formData.append('barcode', `debt_${name}`); 
-
-            const res = await fetch('/upload_image', { method: 'POST', body: formData });
-            const data = await res.json();
-
-            if (res.ok) {
-                document.getElementById('dicom-image-url').value = data.image_url;
-                document.getElementById('dicom-img-preview').src = data.image_url;
-                document.getElementById('dicom-img-preview-container').classList.remove('d-none');
-            }
-        } catch (e) {
-            alert("Error procesando imagen.");
-        }
-    }
-
-    // Database Actions
-    async function submitDicom(action) {
-        const name = document.getElementById('dicom-name').value.trim();
-        const amount = document.getElementById('dicom-amount').value;
-        const notes = document.getElementById('dicom-notes').value;
-        const image_url = document.getElementById('dicom-image-url').value; 
-
-        if (!name || amount <= 0 || isNaN(amount)) {
-            alert('Ingresa un nombre y monto válido mayor a 0.');
-            return;
-        }
-
-        try {
-            const res = await fetch('/api/dicom/update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, amount, notes, action, image_url }) 
-            });
-            if (res.ok) {
-                bootstrap.Modal.getInstance(document.getElementById('dicomModal')).hide();
-                window.location.reload();
-            } else {
-                alert("Error al guardar en la base de datos.");
-            }
-        } catch (e) { alert("Error de conexión."); }
-    }
-
-    let debtIdToDelete = null;
-
-    function forgiveDebt(id, name) {
-        debtIdToDelete = id;
-        document.getElementById('deleteDebtName').innerText = name;
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteDebtModal')).show();
-    }
-
-    async function executeForgiveDebt() {
-        if (!debtIdToDelete) return;
+    function showDeleteConfirm(title, desc, callback) {
+        const titleEl = document.getElementById('dicom-delete-title');
+        const descEl = document.getElementById('dicom-delete-desc');
+        const modalEl = document.getElementById('dicomDeleteModal');
         
-        try {
-            const res = await fetch(`/api/dicom/${debtIdToDelete}`, { method: 'DELETE' });
-            if (res.ok) {
-                window.location.reload();
-            } else {
-                alert("Error al eliminar el registro.");
-            }
-        } catch (e) { 
-            alert("Error de conexión."); 
-        } finally {
-            bootstrap.Modal.getInstance(document.getElementById('deleteDebtModal')).hide();
+        if (titleEl) titleEl.textContent = title;
+        if (descEl) descEl.textContent = desc;
+        deleteCallback = callback;
+        if (modalEl) {
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
         }
     }
     
-    // Global listener to accept with the Enter key
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-            const deleteModal = document.getElementById('deleteDebtModal');
-            if (deleteModal && deleteModal.classList.contains('show')) {
-                event.preventDefault();
-                executeForgiveDebt();
+    // Format price cells on page load
+    document.querySelectorAll('.price-cell').forEach(el => {
+        const val = parseFloat(el.dataset.value) || 0;
+        el.innerText = clp.format(val);
+    });
+
+    function toggleDebtor(debtorId) {
+        const container = document.getElementById(`debtor-${debtorId}`);
+        const chevron = document.getElementById(`chevron-${debtorId}`);
+        
+        if (container.classList.contains('d-none')) {
+            container.classList.remove('d-none');
+            chevron.classList.add('rotated');
+            expandedDebtorId = debtorId;
+            loadTickets(debtorId);
+        } else {
+            container.classList.add('d-none');
+            chevron.classList.remove('rotated');
+            expandedDebtorId = null;
+        }
+    }
+
+    async function loadTickets(debtorId) {
+        const container = document.getElementById(`tickets-container-${debtorId}`);
+        
+        try {
+            const res = await fetch(`/api/dicom/debtor/${debtorId}`);
+            const tickets = await res.json();
+            
+            if (tickets.length === 0) {
+                container.innerHTML = '<div class="text-muted small py-3">No hay tickets registrados</div>';
+                return;
             }
+            
+            container.innerHTML = tickets.map(ticket => `
+                <div class="ticket-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="ticket-status ${ticket.status}">
+                                ${ticket.status === 'paid' ? 'Pagado' : ticket.status === 'partial' ? 'Parcial' : 'Pendiente'}
+                            </span>
+                            <span class="text-muted small">${new Date(ticket.date).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="text-end me-2">
+                                <div class="fw-bold" style="font-size: 1.1rem;">${clp.format(ticket.total)}</div>
+                                <small class="text-muted">Pagado: ${clp.format(ticket.amount_paid)}</small>
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteTicket(${ticket.id})" title="Eliminar ticket" style="border-radius: 8px; width: 34px; height: 34px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Items -->
+                    <div style="background: var(--input-bg); border-radius: 8px; padding: 12px 16px;">
+                        ${ticket.items.map(item => `
+                            <div class="ticket-item-row d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="fw-semibold">${item.qty}x</span>
+                                    <span class="ms-2">${item.name}</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-muted">${clp.format(item.subtotal)}</span>
+                                    <button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="deleteItem(${item.id})" title="Eliminar" style="border-radius: 6px; width: 24px; height: 24px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    ${ticket.remaining > 0 ? `
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.05);">
+                        <div>
+                            <span class="text-muted small d-block">Restante</span>
+                            <span class="text-danger fw-bold" style="font-size: 1.1rem;">${clp.format(ticket.remaining)}</span>
+                        </div>
+                        <button class="btn btn-sm btn-success btn-pay-all" onclick="openPaymentModal(${ticket.id}, ${ticket.remaining})">
+                            <i class="bi bi-check-lg me-1"></i>Pagar Todo
+                        </button>
+                    </div>
+                    ` : '<div class="text-center mt-3"><span class="badge bg-success px-3 py-2"><i class="bi bi-check-circle me-1"></i>Pagado completamente</span></div>'}
+                </div>
+            `).join('');
+        } catch (e) {
+            console.error(e);
+            container.innerHTML = '<div class="text-danger small py-3">Error al cargar tickets</div>';
+        }
+    }
+
+    function openPaymentModal(ticketId, remaining) {
+        currentTicketId = ticketId;
+        payAllMode = false;
+        pendingPaymentAmount = remaining;
+        document.getElementById('payment-remaining-display').innerText = clp.format(remaining);
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModal')).show();
+    }
+
+    function openPayAllModal(debtorId, totalDebt) {
+        currentDebtorId = debtorId;
+        payAllMode = true;
+        pendingPaymentAmount = totalDebt;
+        document.getElementById('payment-remaining-display').innerText = clp.format(totalDebt);
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModal')).show();
+    }
+
+    // Focus monto recibido when vuelto modal opens
+    document.getElementById('dicomVueltoModal').addEventListener('shown.bs.modal', function() {
+        const input = document.getElementById('dicom-monto-recibido');
+        input.value = '';
+        setTimeout(() => input.focus(), 100);
+    });
+
+    // Enter key to confirm payment in vuelto modal
+    document.getElementById('dicom-monto-recibido').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !document.getElementById('btn-confirm-dicom-vuelto').disabled) {
+            confirmDicomPayment();
         }
     });
 
-    // Search
-    function filterDicom() {
-        const q = document.getElementById('dicom-search').value.toLowerCase();
-        document.querySelectorAll('#dicom-table tbody tr').forEach(row => {
-            const name = row.cells[1].innerText.toLowerCase(); // Index 1 is the name column
-            row.style.display = name.includes(q) ? '' : 'none';
+    // Keyboard shortcuts for payment modal
+    document.addEventListener('keydown', function(e) {
+        const modal = document.getElementById('paymentModal');
+        if (modal.classList.contains('show')) {
+            if (e.key === '1') confirmPayment('efectivo');
+            if (e.key === '2') confirmPayment('tarjeta');
+            if (e.key === '3') confirmPayment('transferencia');
+        }
+    });
+
+    // Store remaining value for calculation
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.attributeName === 'data-value') {
+                const el = mutation.target;
+                el.innerText = clp.format(parseFloat(el.dataset.value));
+            }
         });
+    });
+    
+    document.querySelectorAll('.price-cell').forEach(el => {
+        observer.observe(el, { attributes: true });
+    });
+
+    // Delete debtor
+    function deleteDebtor(debtorId, debtorName) {
+        showDeleteConfirm(
+            'Eliminar deudor',
+            `¿Eliminar al deudor "${debtorName}" y todos sus tickets? Esta acción no se puede deshacer.`,
+            async function() {
+                try {
+                    const res = await fetch(`/api/dicom/debtor/${debtorId}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        location.reload();
+                    } else {
+                        const data = await res.json();
+                        alert('Error: ' + (data.error || 'Error desconocido'));
+                    }
+                } catch (e) {
+                    alert('Error de conexión');
+                }
+            }
+        );
+    }
+
+    // Delete ticket
+    function deleteTicket(ticketId) {
+        showDeleteConfirm(
+            'Eliminar ticket',
+            '¿Eliminar este ticket y todos sus productos? Esta acción no se puede deshacer.',
+            async function() {
+                try {
+                    const res = await fetch(`/api/dicom/ticket/${ticketId}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        if (expandedDebtorId) {
+                            loadTickets(expandedDebtorId);
+                        }
+                    } else {
+                        const data = await res.json();
+                        alert('Error: ' + (data.error || 'Error desconocido'));
+                    }
+                } catch (e) {
+                    alert('Error de conexión');
+                }
+            }
+        );
+    }
+
+    // Delete individual item
+    function deleteItem(itemId) {
+        showDeleteConfirm(
+            'Eliminar producto',
+            '¿Eliminar este producto del ticket? Esta acción no se puede deshacer.',
+            async function() {
+                try {
+                    const res = await fetch(`/api/dicom/item/${itemId}`, { method: 'DELETE' });
+                    const data = await res.json();
+                    if (res.ok) {
+                        if (expandedDebtorId) {
+                            loadTickets(expandedDebtorId);
+                        }
+                    } else {
+                        alert('Error: ' + (data.error || 'Error desconocido'));
+                    }
+                } catch (e) {
+                    alert('Error de conexión');
+                }
+            }
+        );
+    }
+
+    // Pay all tickets for a debtor
+    function payAllDebtor(debtorId, totalDebt) {
+        openPayAllModal(debtorId, totalDebt);
+    }
+
+    async function confirmPayment(paymentMethod) {
+        const amount = pendingPaymentAmount;
+        
+        // For efectivo, open the vuelto modal
+        if (paymentMethod === 'efectivo') {
+            pendingPaymentMethod = paymentMethod;
+            document.getElementById('dicom-vuelto-total').innerText = clp.format(amount);
+            document.getElementById('dicom-monto-recibido').value = '';
+            document.getElementById('dicom-vuelto-amount').innerText = '$0';
+            document.getElementById('btn-confirm-dicom-vuelto').disabled = true;
+            bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('dicomVueltoModal')).show();
+            return;
+        }
+        
+        // For other methods, process directly
+        await processDicomPayment(amount, paymentMethod);
+    }
+
+    function setDicomVuelto(amount) {
+        const formatted = amount.toLocaleString('es-CL');
+        document.getElementById('dicom-monto-recibido').value = formatted;
+        calculateDicomVuelto();
+    }
+
+    function calculateDicomVuelto() {
+        const receivedStr = document.getElementById('dicom-monto-recibido').value;
+        const received = parseInt(receivedStr.replace(/\./g, '')) || 0;
+        const total = pendingPaymentAmount;
+        const change = Math.max(0, received - total);
+        document.getElementById('dicom-vuelto-amount').innerText = clp.format(change);
+        document.getElementById('btn-confirm-dicom-vuelto').disabled = received < total;
+    }
+
+    async function confirmDicomPayment() {
+        await processDicomPayment(pendingPaymentAmount, pendingPaymentMethod);
+        bootstrap.Modal.getInstance(document.getElementById('dicomVueltoModal')).hide();
+    }
+
+    async function processDicomPayment(amount, paymentMethod) {
+        try {
+            let res;
+            if (payAllMode) {
+                res = await fetch(`/api/dicom/debtor/${currentDebtorId}/pay-all`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: amount, payment_method: paymentMethod })
+                });
+            } else {
+                res = await fetch(`/api/dicom/pay`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ticket_id: currentTicketId, amount: amount, payment_method: paymentMethod })
+                });
+            }
+            
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+                payAllMode = false;
+                // Show success modal
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('dicomSuccessModal')).show();
+                // Reload page after modal hides
+                setTimeout(() => location.reload(), 2500);
+            } else {
+                const data = await res.json();
+                alert('Error: ' + (data.error || 'Error desconocido'));
+            }
+        } catch (e) {
+            alert('Error de conexión');
+        }
     }
 </script>
 {% endblock %}

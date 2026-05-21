@@ -2,22 +2,25 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install dependencies
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source code
-COPY app.py .
-COPY templates/ ./templates/
-COPY static/ ./static/
-#COPY .env .
+COPY . .
 
-# Create the folder structure for the volume mounts
-RUN mkdir -p /app/static/cache
+# Create necessary directories
+RUN mkdir -p /app/db /app/static/cache
 
+# Expose port
 EXPOSE 5000
 
-# Run with unbuffered output so you can actually see the logs in Portainer
+# Run with unbuffered output
 ENV PYTHONUNBUFFERED=1
 
 CMD ["python", "app.py"]
