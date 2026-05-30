@@ -2,7 +2,18 @@
 
 {% block title %}Login{% endblock %}
 
+{% block head %}
+<style>
+    .login-box {
+        position: relative;
+        z-index: 10;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
+<div id="tsparticles"></div>
+
 <div class="login-box text-center">
     <h2 class="fw-bold mb-1">SekiPOS</h2>
     <p class="mb-4 text-muted">¡Hola de nuevo!</p>
@@ -21,4 +32,73 @@
         </button>
     </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/tsparticles@3.3.0/tsparticles.bundle.min.js"></script>
+<script>
+    (async () => {
+        await tsParticles.load({
+            id: "tsparticles",
+            options: {
+                fullScreen: {
+                    enable: true,
+                    zIndex: -1 
+                },
+                background: {
+                    color: {
+                        value: "transparent",
+                    },
+                },
+                fpsLimit: 60,
+                interactivity: {
+                    events: {
+                        onHover: {
+                            enable: true,
+                            mode: "grab",
+                        },
+                    },
+                    modes: {
+                        grab: {
+                            distance: 150,
+                            links: {
+                                opacity: 0.8 
+                            }
+                        }
+                    }
+                },
+                particles: {
+                    color: {
+                        value: "#9b59b6",
+                    },
+                    links: {
+                        color: "#9b59b6",
+                        distance: 150,
+                        enable: true,
+                        opacity: 0.6, 
+                        width: 1.5,   
+                    },
+                    move: {
+                        enable: true,
+                        speed: 1,
+                    },
+                    number: {
+                        density: {
+                            enable: true,
+                            width: 1920,
+                            height: 1080
+                        },
+                        value: 80,
+                    },
+                    opacity: {
+                        value: 0.9, 
+                    },
+                    size: {
+                        value: { min: 1, max: 3 },
+                    },
+                },
+            },
+        });
+    })();
+</script>
 {% endblock %}
