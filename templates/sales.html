@@ -273,7 +273,13 @@
             `).join('');
 
             document.getElementById('receipt-ticket-id').innerText = id;
+            
+            const neto = Math.round(total / 1.19);
+            const iva = total - neto;
+            document.getElementById('receipt-neto-print').innerText = clp.format(neto);
+            document.getElementById('receipt-iva-print').innerText = clp.format(iva);
             document.getElementById('receipt-total-print').innerText = clp.format(total);
+            
             document.getElementById('receipt-date').innerText = new Date(rawDate + " UTC").toLocaleString('es-CL');
             document.getElementById('receipt-payment-info').style.display = 'none';
 
