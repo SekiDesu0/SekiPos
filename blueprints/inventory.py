@@ -1,6 +1,7 @@
 import os
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify, current_app
 from flask_login import login_required, current_user
+from werkzeug.utils import secure_filename
 from core.db import get_db_connection
 from core.utils import download_image
 from core.events import socketio
@@ -49,6 +50,31 @@ def upsert():
                      (barcode, name, price, final_image_path, stock, unit_type))
         conn.commit()
     return redirect(url_for('inventory.inventory'))
+
+@inventory_bp.route('/upload_image', methods=['POST'])
+@login_required
+def upload_image():
+    if 'image' not in request.files:
+        return jsonify({"error": "No image file provided"}), 400
+    
+    file = request.files['image']
+    barcode = request.form.get('barcode', '')
+    
+    if not barcode:
+        return jsonify({"error": "No barcode provided"}), 400
+    
+    if file.filename == '':
+        return jsonify({"error": "Empty file"}), 400
+
+    cache_dir = current_app.config['CACHE_DIR']
+    ext = '.jpg'
+    local_filename = f"{secure_filename(barcode)}{ext}"
+    local_path = os.path.join(cache_dir, local_filename)
+    
+    file.save(local_path)
+    
+    image_url = f"/static/cache/{local_filename}"
+    return jsonify({"image_url": image_url}), 200
 
 @inventory_bp.route('/delete/<barcode>', methods=['POST'])
 @login_required

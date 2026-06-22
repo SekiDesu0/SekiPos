@@ -67,7 +67,7 @@
                         <div class="col-8">
                             <label class="form-label text-muted small mb-1">Precio Unitario</label>
                             <input type="number" id="custom-price" class="form-control" placeholder="Ej: 1500"
-                                   onkeydown="if(event.key === 'Enter') addCustomProduct()">
+                                   onkeydown="if(event.key === 'Enter') { event.stopPropagation(); addCustomProduct(); }">
                         </div>
                         <div class="col-4">
                             <label class="form-label text-muted small mb-1">Tipo</label>
@@ -101,7 +101,7 @@
                         <input type="text" inputmode="numeric" id="varios-price-input" class="form-control form-control-lg text-center fw-bold fs-4"
                             placeholder="$0" 
                             oninput="let v = this.value.replace(/\D/g, ''); this.value = v ? parseInt(v, 10).toLocaleString('es-CL') : '';"
-                            onkeydown="if(event.key === 'Enter') addVariosToCart()">
+                            onkeydown="if(event.key === 'Enter') { event.stopPropagation(); addVariosToCart(); }">
                     </div>
                     <button class="btn btn-warning w-100 py-3 fw-bold" onclick="addVariosToCart()">
                         <i class="bi bi-cart-plus me-1"></i> Agregar al Carrito
@@ -119,7 +119,7 @@
                 </div>
                 <div class="modal-body">
                     <input type="number" id="weight-input" class="form-control form-control-lg" step="1"
-                           placeholder="Ej: 500" onkeydown="if(event.key === 'Enter') confirmWeight()">
+                           placeholder="Ej: 500" onkeydown="if(event.key === 'Enter') { event.stopPropagation(); confirmWeight(); }">
                 </div>
                 <div class="modal-footer d-flex">
                     <button class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal">Cancelar</button>
@@ -1539,6 +1539,7 @@
 
         // 3. The Money Button: Enter
         if (event.code === 'NumpadEnter' || event.key === 'Enter') {
+            if (event.repeat) return;
             
             if (itemIndexToRemove !== null) {
                 event.preventDefault(); 
@@ -1562,7 +1563,7 @@
 
         // 4. The Varios Button: +
         if (event.code === 'NumpadAdd' || event.key === '+') {
-            if (isTyping) return;
+            if (isTyping || event.repeat) return;
             event.preventDefault(); 
             openVariosModal();
             return;
@@ -1570,7 +1571,7 @@
 
         // 5. The Oops Button: - (Remove last item)
         if (event.code === 'NumpadSubtract' || event.key === '-') {
-            if (isTyping) return;
+            if (isTyping || event.repeat || itemIndexToRemove !== null) return;
             if (!openModal && cart.length > 0) {
                 event.preventDefault();
                 removeItem(cart.length - 1);
@@ -1580,16 +1581,11 @@
 
         // 6. The Speedrun Button: * (Venta Rápida)
         if (event.code === 'NumpadMultiply' || event.key === '*') {
-            if (isTyping) return;
+            if (isTyping || event.repeat) return;
             event.preventDefault();
             openQuickSaleModal();
             return;
         }
-    });
-
-    // Safety cleanup: If you close the remove modal with ESC or the Eject button, clear the memory
-    document.getElementById('removeConfirmModal').addEventListener('hidden.bs.modal', function () {
-        itemIndexToRemove = null;
     });
 
     // Safety cleanup: If you close the remove modal with ESC or the Eject button, clear the memory
