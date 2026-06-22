@@ -542,6 +542,15 @@
     // The lock to prevent duplicate sales
     let isProcessing = false;
 
+    function isModalOpen() {
+        return !!document.querySelector('.modal.show, .modal[style*="display: block"]');
+    }
+
+    function safeShowModal(id) {
+        if (isModalOpen()) return;
+        bootstrap.Modal.getOrCreateInstance(document.getElementById(id)).show();
+    }
+
     // Fetch the pinned items from local storage
     let pinnedBarcodes = JSON.parse(localStorage.getItem('seki_pinned_products')) || [];
 
@@ -584,7 +593,7 @@
     socket.on('scan_error', (data) => {
         missingProductData = data;
         document.getElementById('not-found-barcode').innerText = data.barcode;
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('notFoundModal')).show();
+        safeShowModal('notFoundModal');
     });
 
     socket.on('new_scan', (product) => {
@@ -689,7 +698,7 @@
     function removeItem(idx) {
         itemIndexToRemove = idx;
         document.getElementById('removeItemName').innerText = cart[idx].name;
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('removeConfirmModal')).show();
+        safeShowModal('removeConfirmModal');
     }
 
     function executeRemoveItem() {
@@ -704,7 +713,7 @@
 
     function clearCart() {
         if (cart.length === 0) return;
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('clearCartModal')).show();
+        safeShowModal('clearCartModal');
     }
 
     function executeClearCart() {
@@ -749,7 +758,7 @@
         if (actualUnit === 'kg') {
             pendingProduct = product;
             pendingProduct.unit = 'kg'; 
-            bootstrap.Modal.getOrCreateInstance(document.getElementById('weightModal')).show();
+            safeShowModal('weightModal');
             setTimeout(() => document.getElementById('weight-input').focus(), 500);
         } else {
             product.unit = 'unit';
@@ -856,7 +865,7 @@
         document.getElementById('custom-price').value = '';
         document.getElementById('custom-unit').value = 'unit';
 
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('customProductModal')).show();
+        safeShowModal('customProductModal');
         setTimeout(() => {
             if (missingProductData.name) document.getElementById('custom-price').focus();
             else document.getElementById('custom-name').focus();
@@ -868,7 +877,7 @@
         document.getElementById('custom-name').value = '';
         document.getElementById('custom-price').value = '';
         document.getElementById('custom-unit').value = 'unit';
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('customProductModal')).show();
+        safeShowModal('customProductModal');
         setTimeout(() => document.getElementById('custom-name').focus(), 500);
     }
 
@@ -895,7 +904,7 @@
         if (unitInput === 'kg') {
             pendingProduct = customProduct;
             bootstrap.Modal.getInstance(document.getElementById('customProductModal')).hide();
-            bootstrap.Modal.getOrCreateInstance(document.getElementById('weightModal')).show();
+            safeShowModal('weightModal');
             setTimeout(() => document.getElementById('weight-input').focus(), 500);
         } else {
             addToCart(customProduct, 1);
@@ -907,7 +916,7 @@
     function openVariosModal() {
         const input = document.getElementById('varios-price-input');
         input.value = '';
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('variosModal')).show();
+        safeShowModal('variosModal');
         input.focus(); // Instant focus
     }
 
@@ -939,7 +948,7 @@
         editingCartIndex = index;
         const weightInput = document.getElementById('weight-input');
         weightInput.value = Math.round(cart[index].qty * 1000);
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('weightModal')).show();
+        safeShowModal('weightModal');
         setTimeout(() => { weightInput.focus(); weightInput.select(); }, 500);
     }
 
@@ -979,7 +988,7 @@
             document.getElementById('order-client-name').value = '';
             document.getElementById('order-pickup-time').value = ''; // <-- ADD THIS
             document.getElementById('order-notes').value = '';
-            bootstrap.Modal.getOrCreateInstance(document.getElementById('orderDetailsModal')).show();
+            safeShowModal('orderDetailsModal');
             setTimeout(() => document.getElementById('order-client-name').focus(), 500);
             return;
         }
@@ -1000,7 +1009,7 @@
     
     function showPaymentModal(total) {
         document.getElementById('payment-modal-total').innerText = clp.format(total);
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModal')).show();
+        safeShowModal('paymentModal');
     }
 
     function openVueltoModal() {
@@ -1023,7 +1032,7 @@
             }
         });
 
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('vueltoModal')).show();
+        safeShowModal('vueltoModal');
         input.focus(); // Instant focus
     }
 
@@ -1091,7 +1100,7 @@
                 if (vModal) vModal.hide();
 
                 printReceipt(total, result.sale_id, paidAmount);
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('successModal')).show();
+                safeShowModal('successModal');
 
                 cart = [];
                 saveCart();
@@ -1112,7 +1121,7 @@
     function openQuickSaleModal() {
         const input = document.getElementById('quick-sale-amount');
         input.value = '';
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('quickSaleModal')).show();
+        safeShowModal('quickSaleModal');
         input.focus(); // Instant focus
     }
 
@@ -1155,7 +1164,7 @@
                 printReceipt(amount, result.sale_id, amount);
                 cart = originalCart; 
 
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('successModal')).show();
+                safeShowModal('successModal');
                 setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('successModal')).hide(), 2000);
             } else { 
                 alert("Error: " + (result.error || "Error desconocido")); 
@@ -1294,7 +1303,7 @@
         document.getElementById('dicom-contact-info').value = '';
         document.getElementById('dicom-initial-payment').value = '';
         
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('dicomModal')).show();
+        safeShowModal('dicomModal');
         
         fetchDebtorsList();
     }
@@ -1409,7 +1418,7 @@
                 bootstrap.Modal.getInstance(document.getElementById('dicomModal')).hide();
                 document.getElementById('dicom-success-ticket-id').textContent = result.ticket_id;
                 document.getElementById('dicom-success-debtor').textContent = result.debtor;
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('dicomSuccessModal')).show();
+                safeShowModal('dicomSuccessModal');
                 
                 // Clear cart
                 cart = [];
@@ -1602,8 +1611,6 @@
     const posTitle = "SekiPOS - Caja";
 
     function triggerDoom() {
-        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('doomModal'));
-        
         document.getElementById('boot-loading').classList.remove('d-none');
         document.getElementById('boot-ready').classList.add('d-none');
         document.getElementById('boot-status').innerHTML = "INICIANDO EMULADOR...<br>";
@@ -1616,7 +1623,7 @@
             if (document.title === "DOSBox") document.title = posTitle;
         }, 50);
 
-        modal.show();
+        safeShowModal('doomModal');
 
         if (!document.getElementById('js-dos-script')) {
             const script = document.createElement('script');
