@@ -2,6 +2,8 @@ import os
 import sys
 import time
 import threading
+import urllib.request
+import urllib.error
 
 from flask import Flask, redirect, url_for, send_file, jsonify
 from flask_login import login_required, current_user
@@ -64,16 +66,29 @@ def index():
 
 # --- RUN FUNCTION ---
 def start_server():
+    #time.sleep(60) # Sleep for testing wait_for_server function
     socketio.run(app, host='127.0.0.1', port=5000, log_output=False, allow_unsafe_werkzeug=True)
+
+def wait_for_server(url, timeout=69420, interval=0.5):
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            urllib.request.urlopen(url, timeout=1)
+            return True
+        except (urllib.error.URLError, OSError):
+            time.sleep(interval)
+    return False
 
 def run_standalone():
     t = threading.Thread(target=start_server)
     t.daemon = True
     t.start()
-    time.sleep(2)
+    if not wait_for_server('http://127.0.0.1:5000'):
+        print('[SekiPOS] Timeout: el servidor no arrancó en 30s', file=sys.stderr)
+        return
     webview.create_window('SekiPOS', 'http://127.0.0.1:5000', width=1366, height=768, resizable=True, fullscreen=False, min_size=(800, 600), maximized=True)
     webview.start(private_mode=False)
 
 if __name__ == '__main__':
-    #run_standalone()  # Uncomment for desktop app
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True)
+    run_standalone()  # Uncomment for desktop app, comment for server mode
+    #socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True) # Comment for desktop app, uncomment for server mode

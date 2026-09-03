@@ -131,7 +131,7 @@
                         <div class="d-flex align-items-center gap-2">
                             {% if d[3] > 0 %}
                             <button class="btn btn-sm btn-success btn-pay-all" onclick="payAllDebtor({{ d[0] }}, {{ d[3] }})" title="Pagar toda la deuda">
-                                <i class="bi bi-check-lg me-1"></i>Pagar Todo
+                            <i class="bi bi-check-lg me-1"></i>Pagar Todo
                             </button>
                             {% endif %}
                             <button class="btn btn-sm btn-outline-danger btn-delete-debtor" onclick="deleteDebtor({{ d[0] }}, '{{ d[1] }}')" title="Eliminar deudor">
@@ -165,15 +165,12 @@
         <div class="modal-content">
             <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title w-100 text-center text-muted text-uppercase" style="font-size: 0.8rem">
-                    Pagar Deuda
+                    Total a Pagar
                 </h5>
                 <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center pt-1 pb-4">
-                <div class="mb-4">
-                    <span class="text-muted small">Total a Pagar:</span><br>
-                    <span id="payment-remaining-display" class="fs-1 fw-bold" style="color: var(--accent)">$0</span>
-                </div>
+                <h1 id="payment-remaining-display" class="mb-4" style="color: var(--accent); font-weight: 800; font-size: 3rem">$0</h1>
                 <div class="d-grid gap-3 px-3">
                     <button class="btn btn-lg btn-success py-3" onclick="confirmPayment('efectivo')">
                         <i class="bi bi-cash-coin me-2" style="font-size: 1.5rem; vertical-align: middle"></i> Efectivo (1)
@@ -207,15 +204,10 @@
                     <label class="text-muted small mb-1">Monto Recibido</label>
                     <input type="text" inputmode="numeric" id="dicom-monto-recibido" class="form-control form-control-lg text-center fw-bold fs-4"
                            placeholder="$0" 
-                           oninput="let v = this.value.replace(/\D/g, ''); this.value = v ? parseInt(v, 10).toLocaleString('es-CL') : ''; calculateDicomVuelto();">
+                           oninput="let v = this.value.replace(/\D/g, ''); this.value = v ? parseInt(v, 10).toLocaleString('es-CL') : ''; calculateDicomVuelto();"
+                           onkeydown="if(event.key === 'Enter' && !document.getElementById('btn-confirm-dicom-vuelto').disabled) confirmDicomPayment()">
                 </div>
-                <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
-                    <button class="btn btn-outline-secondary btn-sm" onclick="setDicomVuelto(1000)">$1.000</button>
-                    <button class="btn btn-outline-secondary btn-sm" onclick="setDicomVuelto(2000)">$2.000</button>
-                    <button class="btn btn-outline-secondary btn-sm" onclick="setDicomVuelto(5000)">$5.000</button>
-                    <button class="btn btn-outline-secondary btn-sm" onclick="setDicomVuelto(10000)">$10.000</button>
-                    <button class="btn btn-outline-secondary btn-sm" onclick="setDicomVuelto(20000)">$20.000</button>
-                </div>
+                <div class="d-flex flex-wrap justify-content-center gap-2 mb-3" id="dicom-vuelto-quick-buttons"></div>
                 <div class="p-3 mb-3" style="background: var(--input-bg); border-radius: 8px">
                     <span class="text-muted small text-uppercase fw-bold">Vuelto a Entregar</span><br>
                     <span id="dicom-vuelto-amount" class="fs-1 fw-bold text-muted">$0</span>
@@ -376,7 +368,7 @@
                             <span class="text-danger fw-bold" style="font-size: 1.1rem;">${clp.format(ticket.remaining)}</span>
                         </div>
                         <button class="btn btn-sm btn-success btn-pay-all" onclick="openPaymentModal(${ticket.id}, ${ticket.remaining})">
-                            <i class="bi bi-check-lg me-1"></i>Pagar Todo
+                            <i class="bi bi-check-lg me-1"></i>Pagar Ticket
                         </button>
                     </div>
                     ` : '<div class="text-center mt-3"><span class="badge bg-success px-3 py-2"><i class="bi bi-check-circle me-1"></i>Pagado completamente</span></div>'}
@@ -404,18 +396,9 @@
         bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModal')).show();
     }
 
-    // Focus monto recibido when vuelto modal opens
+    // Focus monto input when vuelto modal opens
     document.getElementById('dicomVueltoModal').addEventListener('shown.bs.modal', function() {
-        const input = document.getElementById('dicom-monto-recibido');
-        input.value = '';
-        setTimeout(() => input.focus(), 100);
-    });
-
-    // Enter key to confirm payment in vuelto modal
-    document.getElementById('dicom-monto-recibido').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && !document.getElementById('btn-confirm-dicom-vuelto').disabled) {
-            confirmDicomPayment();
-        }
+        setTimeout(() => document.getElementById('dicom-monto-recibido').focus(), 100);
     });
 
     // Keyboard shortcuts for payment modal
@@ -517,19 +500,28 @@
     async function confirmPayment(paymentMethod) {
         const amount = pendingPaymentAmount;
         
-        // For efectivo, open the vuelto modal
         if (paymentMethod === 'efectivo') {
             pendingPaymentMethod = paymentMethod;
             document.getElementById('dicom-vuelto-total').innerText = clp.format(amount);
-            document.getElementById('dicom-monto-recibido').value = '';
+            const input = document.getElementById('dicom-monto-recibido');
+            input.value = '';
             document.getElementById('dicom-vuelto-amount').innerText = '$0';
-            document.getElementById('btn-confirm-dicom-vuelto').disabled = true;
+            document.getElementById('dicom-vuelto-amount').className = 'fs-1 fw-bold text-success';
+            document.getElementById('btn-confirm-dicom-vuelto').disabled = false;
+            
+            const quickBox = document.getElementById('dicom-vuelto-quick-buttons');
+            quickBox.innerHTML = `<button class="btn btn-sm btn-outline-secondary fw-bold" onclick="setDicomVuelto(${amount})">Exacto</button>`;
+            [2000, 5000, 10000, 20000].forEach(bill => {
+                if (bill > amount && (bill - amount) <= 20000) {
+                    quickBox.innerHTML += `<button class="btn btn-sm btn-outline-secondary fw-bold" onclick="setDicomVuelto(${bill})">${clp.format(bill)}</button>`;
+                }
+            });
+            
             bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
             bootstrap.Modal.getOrCreateInstance(document.getElementById('dicomVueltoModal')).show();
             return;
         }
         
-        // For other methods, process directly
         await processDicomPayment(amount, paymentMethod);
     }
 
@@ -544,7 +536,13 @@
         const received = parseInt(receivedStr.replace(/\./g, '')) || 0;
         const total = pendingPaymentAmount;
         const change = Math.max(0, received - total);
-        document.getElementById('dicom-vuelto-amount').innerText = clp.format(change);
+        const vueltoEl = document.getElementById('dicom-vuelto-amount');
+        vueltoEl.innerText = clp.format(change);
+        if (change > 0) {
+            vueltoEl.className = 'fs-1 fw-bold text-success';
+        } else {
+            vueltoEl.className = 'fs-1 fw-bold text-muted';
+        }
         document.getElementById('btn-confirm-dicom-vuelto').disabled = received < total;
     }
 

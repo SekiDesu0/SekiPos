@@ -156,6 +156,13 @@ def delete_dicom(debtor_id):
 def gastos():
     from datetime import datetime
     selected_month = request.args.get('month', datetime.now().strftime('%Y-%m'))
+    selected_day = request.args.get('day', '')
+    
+    if selected_day:
+        day_filter = f"{selected_month}-{selected_day}"
+        month_filter = day_filter
+    else:
+        month_filter = selected_month
     
     with get_db_connection() as conn:
         cur = conn.cursor()
@@ -169,10 +176,14 @@ def gastos():
             )
         ''')
         
-        sales_total = cur.execute("SELECT SUM(total) FROM sales WHERE strftime('%Y-%m', date, 'localtime') = ?", (selected_month,)).fetchone()[0] or 0
-        expenses_total = cur.execute("SELECT SUM(amount) FROM expenses WHERE strftime('%Y-%m', date, 'localtime') = ?", (selected_month,)).fetchone()[0] or 0
-        
-        expenses_list = cur.execute("SELECT id, date, description, amount FROM expenses WHERE strftime('%Y-%m', date, 'localtime') = ? ORDER BY date DESC", (selected_month,)).fetchall()
+        if selected_day:
+            sales_total = cur.execute("SELECT SUM(total) FROM sales WHERE strftime('%Y-%m-%d', date, 'localtime') = ?", (day_filter,)).fetchone()[0] or 0
+            expenses_total = cur.execute("SELECT SUM(amount) FROM expenses WHERE strftime('%Y-%m-%d', date, 'localtime') = ?", (day_filter,)).fetchone()[0] or 0
+            expenses_list = cur.execute("SELECT id, date, description, amount FROM expenses WHERE strftime('%Y-%m-%d', date, 'localtime') = ? ORDER BY date DESC", (day_filter,)).fetchall()
+        else:
+            sales_total = cur.execute("SELECT SUM(total) FROM sales WHERE strftime('%Y-%m', date, 'localtime') = ?", (selected_month,)).fetchone()[0] or 0
+            expenses_total = cur.execute("SELECT SUM(amount) FROM expenses WHERE strftime('%Y-%m', date, 'localtime') = ?", (selected_month,)).fetchone()[0] or 0
+            expenses_list = cur.execute("SELECT id, date, description, amount FROM expenses WHERE strftime('%Y-%m', date, 'localtime') = ? ORDER BY date DESC", (selected_month,)).fetchall()
         
     return render_template('gastos.html', 
                            active_page='gastos', 
@@ -181,12 +192,14 @@ def gastos():
                            expenses_total=expenses_total,
                            net_profit=sales_total - expenses_total,
                            expenses=expenses_list,
-                           selected_month=selected_month)
+                           selected_month=selected_month,
+                           selected_day=selected_day)
 
 @finance_bp.route('/api/gastos', methods=['POST'])
 @login_required
 def add_gasto():
     data = request.get_json()
+    date = data.get('date', '')
     desc = data.get('description')
     amount = data.get('amount')
     
@@ -195,7 +208,10 @@ def add_gasto():
         
     with get_db_connection() as conn:
         cur = conn.cursor()
-        cur.execute("INSERT INTO expenses (description, amount) VALUES (?, ?)", (desc, int(amount)))
+        if date:
+            cur.execute("INSERT INTO expenses (date, description, amount) VALUES (?, ?, ?)", (date, desc, int(amount)))
+        else:
+            cur.execute("INSERT INTO expenses (description, amount) VALUES (?, ?)", (desc, int(amount)))
         conn.commit()
     return jsonify({"success": True})
 
@@ -240,6 +256,7 @@ def dicom_checkout():
         debtor_name = data.get('debtor_name', '').strip()
         contact_info = data.get('contact_info', '').strip()
         initial_payment = data.get('initial_payment', 0) or 0
+        initial_method = data.get('initial_method', 'efectivo')
         
         if not cart:
             return jsonify({"error": "Carrito vacío"}), 400
@@ -280,6 +297,15 @@ def dicom_checkout():
                 if item.get('barcode') and not item.get('barcode', '').startswith(('MANUAL-', 'VARIOS-', 'RAPIDA-')):
                     cur.execute('UPDATE products SET stock = stock - ? WHERE barcode = ?', 
                                 (item.get('qty'), item.get('barcode')))
+            
+            # Record initial payment in sales
+            if initial_payment > 0:
+                cur.execute('''INSERT INTO sales (date, total, payment_method) 
+                               VALUES (CURRENT_TIMESTAMP, ?, ?)''', (initial_payment, initial_method))
+                sale_id = cur.lastrowid
+                cur.execute('''INSERT INTO sale_items (sale_id, barcode, name, price, quantity, subtotal)
+                               VALUES (?, ?, ?, ?, ?, ?)''',
+                            (sale_id, '', 'Abono Dicom', initial_payment, 1, initial_payment))
             
             conn.commit()
             

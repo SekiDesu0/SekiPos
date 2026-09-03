@@ -11,6 +11,10 @@
                 style="width: auto; background: var(--input-bg); color: var(--text-main); border-color: var(--border);" 
                 onchange="applyDateFilter()">
         </select>
+        <select id="day-select" class="form-select form-select-sm" 
+                style="width: auto; background: var(--input-bg); color: var(--text-main); border-color: var(--border);" 
+                onchange="applyDateFilter()">
+        </select>
         <select id="year-select" class="form-select form-select-sm" 
                 style="width: auto; background: var(--input-bg); color: var(--text-main); border-color: var(--border);" 
                 onchange="applyDateFilter()">
@@ -43,6 +47,10 @@
     <div class="col-md-4">
         <div class="discord-card p-3 shadow-sm">
             <h5 class="mb-3"><i class="bi bi-plus-circle me-2"></i>Registrar Gasto</h5>
+            <div class="mb-3">
+                <label class="form-label text-muted small mb-1">Fecha</label>
+                <input type="date" id="gasto-date" class="form-control">
+            </div>
             <div class="mb-3">
                 <label class="form-label text-muted small mb-1">Descripción</label>
                 <input type="text" id="gasto-desc" class="form-control" placeholder="Ej: Pago de luz, Mercadería..." autocomplete="off">
@@ -124,6 +132,8 @@
     const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 });
     let gastoToDelete = null;
 
+    document.getElementById('gasto-date').value = new Date().toISOString().slice(0, 10);
+
     // Format UI numbers
     document.querySelectorAll('.price-cell').forEach(td => {
         td.innerText = clp.format(td.getAttribute('data-value'));
@@ -138,9 +148,11 @@
 
     // --- Build the Split Dropdowns ---
     const currentSelected = "{{ selected_month }}"; // Comes from backend as "YYYY-MM"
+    const currentDay = "{{ selected_day }}"; // Comes from backend as "DD" or empty
     const [selYear, selMonth] = currentSelected.split('-');
 
     const monthSelect = document.getElementById('month-select');
+    const daySelect = document.getElementById('day-select');
     const yearSelect = document.getElementById('year-select');
 
     const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -155,9 +167,29 @@
         monthSelect.appendChild(option);
     });
 
+    // Populate Days
+    function populateDays() {
+        const m = parseInt(monthSelect.value);
+        const y = parseInt(yearSelect.value);
+        const daysInMonth = new Date(y, m, 0).getDate();
+        daySelect.innerHTML = '';
+        const allOption = document.createElement('option');
+        allOption.value = '';
+        allOption.innerText = 'Todos los días';
+        daySelect.appendChild(allOption);
+        for (let d = 1; d <= daysInMonth; d++) {
+            const val = String(d).padStart(2, '0');
+            const option = document.createElement('option');
+            option.value = val;
+            option.innerText = val;
+            if (val === currentDay) option.selected = true;
+            daySelect.appendChild(option);
+        }
+    }
+
     // Populate Years (Current year +/- a few years)
     const currentYear = new Date().getFullYear();
-    for (let y = currentYear - 3; y <= currentYear + 1; y++) {
+    for (let y = currentYear - 10; y <= currentYear + 5; y++) {
         const option = document.createElement('option');
         option.value = y;
         option.innerText = y;
@@ -165,17 +197,24 @@
         yearSelect.appendChild(option);
     }
 
+    populateDays();
+
     // Trigger URL change when either dropdown is touched
     function applyDateFilter() {
         const m = monthSelect.value;
         const y = yearSelect.value;
-        window.location.href = `/gastos?month=${y}-${m}`;
+        const d = daySelect.value;
+        let url = `/gastos?month=${y}-${m}`;
+        if (d) url += `&day=${d}`;
+        window.location.href = url;
     }
 
     async function submitGasto() {
+        const dateInput = document.getElementById('gasto-date');
         const descInput = document.getElementById('gasto-desc');
         const montoInput = document.getElementById('gasto-monto');
         
+        const date = dateInput.value;
         const desc = descInput.value.trim();
         const rawMonto = montoInput.value.replace(/\./g, '');
         const amount = parseInt(rawMonto, 10);
@@ -189,10 +228,11 @@
             const res = await fetch('/api/gastos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ description: desc, amount: amount })
+                body: JSON.stringify({ date: date, description: desc, amount: amount })
             });
 
             if (res.ok) {
+                dateInput.value = new Date().toISOString().slice(0, 10);
                 descInput.value = '';
                 montoInput.value = '';
                 window.location.href = window.location.pathname + window.location.search;

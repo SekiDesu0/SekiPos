@@ -50,6 +50,10 @@
         </div>
     {% endcall %}
 
+    {% call confirm_modal('unpinConfirmModal', 'Quitar producto fijado', 'btn-danger-discord', 'Quitar', 'executeUnpin()') %}
+        ¿Quieres dejar de fijar <strong id="unpinItemName"></strong>?
+    {% endcall %}
+
     <div class="modal fade" id="customProductModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -353,6 +357,14 @@
                             <input type="text" id="dicom-initial-payment" class="form-control fw-bold border-start-0" style="border-color: #198754;" placeholder="0" oninput="formatDicomPayment(this)">
                         </div>
                     </div>
+                    <div class="mb-2">
+                        <label class="form-label text-muted small mb-1">Método de pago inicial</label>
+                        <select id="dicom-initial-method" class="form-select form-select-sm">
+                            <option value="efectivo">Efectivo</option>
+                            <option value="tarjeta">Tarjeta</option>
+                            <option value="transferencia">Transferencia</option>
+                        </select>
+                    </div>
                     <div class="p-2 rounded" style="background: var(--input-bg);">
                         <div class="d-flex justify-content-between">
                             <span class="text-muted">Saldo pendiente:</span>
@@ -372,22 +384,14 @@
 
     <!-- Dicom Success Modal -->
     <div class="modal fade" id="dicomSuccessModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>Enviado a Dicom</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-success">
                 <div class="modal-body text-center py-4">
-                    <div class="mb-3">
-                        <i class="bi bi-receipt" style="font-size: 3rem; color: var(--success);"></i>
-                    </div>
-                    <h6 class="mb-2">Ticket #<span id="dicom-success-ticket-id"></span></h6>
-                    <p class="text-muted mb-0">Registrado para</p>
-                    <h5 class="text-success mb-0" id="dicom-success-debtor"></h5>
-                </div>
-                <div class="modal-footer d-flex">
-                    <button class="btn btn-success flex-grow-1" data-bs-dismiss="modal">Aceptar</button>
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                    <h4 class="mt-3">¡Enviado a Dicom!</h4>
+                    <p class="text-muted mb-1">Ticket #<span id="dicom-success-ticket-id"></span></p>
+                    <p class="text-muted mb-0">Deudor: <strong id="dicom-success-debtor"></strong></p>
+                    <button class="btn btn-accent px-5 mt-3" data-bs-dismiss="modal">Aceptar</button>
                 </div>
             </div>
         </div>
@@ -399,11 +403,17 @@
             <style>
                 @media print {
                     @page { size: 80mm auto; margin: 0; }
-                    nav, .discord-card, .modal, .row, #kitchen-print-zone { display: none !important; }
-                    #kitchen-print-zone, #kitchen-print-zone * { visibility: visible; }
-                    #kitchen-print-zone {
+                    body.printing-comanda * { visibility: hidden; }
+                    body.printing-comanda #kitchen-print-zone,
+                    body.printing-comanda #kitchen-print-zone * { visibility: visible; }
+                    body.printing-comanda #kitchen-print-zone {
                         position: absolute; left: 0; top: 0; width: 80mm;
                         padding: 5mm; display: block !important;
+                    }
+                    body.printing-comanda #receipt-print-zone,
+                    body.printing-comanda #receipt-print-zone * {
+                        display: none !important;
+                        visibility: hidden !important;
                     }
                 }
             </style>
@@ -435,7 +445,7 @@
                              style="display: none; position: absolute; top: 100%; left: 0; z-index: 1000; max-height: 300px; overflow-y: auto"></div>
                     </div>
                     
-                    <div id="pinned-products-container" class="d-flex flex-wrap gap-2 mb-3"></div>
+                    <div id="pinned-products-container" class="d-flex flex-wrap gap-2 mb-3" style="max-height: 170px; overflow-y: auto;"></div>
 
                     <div class="table-responsive">
                         <table class="table mt-3" id="cart-table">
@@ -460,7 +470,12 @@
                 <div id="restaurant-panel" class="discord-card p-3 mb-3 d-none">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="mb-0"><i class="bi bi-receipt me-2"></i>Comanda</h6>
-                        <span class="badge bg-accent">Modo Comida</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="clearComandaForm()" title="Limpiar formulario">
+                                <i class="bi bi-eraser"></i>
+                            </button>
+                            <span class="badge bg-accent">Modo Comida</span>
+                        </div>
                     </div>
                     <div class="mb-2">
                         <label class="form-label text-muted small mb-1">Nombre del Cliente</label>
@@ -553,6 +568,8 @@
 
     // Fetch the pinned items from local storage
     let pinnedBarcodes = JSON.parse(localStorage.getItem('seki_pinned_products')) || [];
+    let pendingUnpinBarcode = null;
+    let unpinModalOpen = false;
 
     // Restaurant Mode (Modo Comida) initialization
     const modoComida = localStorage.getItem('modo_comida') === 'true';
@@ -807,17 +824,32 @@
     }
 
     function togglePin(barcode, event) {
-        event.stopPropagation(); // Stop the row from adding to cart when clicking the pin
+        event.stopPropagation();
         if (pinnedBarcodes.includes(barcode)) {
-            pinnedBarcodes = pinnedBarcodes.filter(b => b !== barcode);
+            if (unpinModalOpen) return;
+            unpinModalOpen = true;
+            const product = allProducts.find(p => p.barcode === barcode);
+            document.getElementById('unpinItemName').innerText = product ? product.name : barcode;
+            pendingUnpinBarcode = barcode;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('unpinConfirmModal')).show();
         } else {
             pinnedBarcodes.push(barcode);
+            localStorage.setItem('seki_pinned_products', JSON.stringify(pinnedBarcodes));
+            renderPinnedProducts();
+            filterSearch();
+            document.getElementById('manual-search').focus();
         }
+    }
+
+    function executeUnpin() {
+        pinnedBarcodes = pinnedBarcodes.filter(b => b !== pendingUnpinBarcode);
         localStorage.setItem('seki_pinned_products', JSON.stringify(pinnedBarcodes));
-        
+        pendingUnpinBarcode = null;
+        unpinModalOpen = false;
+        bootstrap.Modal.getInstance(document.getElementById('unpinConfirmModal')).hide();
         renderPinnedProducts();
-        filterSearch(); // Re-render the search dropdown so the pin icon updates
-        document.getElementById('manual-search').focus(); // Keep focus on search input
+        filterSearch();
+        document.getElementById('manual-search').focus();
     }
 
     function renderPinnedProducts() {
@@ -825,17 +857,26 @@
         const pinnedProducts = allProducts.filter(p => pinnedBarcodes.includes(p.barcode));
 
         if (pinnedProducts.length === 0) {
-            container.innerHTML = '';
+            container.innerHTML = '<span class="text-muted small fst-italic"><i class="bi bi-pin-angle me-1"></i>Fija productos desde la búsqueda para acceso rápido</span>';
             return;
         }
 
         container.innerHTML = pinnedProducts.map(p => `
-            <button class="btn btn-outline-secondary text-start p-2 shadow-sm d-flex flex-column justify-content-between" 
-                    style="width: 110px; height: 75px; border-color: var(--border); background: var(--input-bg); color: var(--text-main);" 
-                    onclick="handleProductScan(allProducts.find(x => x.barcode === '${p.barcode}'))">
-                <span class="small fw-bold text-truncate w-100 mb-1" title="${p.name}">${p.name}</span>
-                <span class="small" style="color: var(--accent); font-weight: 800;">${clp.format(p.price)}</span>
-            </button>
+            <div class="position-relative" style="width: 110px; height: 75px;">
+                <button class="btn btn-outline-secondary text-start p-2 shadow-sm d-flex flex-column justify-content-between w-100 h-100"
+                        style="border-color: var(--border); background: var(--input-bg); color: var(--text-main);" 
+                        onclick="handleProductScan(allProducts.find(x => x.barcode === '${p.barcode}'))"
+                        title="${p.name} - ${clp.format(p.price)}">
+                    <span class="small fw-bold text-truncate w-100 mb-1">${p.name}</span>
+                    <span class="small" style="color: var(--accent); font-weight: 800;">${clp.format(p.price)}</span>
+                </button>
+                <button class="btn btn-sm position-absolute top-0 end-0 p-0 lh-1"
+                        style="font-size: 12px; color: #fff; min-width: 20px; height: 20px; border-radius: 50%; background: #dc3545; line-height: 1;"
+                        onclick="event.stopPropagation(); togglePin('${p.barcode}', event)"
+                        title="Quitar de fijados">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
         `).join('');
     }
 
@@ -1186,6 +1227,9 @@
         const orderType = document.getElementById('restaurant-order-type').value;
         const notes = document.getElementById('restaurant-notes').value.trim();
 
+        const counter = (parseInt(localStorage.getItem('seki_comanda_counter') || '0') + 1).toString().padStart(4, '0');
+        localStorage.setItem('seki_comanda_counter', counter);
+
         // Calculate delta items (qty - printed_qty)
         const deltaItems = cart.filter(item => {
             const printed = item.printed_qty || 0;
@@ -1214,66 +1258,44 @@
         // Get comanda size setting
         const comandaSize = localStorage.getItem('seki_comanda_size') || 'medium';
         const sizeMap = {
-            small: { header: '14px', title: '16px', item: '12px', qty: '12px' },
-            medium: { header: '16px', title: '20px', item: '14px', qty: '14px' },
-            large: { header: '18px', title: '24px', item: '18px', qty: '18px' },
-            xlarge: { header: '20px', title: '28px', item: '22px', qty: '22px' }
+            small: { header: '18px', title: '24px', item: '16px', qty: '16px' },
+            medium: { header: '22px', title: '32px', item: '20px', qty: '20px' },
+            large: { header: '28px', title: '40px', item: '26px', qty: '26px' },
+            xlarge: { header: '36px', title: '52px', item: '34px', qty: '34px' }
         };
         const sizes = sizeMap[comandaSize];
 
         // Build the kitchen ticket HTML
         const ticketHtml = `
-            <div style="font-family: 'Courier New', monospace; padding: 10px; font-size: ${sizes.header};">
-                <div style="text-align: center; border-bottom: 2px dashed #000; padding-bottom: 10px; margin-bottom: 10px;">
-                    <strong style="font-size: ${sizes.title};">COMANDA</strong><br>
-                    ${clientName ? `<span>Cliente: ${clientName}</span><br>` : ''}
-                    <span>${orderType === 'servir' ? '🍽️ PARA SERVIR' : '🥡 PARA LLEVAR'}</span>
-                    ${notes ? `<br><em>Nota: ${notes}</em>` : ''}
+            <div style="font-family: 'Courier New', monospace; padding: 5px; font-size: ${sizes.header}; color: #000; font-weight: bold; line-height: 1.1;">
+                <div style="text-align: center; border-bottom: 2px dashed #000; padding-bottom: 5px; margin-bottom: 5px;">
+                    <strong style="font-size: ${sizes.title}; line-height: 1;">#${counter}</strong>
+                    ${clientName ? `<br><span style="line-height: 1.1;">Cliente: ${clientName}</span>` : ''}
+                    ${notes ? `<br><span style="line-height: 1.1;">Nota: ${notes}</span>` : ''}
                 </div>
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="border-bottom: 1px dashed #000;">
-                            <th style="text-align: left; padding: 3px 0;">Cant</th>
-                            <th style="text-align: left; padding: 3px 0;">Producto</th>
-                        </tr>
-                    </thead>
+                <table style="width: 100%; border-collapse: collapse; font-weight: bold; line-height: 1.1;">
                     <tbody>
                         ${deltaItems.map(item => `
-                            <tr>
-                                <td style="padding: 2px 0; font-size: ${sizes.qty};"><strong>${item.unit === 'kg' ? item.delta.toFixed(3) : item.delta}</strong></td>
-                                <td style="padding: 2px 0; font-size: ${sizes.item};">${item.name}</td>
+                            <tr style="border-bottom: 1px dotted #000;">
+                                <td style="padding: 1px 0; font-size: ${sizes.qty};"><strong>${item.unit === 'kg' ? item.delta.toFixed(3) : item.delta}</strong></td>
+                                <td style="padding: 1px 0; font-size: ${sizes.item};">${item.name}</td>
                             </tr>
                         `).join('')}
                     </tbody>
                 </table>
-                <div style="text-align: center; margin-top: 15px; font-size: 11px;">
-                    ${new Date().toLocaleString('es-CL')}
+                <div style="text-align: center; margin-top: 5px; padding-top: 3px; border-top: 1px dashed #000; line-height: 1;">
+                    <span>${orderType === 'servir' ? 'PARA SERVIR' : 'PARA LLEVAR'}</span>
                 </div>
             </div>
         `;
 
-        // Create a temporary print window
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Comanda - ${clientName || 'Sin nombre'}</title>
-                <style>
-                    @media print {
-                        body { margin: 0; padding: 0; }
-                        @page { size: 80mm auto; margin: 0; }
-                    }
-                </style>
-            </head>
-            <body>${ticketHtml}</body>
-            </html>
-        `);
-        printWindow.document.close();
-        printWindow.focus();
+        document.getElementById('kitchen-ticket-content').innerHTML = ticketHtml;
+        document.body.classList.add('printing-comanda');
         setTimeout(() => {
-            printWindow.print();
-            printWindow.close();
+            window.print();
+            setTimeout(() => {
+                document.body.classList.remove('printing-comanda');
+            }, 500);
         }, 250);
     }
 
@@ -1283,13 +1305,14 @@
             item.printed_qty = 0;
         });
 
-        // Clear inputs
+        // Hide reset button
+        document.getElementById('btn-reset-comanda').classList.add('d-none');
+    }
+
+    function clearComandaForm() {
         document.getElementById('restaurant-client-name').value = '';
         document.getElementById('restaurant-notes').value = '';
         document.getElementById('restaurant-order-type').value = 'servir';
-
-        // Hide reset button
-        document.getElementById('btn-reset-comanda').classList.add('d-none');
     }
 
     /* =========================================
@@ -1376,11 +1399,15 @@
     function toggleNewDebtorInput() {
         const select = document.getElementById('dicom-debtor-select');
         const nameInput = document.getElementById('dicom-debtor-name');
+        const contactInput = document.getElementById('dicom-contact-info');
         if (select.value === '') {
             nameInput.style.display = 'block';
         } else {
             nameInput.style.display = 'none';
             nameInput.value = '';
+            const selectedOption = select.options[select.selectedIndex];
+            const contactMatch = selectedOption.textContent.match(/ - (.+)$/);
+            contactInput.value = contactMatch ? contactMatch[1] : '';
         }
     }
 
@@ -1393,6 +1420,7 @@
         const contactInfo = document.getElementById('dicom-contact-info').value.trim();
         const paymentInput = document.getElementById('dicom-initial-payment').value.replace(/\./g, '');
         const initialPayment = parseInt(paymentInput) || 0;
+        const initialMethod = document.getElementById('dicom-initial-method').value;
         
         if (!debtorName) {
             alert('Por favor ingresa el nombre del deudor.');
@@ -1408,7 +1436,8 @@
                     cart: cart,
                     debtor_name: debtorName,
                     contact_info: contactInfo,
-                    initial_payment: initialPayment
+                    initial_payment: initialPayment,
+                    initial_method: initialMethod
                 })
             });
             
@@ -1419,6 +1448,7 @@
                 document.getElementById('dicom-success-ticket-id').textContent = result.ticket_id;
                 document.getElementById('dicom-success-debtor').textContent = result.debtor;
                 safeShowModal('dicomSuccessModal');
+                setTimeout(() => location.reload(), 2500);
                 
                 // Clear cart
                 cart = [];
@@ -1685,6 +1715,10 @@
     // The Nuclear Cleanup Crew
     document.getElementById('doomModal').addEventListener('hidden.bs.modal', function () {
         window.location.reload();
+    });
+
+    document.getElementById('unpinConfirmModal').addEventListener('hidden.bs.modal', function () {
+        unpinModalOpen = false;
     });
 
     /* =========================================

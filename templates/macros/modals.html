@@ -316,12 +316,32 @@
                 </div>
 
                 <div class="mb-3">
+                    <label class="form-label text-muted small mb-1">Tamaño de letra Recibo</label>
+                    <select id="setting-receipt-size" class="form-select">
+                        <option value="small">Pequeño (15px)</option>
+                        <option value="medium" selected>Mediano (18px)</option>
+                        <option value="large">Grande (22px)</option>
+                        <option value="xlarge">Extra Grande (28px)</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
                     <label class="form-label text-muted small mb-1">Tamaño de letra Comanda</label>
                     <select id="setting-comanda-size" class="form-select">
                         <option value="small">Pequeño</option>
                         <option value="medium" selected>Mediano</option>
                         <option value="large">Grande</option>
                         <option value="xlarge">Extra Grande</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small mb-1">Tamaño de papel</label>
+                    <select id="setting-paper-size" class="form-select">
+                        <option value="80mm" selected>80mm (Térmica estándar)</option>
+                        <option value="58mm">58mm (Térmica angosta)</option>
+                        <option value="A4">A4 (Carta oficio)</option>
+                        <option value="letter">Carta (Letter)</option>
                     </select>
                 </div>
             </div>
@@ -349,6 +369,10 @@
                 document.getElementById('setting-last-scanned').checked = localStorage.getItem('seki_last_scanned') !== 'false';
                 const comandaSize = localStorage.getItem('seki_comanda_size') || 'medium';
                 document.getElementById('setting-comanda-size').value = comandaSize;
+                const receiptSize = localStorage.getItem('seki_receipt_size') || 'medium';
+                document.getElementById('setting-receipt-size').value = receiptSize;
+                const paperSize = localStorage.getItem('seki_paper_size') || '80mm';
+                document.getElementById('setting-paper-size').value = paperSize;
                 
                 const showSii = localStorage.getItem('seki_show_sii') === 'true';
                 document.getElementById('setting-show-sii').checked = showSii;
@@ -370,6 +394,8 @@
         const foodMode = document.getElementById('setting-food-mode').checked;
         const lastScanned = document.getElementById('setting-last-scanned').checked;
         const comandaSize = document.getElementById('setting-comanda-size').value;
+        const receiptSize = document.getElementById('setting-receipt-size').value;
+        const paperSize = document.getElementById('setting-paper-size').value;
         localStorage.setItem('seki_biz_name', bizName);
         localStorage.setItem('seki_auto_print', autoPrint);
         localStorage.setItem('seki_ask_order_details', askDetails);
@@ -378,6 +404,8 @@
         localStorage.setItem('modo_comida', foodMode);
         localStorage.setItem('seki_last_scanned', lastScanned);
         localStorage.setItem('seki_comanda_size', comandaSize);
+        localStorage.setItem('seki_receipt_size', receiptSize);
+        localStorage.setItem('seki_paper_size', paperSize);
         
         if (showSii) {
             localStorage.setItem('seki_rut', document.getElementById('setting-rut').value.trim());
