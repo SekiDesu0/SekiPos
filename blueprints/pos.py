@@ -2,7 +2,7 @@ import os
 import time
 from flask import Blueprint, render_template, request, jsonify, current_app
 from flask_login import login_required, current_user
-from core.db import get_db_connection
+from core.db import get_db_connection, now_local
 from core.openfood import fetch_from_openfoodfacts
 from core.events import socketio
 
@@ -81,7 +81,7 @@ def process_checkout():
         with get_db_connection() as conn:
             cur = conn.cursor()
             
-            cur.execute('INSERT INTO sales (date, total, payment_method) VALUES (CURRENT_TIMESTAMP, ?, ?)', (total, payment_method))
+            cur.execute('INSERT INTO sales (date, total, payment_method) VALUES (?, ?, ?)', (now_local(), total, payment_method))
             sale_id = cur.lastrowid
             
             for item in cart:

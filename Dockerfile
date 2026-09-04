@@ -5,6 +5,7 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
+    tzdata \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
@@ -22,5 +23,9 @@ EXPOSE 5000
 
 # Run with unbuffered output
 ENV PYTHONUNBUFFERED=1
+
+# Default timezone (Chile). Python code pins America/Santiago via zoneinfo,
+# this also covers any OS-local time usage such as request logs.
+ENV TZ=America/Santiago
 
 CMD ["python", "app.py"]

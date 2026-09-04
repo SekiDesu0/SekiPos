@@ -59,6 +59,7 @@ docker build -t sekipos:latest .
 # Run the container (Map port 5000 and persist the database/cache)
 docker run -d \
   -p 5000:5000 \
+  -e TZ=America/Santiago \
   -v $(pwd)/sekipos/db:/app/db \
   -v $(pwd)/sekipos/static/cache:/app/static/cache \
   --name sekipos-server \

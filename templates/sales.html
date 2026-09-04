@@ -203,14 +203,20 @@
     const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 });
     let saleToReverse = null;
 
-    // Format raw UTC dates from DB into friendly local time
+    function formatLocalDate(raw) {
+        const m = String(raw || '').trim().match(/^(\d{4})-(\d{2})-(\d{2})(?: (\d{2}):(\d{2}))?/);
+        if (!m) return raw;
+        return m[4] ? `${m[3]}/${m[2]}/${m[1]} ${m[4]}:${m[5]}` : `${m[3]}/${m[2]}/${m[1]}`;
+    }
+
+    // Format stored local timestamps (YYYY-MM-DD HH:MM:SS) into readable local time
     document.querySelectorAll('.utc-date').forEach(el => {
-        const date = new Date(el.innerText + " UTC");
-        if (!isNaN(date)) {
-            el.innerText = date.toLocaleString('es-CL', {
-                year: 'numeric', month: '2-digit', day: '2-digit',
-                hour: '2-digit', minute: '2-digit'
-            });
+        const raw = el.innerText.trim();
+        const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?: (\d{2}):(\d{2}))?/);
+        if (m) {
+            el.innerText = m[4]
+                ? `${m[3]}/${m[2]}/${m[1]} ${m[4]}:${m[5]}`
+                : `${m[3]}/${m[2]}/${m[1]}`;
         }
     });
 
@@ -223,8 +229,7 @@
         document.getElementById('modal-ticket-id').innerText = `#${id}`;
         document.getElementById('modal-total').innerText = clp.format(total);
 
-        const localDate = new Date(rawDate + " UTC").toLocaleString('es-CL');
-        document.getElementById('modal-date').innerText = localDate !== "Invalid Date" ? localDate : rawDate;
+        document.getElementById('modal-date').innerText = formatLocalDate(rawDate);
 
         // Configure the Anular button
         document.getElementById('btn-reverse-sale').setAttribute('onclick', `reverseSale(${id})`);
@@ -280,7 +285,7 @@
             document.getElementById('receipt-iva-print').innerText = clp.format(iva);
             document.getElementById('receipt-total-print').innerText = clp.format(total);
             
-            document.getElementById('receipt-date').innerText = new Date(rawDate + " UTC").toLocaleString('es-CL');
+            document.getElementById('receipt-date').innerText = formatLocalDate(rawDate);
             document.getElementById('receipt-payment-info').style.display = 'none';
 
             window.print();

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, send_file, current_app
 from flask_login import login_required, current_user
-from core.db import get_db_connection
+from core.db import get_db_connection, now_local
 import io
 import zipfile
 from datetime import datetime
@@ -51,15 +51,15 @@ def sales():
     with get_db_connection() as conn:
         cur = conn.cursor()
         
-        target_date = selected_date if selected_date else cur.execute("SELECT date('now', 'localtime')").fetchone()[0]
+        target_date = selected_date if selected_date else now_local()[:10]
         
-        daily_query = "SELECT SUM(total) FROM sales WHERE date(date, 'localtime') = ?"
-        week_query = "SELECT SUM(total) FROM sales WHERE date(date, 'localtime') >= date('now', 'localtime', '-7 days')"
-        month_query = "SELECT SUM(total) FROM sales WHERE strftime('%Y-%m', date, 'localtime') = strftime('%Y-%m', 'now', 'localtime')"
+        daily_query = "SELECT SUM(total) FROM sales WHERE date(date) = ?"
+        week_query = "SELECT SUM(total) FROM sales WHERE date(date) >= date(?, '-7 days')"
+        month_query = "SELECT SUM(total) FROM sales WHERE substr(date, 1, 7) = ?"
         
         daily_params = [target_date]
-        week_params = []
-        month_params = []
+        week_params = [target_date]
+        month_params = [target_date[:7]]
         
         if payment_method:
             daily_query += " AND payment_method = ?"
@@ -80,7 +80,7 @@ def sales():
         params = []
 
         if selected_date:
-            base_query += " AND date(date, 'localtime') = ?"
+            base_query += " AND date(date) = ?"
             params.append(selected_date)
         if payment_method:
             base_query += " AND payment_method = ?"

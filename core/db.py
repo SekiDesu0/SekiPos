@@ -1,6 +1,13 @@
 import sqlite3
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
+TZ_CL = ZoneInfo("America/Santiago")
 
 _db_file = None
+
+def now_local():
+    return datetime.now(TZ_CL).strftime("%Y-%m-%d %H:%M:%S")
 
 def init_db(db_file):
     global _db_file
@@ -18,11 +25,11 @@ def init_db(db_file):
                          stock REAL DEFAULT 0, 
                          unit_type TEXT DEFAULT 'unit')''')
         
-        conn.execute('''CREATE TABLE IF NOT EXISTS sales 
+        conn.execute("""CREATE TABLE IF NOT EXISTS sales 
                         (id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                         date TEXT DEFAULT CURRENT_TIMESTAMP, 
+                         date TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S','now','localtime')), 
                          total REAL, 
-                         payment_method TEXT)''')
+                         payment_method TEXT)""")
                           
         conn.execute('''CREATE TABLE IF NOT EXISTS sale_items 
                         (id INTEGER PRIMARY KEY AUTOINCREMENT, 
@@ -34,27 +41,27 @@ def init_db(db_file):
                          subtotal REAL,
                          FOREIGN KEY(sale_id) REFERENCES sales(id))''')
         
-        conn.execute('''CREATE TABLE IF NOT EXISTS dicom 
+        conn.execute("""CREATE TABLE IF NOT EXISTS dicom 
                         (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                          name TEXT UNIQUE, 
                          amount REAL DEFAULT 0, 
                          notes TEXT,
                          image_url TEXT,
-                         last_updated TEXT DEFAULT CURRENT_TIMESTAMP)''')
+                         last_updated TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S','now','localtime')))""")
         
         conn.execute('''CREATE TABLE IF NOT EXISTS debtors 
                         (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                          name TEXT UNIQUE, 
                          contact_info TEXT)''')
         
-        conn.execute('''CREATE TABLE IF NOT EXISTS debtor_tickets 
+        conn.execute("""CREATE TABLE IF NOT EXISTS debtor_tickets 
                         (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                          debtor_id INTEGER NOT NULL,
-                         date TEXT DEFAULT CURRENT_TIMESTAMP, 
+                         date TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S','now','localtime')), 
                          total REAL NOT NULL,
                          amount_paid REAL DEFAULT 0,
                          status TEXT DEFAULT 'unpaid',
-                         FOREIGN KEY(debtor_id) REFERENCES debtors(id) ON DELETE CASCADE)''')
+                         FOREIGN KEY(debtor_id) REFERENCES debtors(id) ON DELETE CASCADE)""")
         
         conn.execute('''CREATE TABLE IF NOT EXISTS debtor_ticket_items 
                         (id INTEGER PRIMARY KEY AUTOINCREMENT, 

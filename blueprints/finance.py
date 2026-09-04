@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
-from core.db import get_db_connection
+from core.db import get_db_connection, now_local
 
 finance_bp = Blueprint('finance', __name__)
 
@@ -102,7 +102,7 @@ def dicom_pay():
             
             # Insert into sales table to track daily revenue
             cur.execute('''INSERT INTO sales (date, total, payment_method) 
-                           VALUES (CURRENT_TIMESTAMP, ?, ?)''', (amount, payment_method))
+                           VALUES (?, ?, ?)''', (now_local(), amount, payment_method))
             
             conn.commit()
             
@@ -131,12 +131,12 @@ def update_dicom():
     with get_db_connection() as conn:
         cur = conn.cursor()
         cur.execute('''INSERT INTO dicom (name, amount, notes, image_url, last_updated) 
-                           VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+                           VALUES (?, ?, ?, ?, ?)
                            ON CONFLICT(name) DO UPDATE SET 
                            amount = amount + excluded.amount,
                            notes = excluded.notes,
                            image_url = CASE WHEN excluded.image_url != "" THEN excluded.image_url ELSE dicom.image_url END,
-                           last_updated = CURRENT_TIMESTAMP''', (name, amount, notes, image_url))
+                           last_updated = excluded.last_updated''', (name, amount, notes, image_url, now_local()))
         conn.commit()
     return jsonify({"status": "success"}), 200
 
@@ -154,8 +154,7 @@ def delete_dicom(debtor_id):
 @finance_bp.route('/gastos')
 @login_required
 def gastos():
-    from datetime import datetime
-    selected_month = request.args.get('month', datetime.now().strftime('%Y-%m'))
+    selected_month = request.args.get('month', now_local()[:7])
     selected_day = request.args.get('day', '')
     
     if selected_day:
@@ -170,20 +169,22 @@ def gastos():
         cur.execute('''
             CREATE TABLE IF NOT EXISTS expenses (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                date TIMESTAMP DEFAULT (strftime('%Y-%m-%d %H:%M:%S','now','localtime')),
                 description TEXT NOT NULL,
                 amount INTEGER NOT NULL
             )
         ''')
+        cur.execute("UPDATE expenses SET date = date || ' 00:00:00' WHERE length(date) = 10 AND date NOT LIKE '% %'")
+        conn.commit()
         
         if selected_day:
-            sales_total = cur.execute("SELECT SUM(total) FROM sales WHERE strftime('%Y-%m-%d', date, 'localtime') = ?", (day_filter,)).fetchone()[0] or 0
-            expenses_total = cur.execute("SELECT SUM(amount) FROM expenses WHERE strftime('%Y-%m-%d', date, 'localtime') = ?", (day_filter,)).fetchone()[0] or 0
-            expenses_list = cur.execute("SELECT id, date, description, amount FROM expenses WHERE strftime('%Y-%m-%d', date, 'localtime') = ? ORDER BY date DESC", (day_filter,)).fetchall()
+            sales_total = cur.execute("SELECT SUM(total) FROM sales WHERE date(date) = ?", (day_filter,)).fetchone()[0] or 0
+            expenses_total = cur.execute("SELECT SUM(amount) FROM expenses WHERE date(date) = ?", (day_filter,)).fetchone()[0] or 0
+            expenses_list = cur.execute("SELECT id, date, description, amount FROM expenses WHERE date(date) = ? ORDER BY date DESC", (day_filter,)).fetchall()
         else:
-            sales_total = cur.execute("SELECT SUM(total) FROM sales WHERE strftime('%Y-%m', date, 'localtime') = ?", (selected_month,)).fetchone()[0] or 0
-            expenses_total = cur.execute("SELECT SUM(amount) FROM expenses WHERE strftime('%Y-%m', date, 'localtime') = ?", (selected_month,)).fetchone()[0] or 0
-            expenses_list = cur.execute("SELECT id, date, description, amount FROM expenses WHERE strftime('%Y-%m', date, 'localtime') = ? ORDER BY date DESC", (selected_month,)).fetchall()
+            sales_total = cur.execute("SELECT SUM(total) FROM sales WHERE substr(date, 1, 7) = ?", (selected_month,)).fetchone()[0] or 0
+            expenses_total = cur.execute("SELECT SUM(amount) FROM expenses WHERE substr(date, 1, 7) = ?", (selected_month,)).fetchone()[0] or 0
+            expenses_list = cur.execute("SELECT id, date, description, amount FROM expenses WHERE substr(date, 1, 7) = ? ORDER BY date DESC", (selected_month,)).fetchall()
         
     return render_template('gastos.html', 
                            active_page='gastos', 
@@ -209,9 +210,9 @@ def add_gasto():
     with get_db_connection() as conn:
         cur = conn.cursor()
         if date:
-            cur.execute("INSERT INTO expenses (date, description, amount) VALUES (?, ?, ?)", (date, desc, int(amount)))
+            cur.execute("INSERT INTO expenses (date, description, amount) VALUES (?, ?, ?)", (f"{date} {now_local()[11:]}", desc, int(amount)))
         else:
-            cur.execute("INSERT INTO expenses (description, amount) VALUES (?, ?)", (desc, int(amount)))
+            cur.execute("INSERT INTO expenses (date, description, amount) VALUES (?, ?, ?)", (now_local(), desc, int(amount)))
         conn.commit()
     return jsonify({"success": True})
 
@@ -280,9 +281,9 @@ def dicom_checkout():
             
             # Insert debtor ticket
             status = 'partial' if initial_payment > 0 else 'unpaid'
-            cur.execute('''INSERT INTO debtor_tickets (debtor_id, total, amount_paid, status) 
-                           VALUES (?, ?, ?, ?)''',
-                        (debtor_id, total, initial_payment, status))
+            cur.execute('''INSERT INTO debtor_tickets (debtor_id, date, total, amount_paid, status) 
+                           VALUES (?, ?, ?, ?, ?)''',
+                        (debtor_id, now_local(), total, initial_payment, status))
             ticket_id = cur.lastrowid
             
             # Insert ticket items and deduct stock
@@ -301,7 +302,7 @@ def dicom_checkout():
             # Record initial payment in sales
             if initial_payment > 0:
                 cur.execute('''INSERT INTO sales (date, total, payment_method) 
-                               VALUES (CURRENT_TIMESTAMP, ?, ?)''', (initial_payment, initial_method))
+                               VALUES (?, ?, ?)''', (now_local(), initial_payment, initial_method))
                 sale_id = cur.lastrowid
                 cur.execute('''INSERT INTO sale_items (sale_id, barcode, name, price, quantity, subtotal)
                                VALUES (?, ?, ?, ?, ?, ?)''',
@@ -413,7 +414,7 @@ def pay_all_debtor(debtor_id):
                     cur.execute('''UPDATE debtor_tickets SET status = 'paid' WHERE id = ?''', (ticket_id,))
                     # Record sale
                     cur.execute('''INSERT INTO sales (date, total, payment_method) 
-                                   VALUES (CURRENT_TIMESTAMP, ?, ?)''', (remaining, payment_method))
+                                   VALUES (?, ?, ?)''', (now_local(), remaining, payment_method))
             
             conn.commit()
         

@@ -64,6 +64,10 @@ init_db_core(DB_FILE)
 def index():
     return redirect(url_for('inventory.inventory'))
 
+@app.route('/', methods=['POST'])
+def index_post():
+    return redirect(url_for('inventory.inventory'))
+
 # --- RUN FUNCTION ---
 def start_server():
     #time.sleep(60) # Sleep for testing wait_for_server function
