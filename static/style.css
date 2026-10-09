@@ -284,3 +284,12 @@
         border-radius: 4px;
         font-size: 0.9rem;
     }
+
+    /* Kill modal fade transitions: prevents Bootstrap show/hide
+       transition desyncs that leave orphaned dialogs/backdrops.
+       Verified against the "stuck delete modal" bug (2026-10). */
+    .modal,
+    .modal-backdrop,
+    .modal.fade .modal-dialog {
+        transition: none !important;
+    }

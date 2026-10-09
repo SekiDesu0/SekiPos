@@ -488,30 +488,52 @@ permanentemente', 'executeBulkDelete()') %}
         bulkModal.show();
     }
 
+    // --- Bulk confirmation handler state ---
+    let isBulkProcessing = false;
+
     async function executeBulkPrice() {
+        if (isBulkProcessing) return;
+        isBulkProcessing = true;
+
+        const confirmBtn = document.querySelector('#bulkConfirmModal .btn-accent');
+        const originalBtnText = confirmBtn.innerHTML;
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Aplicando...';
+
         const price = document.getElementById('bulk-price-input').value;
         const checked = document.querySelectorAll('.product-checkbox:checked');
         const barcodes = Array.from(checked).map(cb => cb.closest('tr').getAttribute('data-barcode'));
 
-        const res = await fetch('/bulk_price_update', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ barcodes, new_price: price })
-        });
-
-        if (res.ok) {
-            checked.forEach(cb => {
-                const cell = cb.closest('tr').querySelector('.price-cell');
-                cell.setAttribute('data-value', price);
-                cell.innerText = clp.format(price);
-                cb.checked = false;
+        try {
+            const res = await fetch('/bulk_price_update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ barcodes, new_price: price })
             });
-            document.getElementById('bulk-price-input').value = '';
-            updateBulkBar();
 
-            // Hide modal
-            const modalEl = document.getElementById('bulkConfirmModal');
-            bootstrap.Modal.getInstance(modalEl).hide();
+            if (res.ok) {
+                checked.forEach(cb => {
+                    const cell = cb.closest('tr').querySelector('.price-cell');
+                    cell.setAttribute('data-value', price);
+                    cell.innerText = clp.format(price);
+                    cb.checked = false;
+                });
+                document.getElementById('bulk-price-input').value = '';
+                updateBulkBar();
+
+                const modalEl = document.getElementById('bulkConfirmModal');
+                bootstrap.Modal.getInstance(modalEl).hide();
+            } else {
+                const data = await res.json().catch(() => ({}));
+                alert("Error al actualizar precios: " + (data.error || "Desconocido"));
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Error de conexión.");
+        } finally {
+            isBulkProcessing = false;
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = originalBtnText;
         }
     }
 
@@ -525,25 +547,43 @@ permanentemente', 'executeBulkDelete()') %}
     }
 
     async function executeBulkDelete() {
+        if (isBulkProcessing) return;
+        isBulkProcessing = true;
+
+        const confirmBtn = document.querySelector('#bulkDeleteModal .btn-danger-discord');
+        const originalBtnText = confirmBtn.innerHTML;
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Eliminando...';
+
         const checked = document.querySelectorAll('.product-checkbox:checked');
         const barcodes = Array.from(checked).map(cb => cb.closest('tr').getAttribute('data-barcode'));
 
-        const res = await fetch('/bulk_delete', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ barcodes })
-        });
-
-        if (res.ok) {
-            checked.forEach(cb => {
-                cb.closest('tr').remove(); // Remove the row from the table immediately
+        try {
+            const res = await fetch('/bulk_delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ barcodes })
             });
-            updateBulkBar();
 
-            const modalEl = document.getElementById('bulkDeleteModal');
-            bootstrap.Modal.getInstance(modalEl).hide();
-        } else {
-            alert("Error al eliminar productos.");
+            if (res.ok) {
+                checked.forEach(cb => {
+                    cb.closest('tr').remove(); // Remove the row from the table immediately
+                });
+                updateBulkBar();
+
+                const modalEl = document.getElementById('bulkDeleteModal');
+                bootstrap.Modal.getInstance(modalEl).hide();
+            } else {
+                const data = await res.json().catch(() => ({}));
+                alert("Error al eliminar productos: " + (data.error || "Desconocido"));
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Error de conexión.");
+        } finally {
+            isBulkProcessing = false;
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = originalBtnText;
         }
     }
 

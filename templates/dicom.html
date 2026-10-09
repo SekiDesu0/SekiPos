@@ -257,6 +257,14 @@
 {% block scripts %}
 <script>
     const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 });
+
+    function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
     let currentDebtorId = null;
     let currentTicketId = null;
     let expandedDebtorId = null;
@@ -264,6 +272,7 @@
     let pendingPaymentMethod = null;
     let pendingPaymentAmount = 0;
     let deleteCallback = null;
+    let isDicomProcessing = false;
 
     function formatLocalDate(raw) {
         const m = String(raw || '').trim().match(/^(\d{4})-(\d{2})-(\d{2})(?: (\d{2}):(\d{2}))?/);
@@ -409,6 +418,7 @@
 
     // Keyboard shortcuts for payment modal
     document.addEventListener('keydown', function(e) {
+        if (isDicomProcessing || e.repeat) return;
         const modal = document.getElementById('paymentModal');
         if (modal.classList.contains('show')) {
             if (e.key === '1') confirmPayment('efectivo');
@@ -504,8 +514,10 @@
     }
 
     async function confirmPayment(paymentMethod) {
+        if (isDicomProcessing) return;
+
         const amount = pendingPaymentAmount;
-        
+
         if (paymentMethod === 'efectivo') {
             pendingPaymentMethod = paymentMethod;
             document.getElementById('dicom-vuelto-total').innerText = clp.format(amount);
@@ -513,8 +525,7 @@
             input.value = '';
             document.getElementById('dicom-vuelto-amount').innerText = '$0';
             document.getElementById('dicom-vuelto-amount').className = 'fs-1 fw-bold text-success';
-            document.getElementById('btn-confirm-dicom-vuelto').disabled = false;
-            
+
             const quickBox = document.getElementById('dicom-vuelto-quick-buttons');
             quickBox.innerHTML = `<button class="btn btn-sm btn-outline-secondary fw-bold" onclick="setDicomVuelto(${amount})">Exacto</button>`;
             [2000, 5000, 10000, 20000].forEach(bill => {
@@ -522,12 +533,13 @@
                     quickBox.innerHTML += `<button class="btn btn-sm btn-outline-secondary fw-bold" onclick="setDicomVuelto(${bill})">${clp.format(bill)}</button>`;
                 }
             });
-            
+
             bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
             bootstrap.Modal.getOrCreateInstance(document.getElementById('dicomVueltoModal')).show();
             return;
         }
-        
+
+        isDicomProcessing = true;
         await processDicomPayment(amount, paymentMethod);
     }
 
@@ -553,8 +565,19 @@
     }
 
     async function confirmDicomPayment() {
+        if (isDicomProcessing) return;
+        isDicomProcessing = true;
+
+        const confirmBtn = document.getElementById('btn-confirm-dicom-vuelto');
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando...';
+
         await processDicomPayment(pendingPaymentAmount, pendingPaymentMethod);
         bootstrap.Modal.getInstance(document.getElementById('dicomVueltoModal')).hide();
+
+        isDicomProcessing = false;
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = 'Confirmar Pago';
     }
 
     async function processDicomPayment(amount, paymentMethod) {
@@ -563,13 +586,13 @@
             if (payAllMode) {
                 res = await fetch(`/api/dicom/debtor/${currentDebtorId}/pay-all`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': generateUUID() },
                     body: JSON.stringify({ amount: amount, payment_method: paymentMethod })
                 });
             } else {
                 res = await fetch(`/api/dicom/pay`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': generateUUID() },
                     body: JSON.stringify({ ticket_id: currentTicketId, amount: amount, payment_method: paymentMethod })
                 });
             }
@@ -587,6 +610,8 @@
             }
         } catch (e) {
             alert('Error de conexión');
+        } finally {
+            isDicomProcessing = false;
         }
     }
 </script>

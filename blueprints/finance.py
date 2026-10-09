@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from core.db import get_db_connection, now_local
+from core.idempotency import idempotency_key
 
 finance_bp = Blueprint('finance', __name__)
 
@@ -45,36 +46,9 @@ def get_debtor_details(debtor_id):
     
     return jsonify(result)
 
-@finance_bp.route('/api/dicom/debtor/<int:debtor_id>/pay', methods=['POST'])
-@login_required
-def pay_debtor_ticket(debtor_id):
-    data = request.get_json()
-    ticket_id = data.get('ticket_id')
-    amount = float(data.get('amount', 0))
-    
-    if not ticket_id or amount <= 0:
-        return jsonify({"error": "Monto inválido"}), 400
-    
-    with get_db_connection() as conn:
-        conn.execute('''UPDATE debtor_tickets 
-                       SET amount_paid = amount_paid + ?,
-                           status = CASE WHEN (total - amount_paid - ?) <= 0 THEN 'paid' ELSE 'partial' END
-                       WHERE id = ?''', (amount, amount, ticket_id))
-        
-        # Update status based on final values
-        conn.execute('''UPDATE debtor_tickets 
-                       SET status = CASE 
-                           WHEN total - amount_paid <= 0 THEN 'paid'
-                           WHEN amount_paid > 0 THEN 'partial'
-                           ELSE 'unpaid'
-                       END
-                       WHERE id = ?''', (ticket_id,))
-        conn.commit()
-    
-    return jsonify({"status": "success"})
-
 @finance_bp.route('/api/dicom/pay', methods=['POST'])
 @login_required
+@idempotency_key
 def dicom_pay():
     data = request.get_json()
     ticket_id = data.get('ticket_id')
@@ -103,52 +77,27 @@ def dicom_pay():
             # Insert into sales table to track daily revenue
             cur.execute('''INSERT INTO sales (date, total, payment_method) 
                            VALUES (?, ?, ?)''', (now_local(), amount, payment_method))
-            
+            sale_id = cur.lastrowid
+
+            # If this payment settles the ticket, attach the ticket's products
+            # to the sale so they show up in the sales detail view.
+            ticket_status = cur.execute('SELECT status FROM debtor_tickets WHERE id = ?', (ticket_id,)).fetchone()
+            if ticket_status and ticket_status[0] == 'paid':
+                items = cur.execute('''SELECT name, price, quantity, subtotal
+                                       FROM debtor_ticket_items WHERE ticket_id = ?''',
+                                    (ticket_id,)).fetchall()
+                for name, price, quantity, subtotal in items:
+                    cur.execute('''INSERT INTO sale_items
+                                   (sale_id, barcode, name, price, quantity, subtotal)
+                                   VALUES (?, ?, ?, ?, ?, ?)''',
+                                (sale_id, f'DICOM-{ticket_id}', name, price, quantity, subtotal))
+
             conn.commit()
             
         return jsonify({"status": "success", "amount": amount}), 200
         
     except Exception as e:
         print(f"Dicom Pay Error: {e}")
-        return jsonify({"error": str(e)}), 500
-
-@finance_bp.route('/api/dicom/update', methods=['POST'])
-@login_required
-def update_dicom():
-    data = request.get_json()
-    name = data.get('name', '').strip()
-    amount = float(data.get('amount', 0))
-    notes = data.get('notes', '')
-    image_url = data.get('image_url', '')
-    action = data.get('action')
-    
-    if not name or amount <= 0:
-        return jsonify({"error": "Nombre y monto válidos son requeridos"}), 400
-        
-    if action == 'add':
-        amount = -amount
-
-    with get_db_connection() as conn:
-        cur = conn.cursor()
-        cur.execute('''INSERT INTO dicom (name, amount, notes, image_url, last_updated) 
-                           VALUES (?, ?, ?, ?, ?)
-                           ON CONFLICT(name) DO UPDATE SET 
-                           amount = amount + excluded.amount,
-                           notes = excluded.notes,
-                           image_url = CASE WHEN excluded.image_url != "" THEN excluded.image_url ELSE dicom.image_url END,
-                           last_updated = excluded.last_updated''', (name, amount, notes, image_url, now_local()))
-        conn.commit()
-    return jsonify({"status": "success"}), 200
-
-@finance_bp.route('/api/dicom/<int:debtor_id>', methods=['DELETE'])
-@login_required
-def delete_dicom(debtor_id):
-    try:
-        with get_db_connection() as conn:
-            conn.execute('DELETE FROM dicom WHERE id = ?', (debtor_id,))
-            conn.commit()
-        return jsonify({"status": "success"}), 200
-    except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @finance_bp.route('/gastos')
@@ -198,6 +147,7 @@ def gastos():
 
 @finance_bp.route('/api/gastos', methods=['POST'])
 @login_required
+@idempotency_key
 def add_gasto():
     data = request.get_json()
     date = data.get('date', '')
@@ -250,6 +200,7 @@ def get_debtors():
 
 @finance_bp.route('/api/dicom/checkout', methods=['POST'])
 @login_required
+@idempotency_key
 def dicom_checkout():
     try:
         data = request.get_json()
@@ -385,6 +336,7 @@ def delete_item(item_id):
 
 @finance_bp.route('/api/dicom/debtor/<int:debtor_id>/pay-all', methods=['POST'])
 @login_required
+@idempotency_key
 def pay_all_debtor(debtor_id):
     try:
         data = request.get_json()
@@ -415,6 +367,17 @@ def pay_all_debtor(debtor_id):
                     # Record sale
                     cur.execute('''INSERT INTO sales (date, total, payment_method) 
                                    VALUES (?, ?, ?)''', (now_local(), remaining, payment_method))
+                    sale_id = cur.lastrowid
+
+                    # Attach the ticket's products so they show up in sales detail
+                    items = cur.execute('''SELECT name, price, quantity, subtotal
+                                           FROM debtor_ticket_items WHERE ticket_id = ?''',
+                                        (ticket_id,)).fetchall()
+                    for name, price, quantity, subtotal in items:
+                        cur.execute('''INSERT INTO sale_items
+                                       (sale_id, barcode, name, price, quantity, subtotal)
+                                       VALUES (?, ?, ?, ?, ?, ?)''',
+                                    (sale_id, f'DICOM-{ticket_id}', name, price, quantity, subtotal))
             
             conn.commit()
         

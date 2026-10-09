@@ -5,6 +5,7 @@ from flask_login import login_required, current_user
 from core.db import get_db_connection, now_local
 from core.openfood import fetch_from_openfoodfacts
 from core.events import socketio
+from core.idempotency import idempotency_key
 
 pos_bp = Blueprint('pos', __name__)
 
@@ -67,6 +68,7 @@ def scan():
 
 @pos_bp.route('/api/checkout', methods=['POST'])
 @login_required
+@idempotency_key
 def process_checkout():
     try:
         data = request.get_json()

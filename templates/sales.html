@@ -202,6 +202,15 @@
 <script>
     const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 });
     let saleToReverse = null;
+    let isSaleProcessing = false;
+
+    function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
 
     function formatLocalDate(raw) {
         const m = String(raw || '').trim().match(/^(\d{4})-(\d{2})-(\d{2})(?: (\d{2}):(\d{2}))?/);
@@ -262,9 +271,14 @@
         }
     }
 
+    let isReprintProcessing = false;
+
     async function reprintSale(id, total, rawDate) {
+        if (isReprintProcessing) return;
+        isReprintProcessing = true;
+
         const tbody = document.getElementById('receipt-items-print');
-        
+
         try {
             const res = await fetch(`/api/sale/${id}`);
             const items = await res.json();
@@ -292,6 +306,8 @@
         } catch (err) {
             console.error(err);
             alert("Error al preparar la impresión.");
+        } finally {
+            isReprintProcessing = false;
         }
     }
 
@@ -325,20 +341,31 @@
     }
 
     async function executeReverseSale() {
-        if (!saleToReverse) return;
+        if (!saleToReverse || isSaleProcessing) return;
+        isSaleProcessing = true;
+
+        const confirmBtn = document.querySelector('#reverseConfirmModal .btn-danger');
+        confirmBtn.disabled = true;
 
         try {
-            const res = await fetch(`/api/sale/${saleToReverse}`, { method: 'DELETE' });
+            const res = await fetch(`/api/sale/${saleToReverse}`, {
+                method: 'DELETE',
+                headers: { 'X-Idempotency-Key': generateUUID() }
+            });
 
             if (res.ok) {
                 window.location.reload(); // Refresh the dashboard
             } else {
                 const data = await res.json();
                 alert("Error anulando la venta: " + (data.error || "Desconocido"));
+                isSaleProcessing = false;
+                confirmBtn.disabled = false;
             }
         } catch (err) {
             console.error(err);
             alert("Error de conexión con el servidor.");
+            isSaleProcessing = false;
+            confirmBtn.disabled = false;
         }
     }
 </script>

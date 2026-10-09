@@ -130,7 +130,16 @@
 {% block scripts %}
 <script>
     const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 });
+
+    function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
     let gastoToDelete = null;
+    let isGastoProcessing = false;
 
     function todayLocal() {
         const d = new Date();
@@ -217,10 +226,18 @@
     }
 
     async function submitGasto() {
+        if (isGastoProcessing) return;
+        isGastoProcessing = true;
+
+        const saveBtn = document.querySelector('button[onclick="submitGasto()"]');
+        const originalBtnText = saveBtn.innerHTML;
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Guardando...';
+
         const dateInput = document.getElementById('gasto-date');
         const descInput = document.getElementById('gasto-desc');
         const montoInput = document.getElementById('gasto-monto');
-        
+
         const date = dateInput.value;
         const desc = descInput.value.trim();
         const rawMonto = montoInput.value.replace(/\./g, '');
@@ -228,13 +245,16 @@
 
         if (!desc || isNaN(amount) || amount <= 0) {
             alert("Por favor ingresa una descripción y un monto válido.");
+            isGastoProcessing = false;
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalBtnText;
             return;
         }
 
         try {
             const res = await fetch('/api/gastos', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': generateUUID() },
                 body: JSON.stringify({ date: date, description: desc, amount: amount })
             });
 
@@ -245,9 +265,15 @@
                 window.location.href = window.location.pathname + window.location.search;
             } else {
                 alert("Error al guardar el gasto.");
+                isGastoProcessing = false;
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalBtnText;
             }
         } catch (err) {
             alert("Error de conexión.");
+            isGastoProcessing = false;
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = originalBtnText;
         }
     }
 
@@ -257,18 +283,26 @@
         bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteGastoModal')).show();
     }
 
-    // Execute the backend call
     async function executeDeleteGasto() {
-        if (!gastoToDelete) return;
+        if (!gastoToDelete || isGastoProcessing) return;
+        isGastoProcessing = true;
+
+        const deleteBtn = document.querySelector('#deleteGastoModal .btn-danger');
+        deleteBtn.disabled = true;
+
         try {
             const res = await fetch(`/api/gastos/${gastoToDelete}`, { method: 'DELETE' });
             if (res.ok) {
                 window.location.href = window.location.pathname + window.location.search;
             } else {
                 alert("Error al eliminar.");
+                isGastoProcessing = false;
+                deleteBtn.disabled = false;
             }
         } catch (err) {
             alert("Error de conexión.");
+            isGastoProcessing = false;
+            deleteBtn.disabled = false;
         }
     }
 </script>

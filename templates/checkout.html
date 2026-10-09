@@ -71,7 +71,7 @@
                         <div class="col-8">
                             <label class="form-label text-muted small mb-1">Precio Unitario</label>
                             <input type="number" id="custom-price" class="form-control" placeholder="Ej: 1500"
-                                   onkeydown="if(event.key === 'Enter') { event.stopPropagation(); addCustomProduct(); }">
+                                   onkeydown="if(event.key === 'Enter' && !event.repeat) { event.stopPropagation(); addCustomProduct(); }">
                         </div>
                         <div class="col-4">
                             <label class="form-label text-muted small mb-1">Tipo</label>
@@ -105,7 +105,7 @@
                         <input type="text" inputmode="numeric" id="varios-price-input" class="form-control form-control-lg text-center fw-bold fs-4"
                             placeholder="$0" 
                             oninput="let v = this.value.replace(/\D/g, ''); this.value = v ? parseInt(v, 10).toLocaleString('es-CL') : '';"
-                            onkeydown="if(event.key === 'Enter') { event.stopPropagation(); addVariosToCart(); }">
+                            onkeydown="if(event.key === 'Enter' && !event.repeat) { event.stopPropagation(); addVariosToCart(); }">
                     </div>
                     <button class="btn btn-warning w-100 py-3 fw-bold" onclick="addVariosToCart()">
                         <i class="bi bi-cart-plus me-1"></i> Agregar al Carrito
@@ -123,7 +123,7 @@
                 </div>
                 <div class="modal-body">
                     <input type="number" id="weight-input" class="form-control form-control-lg" step="1"
-                           placeholder="Ej: 500" onkeydown="if(event.key === 'Enter') { event.stopPropagation(); confirmWeight(); }">
+                           placeholder="Ej: 500" onkeydown="if(event.key === 'Enter' && !event.repeat) { event.stopPropagation(); confirmWeight(); }">
                 </div>
                 <div class="modal-footer d-flex">
                     <button class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal">Cancelar</button>
@@ -153,7 +153,7 @@
                     </div>
                     <div class="mb-4">
                         <label class="form-label text-muted small mb-1">Detalles / Notas</label>
-                        <input type="text" id="order-notes" class="form-control" placeholder="Ej: Para llevar, Sin cebolla" autocomplete="off" onkeydown="if(event.key === 'Enter') confirmOrderDetails()">
+                        <input type="text" id="order-notes" class="form-control" placeholder="Ej: Para llevar, Sin cebolla" autocomplete="off" onkeydown="if(event.key === 'Enter' && !event.repeat) confirmOrderDetails()">
                     </div>
                     <button class="btn btn-primary w-100 py-2 fw-bold" onclick="confirmOrderDetails()">
                         Continuar al Pago <i class="bi bi-arrow-right ms-1"></i>
@@ -233,7 +233,7 @@
                         <input type="text" inputmode="numeric" id="quick-sale-amount" class="form-control form-control-lg text-center fw-bold fs-4"
                             placeholder="$0" 
                             oninput="let v = this.value.replace(/\D/g, ''); this.value = v ? parseInt(v, 10).toLocaleString('es-CL') : '';"
-                            onkeydown="if(event.key === 'Enter') processQuickSale()">
+                            onkeydown="if(event.key === 'Enter' && !event.repeat) processQuickSale()">
                     </div>
                     <button class="btn btn-primary w-100 py-3 fw-bold" onclick="processQuickSale()">
                         <i class="bi bi-lightning-charge me-1"></i> Finalizar Venta
@@ -374,7 +374,7 @@
                 </div>
                 <div class="modal-footer d-flex">
                     <button class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal">Cancelar</button>
-                    <button class="btn btn-danger flex-grow-1" onclick="processDicomCheckout()">
+                    <button class="btn btn-danger flex-grow-1" id="btn-dicom-checkout" onclick="processDicomCheckout()">
                         <i class="bi bi-send me-1"></i>Enviar a Dicom
                     </button>
                 </div>
@@ -557,14 +557,29 @@
     // The lock to prevent duplicate sales
     let isProcessing = false;
 
-    function isModalOpen() {
-        return !!document.querySelector('.modal.show');
-    }
+    let activeModalId = null;
 
     function safeShowModal(id) {
-        if (isModalOpen()) return;
-        bootstrap.Modal.getOrCreateInstance(document.getElementById(id)).show();
+        if (activeModalId) return;
+        const el = document.getElementById(id);
+        if (el.classList.contains('show') || el.classList.contains('showing')) return;
+        el.addEventListener('show.bs.modal', () => { activeModalId = id; });
+        el.addEventListener('hidden.bs.modal', () => { if (activeModalId === id) activeModalId = null; });
+        bootstrap.Modal.getOrCreateInstance(el).show();
     }
+
+    // Sweeper: if a modal hide leaves orphaned backdrops or body state behind,
+    // clean it up so a "stuck" overlay can never persist.
+    document.addEventListener('hidden.bs.modal', function () {
+        setTimeout(() => {
+            if (!document.querySelector('.modal.show')) {
+                document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.removeProperty('overflow');
+                document.body.style.removeProperty('padding-right');
+            }
+        }, 400);
+    });
 
     // Fetch the pinned items from local storage
     let pinnedBarcodes = JSON.parse(localStorage.getItem('seki_pinned_products')) || [];
@@ -590,6 +605,14 @@
         currency: 'CLP',
         minimumFractionDigits: 0
     });
+
+    function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
 
     const allProducts = [
         {% for p in products %}
@@ -712,20 +735,29 @@
         renderCart();
     }
 
+    let isRemoveProcessing = false;
+
+    // TEMP DIAGNOSTIC: remove after the stuck-modal bug is confirmed fixed
+    // eslint-disable-next-line
+    window._sekiDiag = () => console.trace('removeItem stack');
+
     function removeItem(idx) {
+        console.log('[DIAG] removeItem invoked for', idx);
+        window._sekiDiag();
         itemIndexToRemove = idx;
         document.getElementById('removeItemName').innerText = cart[idx].name;
         safeShowModal('removeConfirmModal');
     }
 
     function executeRemoveItem() {
-        if (itemIndexToRemove !== null) {
-            cart.splice(itemIndexToRemove, 1);
-            saveCart();
-            renderCart();
-            bootstrap.Modal.getInstance(document.getElementById('removeConfirmModal')).hide();
-            itemIndexToRemove = null;
-        }
+        if (isRemoveProcessing || itemIndexToRemove === null) return;
+        isRemoveProcessing = true;
+        cart.splice(itemIndexToRemove, 1);
+        saveCart();
+        renderCart();
+        bootstrap.Modal.getInstance(document.getElementById('removeConfirmModal')).hide();
+        itemIndexToRemove = null;
+        setTimeout(() => { isRemoveProcessing = false; }, 150);
     }
 
     function clearCart() {
@@ -1129,7 +1161,7 @@
         try {
             const response = await fetch('/api/checkout', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': generateUUID() },
                 body: JSON.stringify({ cart: cart, payment_method: method })
             });
             const result = await response.json();
@@ -1155,6 +1187,7 @@
             alert("Error de conexión."); 
         } finally {
             isProcessing = false;
+            confirmBtn.disabled = false;
             confirmBtn.innerHTML = originalBtnText;
         }
     }
@@ -1193,7 +1226,7 @@
         try {
             const response = await fetch('/api/checkout', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': generateUUID() },
                 body: JSON.stringify({ cart: quickCart, payment_method: 'efectivo' })
             });
             const result = await response.json();
@@ -1412,25 +1445,35 @@
     }
 
     async function processDicomCheckout() {
-        // Check if selecting existing or entering new
+        if (isProcessing) return;
+        isProcessing = true;
+
+        const dicomBtn = document.querySelector('#dicomModal .btn-danger');
+        const originalDicomText = dicomBtn.innerHTML;
+        dicomBtn.disabled = true;
+        dicomBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando...';
+
         const select = document.getElementById('dicom-debtor-select');
         const nameInput = document.getElementById('dicom-debtor-name');
-        
+
         let debtorName = select.value || nameInput.value.trim();
         const contactInfo = document.getElementById('dicom-contact-info').value.trim();
         const paymentInput = document.getElementById('dicom-initial-payment').value.replace(/\./g, '');
         const initialPayment = parseInt(paymentInput) || 0;
         const initialMethod = document.getElementById('dicom-initial-method').value;
-        
+
         if (!debtorName) {
             alert('Por favor ingresa el nombre del deudor.');
+            isProcessing = false;
+            dicomBtn.disabled = false;
+            dicomBtn.innerHTML = originalDicomText;
             return;
         }
-        
+
         try {
             const res = await fetch('/api/dicom/checkout', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-Idempotency-Key': generateUUID() },
                 credentials: 'same-origin',
                 body: JSON.stringify({
                     cart: cart,
@@ -1440,17 +1483,16 @@
                     initial_method: initialMethod
                 })
             });
-            
+
             const result = await res.json();
-            
+
             if (res.ok) {
                 bootstrap.Modal.getInstance(document.getElementById('dicomModal')).hide();
                 document.getElementById('dicom-success-ticket-id').textContent = result.ticket_id;
                 document.getElementById('dicom-success-debtor').textContent = result.debtor;
                 safeShowModal('dicomSuccessModal');
                 setTimeout(() => location.reload(), 2500);
-                
-                // Clear cart
+
                 cart = [];
                 saveCart();
                 renderCart();
@@ -1461,6 +1503,10 @@
         } catch (e) {
             console.error(e);
             alert('Error de conexión.');
+        } finally {
+            isProcessing = false;
+            dicomBtn.disabled = false;
+            dicomBtn.innerHTML = originalDicomText;
         }
     }
 
@@ -1559,17 +1605,20 @@
         // 2. Payment Modal Selection: 1 for Efectivo, 2 for Tarjeta, 3 for Transferencia
         if (openModal && openModal.id === 'paymentModal') {
             if (event.code === 'Numpad1' || event.key === '1') {
+                if (isProcessing) return;
                 event.preventDefault();
                 openVueltoModal();
                 return;
             }
             if (event.code === 'Numpad2' || event.key === '2') {
+                if (isProcessing) return;
                 event.preventDefault();
                 executeCheckout('tarjeta');
                 return;
             }
             // NEW TRANSFER SHORTCUT
             if (event.code === 'Numpad3' || event.key === '3') {
+                if (isProcessing) return;
                 event.preventDefault();
                 executeCheckout('transferencia');
                 return;

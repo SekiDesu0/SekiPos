@@ -41,14 +41,6 @@ def init_db(db_file):
                          subtotal REAL,
                          FOREIGN KEY(sale_id) REFERENCES sales(id))''')
         
-        conn.execute("""CREATE TABLE IF NOT EXISTS dicom 
-                        (id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                         name TEXT UNIQUE, 
-                         amount REAL DEFAULT 0, 
-                         notes TEXT,
-                         image_url TEXT,
-                         last_updated TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S','now','localtime')))""")
-        
         conn.execute('''CREATE TABLE IF NOT EXISTS debtors 
                         (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                          name TEXT UNIQUE, 
@@ -72,6 +64,11 @@ def init_db(db_file):
                          quantity REAL, 
                          subtotal REAL,
                          FOREIGN KEY(ticket_id) REFERENCES debtor_tickets(id) ON DELETE CASCADE)''')
+
+        conn.execute('''CREATE TABLE IF NOT EXISTS idempotency_keys 
+                        (key TEXT PRIMARY KEY, 
+                         endpoint TEXT NOT NULL,
+                         created_at TEXT DEFAULT (strftime('%Y-%m-%d %H:%M:%S','now','localtime')))''')
         
         user = conn.execute('SELECT * FROM users WHERE username = ?', ('admin',)).fetchone()
         if not user:

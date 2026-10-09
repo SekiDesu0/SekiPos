@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify, send_file, current_app
 from flask_login import login_required, current_user
 from core.db import get_db_connection, now_local
+from core.idempotency import idempotency_key
 import io
 import zipfile
 from datetime import datetime
@@ -125,6 +126,7 @@ def get_sale_details(sale_id):
 
 @sales_bp.route('/api/sale/<int:sale_id>', methods=['DELETE'])
 @login_required
+@idempotency_key
 def reverse_sale(sale_id):
     try:
         with get_db_connection() as conn:

@@ -94,5 +94,5 @@ def run_standalone():
     webview.start(private_mode=False)
 
 if __name__ == '__main__':
-    run_standalone()  # Uncomment for desktop app, comment for server mode
-    #socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True) # Comment for desktop app, uncomment for server mode
+    #run_standalone()  # Uncomment for desktop app, comment for server mode
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True) # Comment for desktop app, uncomment for server mode
