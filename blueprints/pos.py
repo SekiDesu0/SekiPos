@@ -1,13 +1,28 @@
 import os
 import time
-from flask import Blueprint, render_template, request, jsonify, current_app
+import uuid
+from flask import Blueprint, render_template, request, jsonify, current_app, session
 from flask_login import login_required, current_user
 from core.db import get_db_connection, now_local
 from core.openfood import fetch_from_openfoodfacts
 from core.events import socketio
+from core import active_page
 from core.idempotency import idempotency_key
 
 pos_bp = Blueprint('pos', __name__)
+
+@pos_bp.route('/api/session/active-page', methods=['POST'])
+@login_required
+def announce_active_page():
+    data = request.get_json(silent=True) or {}
+    page = data.get('page', '')
+    sid = session.get('seki_sid')
+    if not sid:
+        sid = str(uuid.uuid4())
+        session['seki_sid'] = sid
+    if active_page.announce(sid, page):
+        return jsonify({"status": "ok"}), 200
+    return jsonify({"error": "Página inválida"}), 400
 
 @pos_bp.route('/checkout')
 @login_required
@@ -21,14 +36,20 @@ def scan():
     barcode = request.args.get('content', '').replace('{content}', '')
     if not barcode: 
         return jsonify({"status": "error", "message": "empty barcode"}), 400
-    
+
+    # Open Food Facts lookups only happen while the operator is working
+    # in Inventory. Everywhere else (checkout, bridge scans, idle server)
+    # scanning stays fully offline.
+    sid = session.get('seki_sid')
+    enable_fetch = (active_page.current_page(sid) == 'inventory')
+
     with get_db_connection() as conn:
         p = conn.execute('SELECT barcode, name, price, image_url, stock, unit_type FROM products WHERE barcode = ?', (barcode,)).fetchone()
     
     if p:
         barcode_val, name, price, image_path, stock, unit_type = p        
         
-        if image_path and image_path.startswith('/static/'):
+        if enable_fetch and image_path and image_path.startswith('/static/'):
             clean_path = image_path.split('?')[0].lstrip('/')
             if not os.path.exists(clean_path):
                 cache_dir = current_app.config['CACHE_DIR']
@@ -51,17 +72,18 @@ def scan():
         socketio.emit('new_scan', product_data)
         return jsonify({"status": "ok", "data": product_data}), 200
     
-    cache_dir = current_app.config['CACHE_DIR']
-    ext = fetch_from_openfoodfacts(barcode, cache_dir)
-    if ext:
-        external_data = {
-            "barcode": barcode, 
-            "name": ext['name'], 
-            "image": ext['image'],
-            "source": "openfoodfacts"
-        }
-        socketio.emit('scan_error', external_data)
-        return jsonify({"status": "not_found", "data": external_data}), 404
+    if enable_fetch:
+        cache_dir = current_app.config['CACHE_DIR']
+        ext = fetch_from_openfoodfacts(barcode, cache_dir)
+        if ext:
+            external_data = {
+                "barcode": barcode, 
+                "name": ext['name'], 
+                "image": ext['image'],
+                "source": "openfoodfacts"
+            }
+            socketio.emit('scan_error', external_data)
+            return jsonify({"status": "not_found", "data": external_data}), 404
     
     socketio.emit('scan_error', {"barcode": barcode})
     return jsonify({"status": "not_found", "data": {"barcode": barcode}}), 404

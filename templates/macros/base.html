@@ -63,6 +63,31 @@
     <script src="{{ url_for('static', filename='bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='cookieStuff.js') }}"></script>
     <script src="{{ url_for('static', filename='themeStuff.js') }}"></script>
+
+    {% if active_page %}
+    <script>
+        // Tell the server which page is active (drives offline/online
+        // behavior of barcode scans per-page). Re-announced on focus
+        // and on a 60s heartbeat so multi-tab usage tracks the focused tab.
+        (function() {
+            const PAGE_NAME = '{{ active_page }}';
+
+            function announceActivePage() {
+                fetch('/api/session/active-page', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    keepalive: true,
+                    body: JSON.stringify({ page: PAGE_NAME })
+                }).catch(() => {});
+            }
+
+            announceActivePage();
+            window.addEventListener('focus', announceActivePage);
+            setInterval(announceActivePage, 60000);
+        })();
+    </script>
+    {% endif %}
     
     {% block scripts %}{% endblock %}
 </body>
