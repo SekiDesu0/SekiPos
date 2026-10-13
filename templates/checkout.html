@@ -560,11 +560,19 @@
     let activeModalId = null;
 
     function safeShowModal(id) {
-        if (activeModalId) return;
         const el = document.getElementById(id);
+        // A lock only counts while its holder is actually open. If the holder is
+        // mid-hide (hidden event fires asynchronously after hide()), the lock is
+        // stale and must not block the next modal. Otherwise modal->modal
+        // transitions (vuelto, success, temp product, ...) would never appear.
+        if (activeModalId) {
+            const lockEl = document.getElementById(activeModalId);
+            if (lockEl && lockEl !== el && lockEl.classList.contains('show')) return;
+            activeModalId = null;
+        }
         if (el.classList.contains('show') || el.classList.contains('showing')) return;
-        el.addEventListener('show.bs.modal', () => { activeModalId = id; });
-        el.addEventListener('hidden.bs.modal', () => { if (activeModalId === id) activeModalId = null; });
+        el.addEventListener('show.bs.modal', () => { activeModalId = id; }, { once: true });
+        el.addEventListener('hidden.bs.modal', () => { if (activeModalId === id) activeModalId = null; }, { once: true });
         bootstrap.Modal.getOrCreateInstance(el).show();
     }
 
@@ -1086,7 +1094,8 @@
     }
 
     function openVueltoModal() {
-        bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+        const pModal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'));
+        if (pModal) pModal.hide();
         const total = cart.reduce((sum, item) => sum + item.subtotal, 0);
         
         document.getElementById('vuelto-total-display').innerText = clp.format(total);
@@ -1105,8 +1114,9 @@
             }
         });
 
+        document.getElementById('vueltoModal').addEventListener('shown.bs.modal', () => input.focus(), { once: true });
         safeShowModal('vueltoModal');
-        input.focus(); // Instant focus
+        input.focus(); // vueltoModal shows synchronously (no fade); shown listener covers the async case
     }
 
     function setMonto(amount) {
